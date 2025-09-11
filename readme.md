@@ -4,6 +4,7 @@ Ta wersja jest używana na serwerze Nostalgia (54.38.195.168:27277)
 
 Co wyróżnia tą wersję od jrandomskills?
 - Dodatkowe null checki by zminimalizować ryzyko zawieszenia serwera
+- Usunąłem CS2FlashingHudFix ponieważ znacznie zwiększa zużycie procesora i psuje rozgrzewkę.
 - Zmieniono wiadomość powitalną, by nauczyć graczy używania mocy.
 - Usunąłem supermoce, które nie podobają się graczom z serwera
 - Opis supermocy dostępny na środku ekranu, zamiast na czacie
