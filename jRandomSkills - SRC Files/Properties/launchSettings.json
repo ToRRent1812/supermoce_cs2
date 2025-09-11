@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "jRandomSkills": {
-      "commandName": "Project",
-      "nativeDebugging": true
-    }
-  }
-}
