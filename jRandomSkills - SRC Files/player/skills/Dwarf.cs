@@ -39,7 +39,7 @@ namespace jRandomSkills
                 playerInfo.SkillChance = newSize;
 
                 SkillUtils.ChangePlayerScale(player, newSize);
-                SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("dwarf")}{ChatColors.Lime}: " + Localization.GetTranslation("dwarf_desc2", newSize), false);
+                //SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("dwarf")}{ChatColors.Lime}: " + Localization.GetTranslation("dwarf_desc2", newSize), false);
             }
         }
 

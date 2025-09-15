@@ -233,9 +233,8 @@ namespace jRandomSkills
                 RandomPercentage = "",
             });
 
-            player.PrintToChat($" {ChatColors.DarkRed}UWAGA!{ChatColors.Green} By użyć niektórych supermocy, musisz zbindować sobie klawisz.");
-            player.PrintToChat($" {ChatColors.Green}By zapisać komendę na stałe, musisz wyjść z serwera i wpisać komendę w menu głównym.");
-            player.PrintToChat($" {ChatColors.Green}Żeby ustawić np. klawisz V, wpisz w konsolę {ChatColors.Yellow}bind v css_useskill");
+            player.PrintToChat($" {ChatColors.DarkRed}UWAGA!{ChatColors.Green} By użyć niektórych supermocy, musisz wcisnąć klawisz inspekcji broni lub zrobić dodatkowy bind.");
+            player.PrintToChat($" {ChatColors.Green}By zapisać własny klawisz na stałe, musisz wyjść z serwera i wpisać komendę {ChatColors.Yellow}bind v css_useskill{ChatColors.Green} w menu głównym.");
 
             /*const string defaultWelcomeMsg = "Welcome {PLAYER}, to the {SERVER_NAME} server!\n"
                 + "The current version of the jRandomSkills: {VERSION} ({SKILLS_COUNT} skills).\n\n"
@@ -296,6 +295,7 @@ namespace jRandomSkills
 
         private static HookResult RoundEnd(EventRoundEnd @event, GameEventInfo info)
         {
+            if(SkillUtils.IsWarmup()) return HookResult.Continue;
             foreach (var player in Utilities.GetPlayers())
             {
                 Instance.AddTimer(0.5f, () =>
@@ -394,6 +394,7 @@ namespace jRandomSkills
 
         private static void SetSkill()
         {
+            if(SkillUtils.IsWarmup()) return;
             var validPlayers = Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p .Team is CsTeam.CounterTerrorist or CsTeam.Terrorist).ToList();
 
             if (Config.LoadedConfig.Settings.GameMode == (int)Config.GameModes.TeamSkills)
@@ -423,6 +424,7 @@ namespace jRandomSkills
 
                 var skillPlayer = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (skillPlayer == null) continue;
+                skillPlayer.RandomPercentage = "";
 
                 if (player.PlayerPawn.Value == null || !player.PlayerPawn.IsValid)
                 {
@@ -433,8 +435,6 @@ namespace jRandomSkills
                 skillPlayer.IsDrawing = false;
                 jSkill_SkillInfo randomSkill = new(Skills.None, Config.GetValue<string>(Skills.None, "color"), false);
 
-                if (Instance?.GameRules != null && Instance?.GameRules.WarmupPeriod == false)
-                {
                     Config.GameModes gameMode = (Config.GameModes)Config.LoadedConfig.Settings.GameMode;
                     if (staticSkills.TryGetValue(player.SteamID, out var staticSkill))
                         randomSkill = staticSkill;
@@ -481,7 +481,6 @@ namespace jRandomSkills
                         debugSkills.RemoveAt(0);
                         player.PrintToChat($"{SkillData.Skills.Count - debugSkills.Count}/{SkillData.Skills.Count}");
                     }
-                }
 
                 //if (randomSkill.Display) SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{randomSkill.Name}{ChatColors.Lime}: {randomSkill.Description}", false);
 

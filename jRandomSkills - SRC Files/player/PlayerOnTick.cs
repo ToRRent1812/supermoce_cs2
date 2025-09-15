@@ -53,18 +53,20 @@ namespace jRandomSkills
             string infoLine = "";
             string skillLine = "";
 
-            if (SkillData.Skills.Count == 0)
+            if (SkillData.Skills.Count == 0 || SkillUtils.IsWarmup())
             {
-                infoLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("your_skill")}:</font> <br>";
-                skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("none")}</font>";
+                infoLine = "";
+                skillLine = "";
+                skillPlayer.IsDrawing = false;
+                skillPlayer.Skill = src.player.Skills.None;
             }
-            else if (skillPlayer.IsDrawing)
+            else if (skillPlayer.IsDrawing && !SkillUtils.IsWarmup())
             {
                 var randomSkill = SkillData.Skills[Instance.Random.Next(SkillData.Skills.Count)];
                 infoLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("drawing_skill")}</font> <br>";
                 skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{randomSkill.Color}'>{randomSkill.Name}</font>";
             }
-            else if (!skillPlayer.IsDrawing)
+            else if (!skillPlayer.IsDrawing && !SkillUtils.IsWarmup())
             {
                 if (player?.IsValid == true && player?.PawnIsAlive == true)
                 {

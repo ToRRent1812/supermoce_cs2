@@ -76,7 +76,7 @@ namespace jRandomSkills
                                         flying != 0
                                         ? $"<font class='fontSize-m' color='#FFFFFF'>{Localization.GetTranslation("active_hud_info", $"<font color='#00FF00'>{Math.Round(flying / 1000, 1)}</font>")}</font>"
                                         : $"<font class='fontSize-m' color='#FFFFFF'>{Localization.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}</font>"
-                                    ) : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font>";
+                                    ) : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>Wciśnij INSPEKT by użyć</font>";
 
             var hudContent = skillLine + remainingLine;
             player.PrintToCenterHtml(hudContent);

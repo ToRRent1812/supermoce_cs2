@@ -158,15 +158,15 @@ namespace jRandomSkills
 
             public Settings()
             {
-                LangCode = "en";
-                GameMode = (int)GameModes.NoRepeat;
+                LangCode = "pl";
+                GameMode = (int)GameModes.Normal;
                 KillerSkillInfo = true;
                 TeamMateSkillInfo = true;
-                SummaryAfterTheRound = true;
+                SummaryAfterTheRound = false;
                 DebugMode = true;
-                AlternativeSkillButton = null;
-                SkillTimeBeforeStart = 7;
-                SkillDescriptionDuration = 7;
+                AlternativeSkillButton = "Inspect";
+                SkillTimeBeforeStart = 4;
+                SkillDescriptionDuration = 0;
 
                 SetSkillCommands = new NormalCommand("ustawskill, ustaw_skill, setskill, set_skill, definirhabilidade, configurarhabilidade, 设置技能, 配置技能", "@jRandmosSkills/admin");
                 SkillsListCommands = new NormalCommand("supermoc, skille, listamocy, supermoce, skills, listaHabilidades, habilidades, 技能列表, 超能力列表", "@jRandmosSkills/admin");

@@ -76,7 +76,7 @@ namespace jRandomSkills
             if (playerPawn == null || !playerPawn.IsValid || playerPawn.CBodyComponent == null || playerPawn.CBodyComponent.SceneNode == null) return;
 
             playerPawn.CBodyComponent.SceneNode.Scale = scale;
-            playerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = scale;
+            //playerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = scale;
             playerPawn.AcceptInput("SetScale", null, null, scale.ToString());
             Server.NextFrame(() => Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_CBodyComponent"));
         }
@@ -179,14 +179,14 @@ namespace jRandomSkills
             var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == playerInfo.Skill);
             if (skillData == null) return;
 
-            string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("your_skill")}:</font> <br>";
+            //string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("your_skill")}:</font> <br>";
             string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>"
                 + $"<font color='green'>{Localization.GetTranslation($"{playerInfo.Skill.ToString().ToLower()}_select_info")}</font>";
 
             var manager = GetMenuManager();
             if (manager == null) return;
 
-            IWasdMenu menu = manager.CreateMenu(infoLine + skillLine, "<font class='fontSize-m' color='cyan'>W/S - Scroll</font> <font class='fontSize-m' color='white'>  |  </font> <font class='fontSize-m' color='green'>E - Select</font> <br>");
+            IWasdMenu menu = manager.CreateMenu(skillLine, "<font class='fontSize-m' color='cyan'>W/S - Przesuwanie</font> <font class='fontSize-m' color='white'>  |  </font> <font class='fontSize-m' color='green'>Rozbrojenie - Wybór</font> <br>");
             foreach (var enemy in enemies)
                 menu.Add(enemy.Item1, (p, option) =>
                 {
@@ -194,6 +194,14 @@ namespace jRandomSkills
                     manager.CloseMenu(p);
                 });
             manager.OpenMainMenu(player, menu);
+        }
+
+        public static bool IsWarmup()
+        {
+            var gameRules = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("cs_gamerules").Single().As<CCSGameRulesProxy>().GameRules!;
+            if (gameRules == null) return false;
+
+            return gameRules.WarmupPeriod;
         }
 
         public static void SetTeamScores(short ctScore, short tScore, RoundEndReason roundEndReason)

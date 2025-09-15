@@ -38,7 +38,7 @@ namespace jRandomSkills
             var victimInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
             var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
 
-            if (attackerInfo?.Skill == skillName && Instance.Random.Next(1,2) == 1)
+            if (attackerInfo?.Skill == skillName && Instance.Random.Next(1,4) == 1)
                 TeleportAttackerBehindVictim(attacker!, victim!);
         }
 
@@ -60,7 +60,7 @@ namespace jRandomSkills
             if (skillData == null) return;
 
             string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
-            string remainingLine = $"<font class='fontSize-m' color='#FF0000'>{Localization.GetTranslation("shade_nospace")}</font>";
+            string remainingLine = $"<font class='fontSize-s' color='#FF0000'>{Localization.GetTranslation("shade_nospace")}</font>";
             var hudContent = skillLine + remainingLine;
             player.PrintToCenterHtml(hudContent);
         }

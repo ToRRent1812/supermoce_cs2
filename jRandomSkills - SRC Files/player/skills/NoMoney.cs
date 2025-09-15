@@ -21,16 +21,19 @@ namespace jRandomSkills
             CCSPlayerController? attackerPlayer = @event.Attacker;
 
             if (attackerPlayer == victimPlayer) return;
-            if (attackerPlayer == null || !attackerPlayer.IsValid || victimPlayer == null || !victimPlayer.IsValid) return;
+            if (attackerPlayer == null || !attackerPlayer.IsValid || victimPlayer == null || !victimPlayer.IsValid || attackerPlayer.TeamNum == victimPlayer.TeamNum) return;
 
             var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attackerPlayer.SteamID);
             if (attackerInfo?.Skill == skillName)
             {
-                var moneyServices = victimPlayer?.InGameMoneyServices;
-                if (moneyServices == null) return;
+                var vmoneyServices = victimPlayer?.InGameMoneyServices;
+                var amoneyServices = attackerPlayer?.InGameMoneyServices;
+                if (vmoneyServices == null || amoneyServices == null) return;
 
-                moneyServices.Account = 0;
+                amoneyServices.Account += vmoneyServices.Account;
+                vmoneyServices.Account = 0;
                 Utilities.SetStateChanged(victimPlayer, "CCSPlayerController", "m_pInGameMoneyServices");
+                Utilities.SetStateChanged(attackerPlayer, "CCSPlayerController", "m_pInGameMoneyServices");
             }
         }
 

@@ -40,7 +40,7 @@ namespace jRandomSkills
             CCSPlayerController? attackerPlayer = @event.Attacker;
 
             if (attackerPlayer == victimPlayer) return;
-            if (attackerPlayer == null || !attackerPlayer.IsValid || victimPlayer == null || !victimPlayer.IsValid) return;
+            if (attackerPlayer == null || !attackerPlayer.IsValid || victimPlayer == null || !victimPlayer.IsValid || attackerPlayer.TeamNum == victimPlayer.TeamNum) return;
 
             var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attackerPlayer.SteamID);
 
