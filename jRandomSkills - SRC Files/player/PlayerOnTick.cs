@@ -14,9 +14,10 @@ namespace jRandomSkills
             Instance.RegisterListener<OnTick>(() =>
             {
                 //UpdateGameRules();
-                foreach (var player in Utilities.GetPlayers())
-                    if (player != null && player.IsValid)
-                        UpdatePlayerHud(player);
+                var validPlayers = Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV).ToArray();
+                if (validPlayers.Length > 0)
+                    foreach (var validPlayer in validPlayers)
+                        UpdatePlayerHud(validPlayer);
             });
 
             Instance.RegisterListener<OnMapStart>(OnMapStart);
@@ -68,7 +69,7 @@ namespace jRandomSkills
             }
             else if (!skillPlayer.IsDrawing && !SkillUtils.IsWarmup())
             {
-                if (player?.IsValid == true && player?.PawnIsAlive == true)
+                if (player?.PawnIsAlive == true)
                 {
                     var skillInfo = SkillData.Skills.FirstOrDefault(s => s.Skill == skillPlayer.Skill);
                     if (skillInfo != null)
@@ -76,12 +77,14 @@ namespace jRandomSkills
                         infoLine = !string.IsNullOrEmpty(skillPlayer.RandomPercentage) ? $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillInfo.Color}'>{skillInfo.Name} ({skillPlayer.RandomPercentage})</font> <br>" : $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillInfo.Color}'>{skillInfo.Name}</font> <br>";
                         skillLine = $"<font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>{skillInfo.Description}</font>";
                     }
-                } else if (player?.IsValid == true)
+                }
+                else
                 {
-                    var pawn = player.Pawn.Value;
+                    if(player.PlayerPawn.Value == null) return;
+                    var pawn = player.PlayerPawn.Value;
                     if (pawn == null) return;
 
-                    var observedPlayer = Utilities.GetPlayers().FirstOrDefault(p => p?.Pawn?.Value?.Handle == pawn?.ObserverServices?.ObserverTarget?.Value?.Handle);
+                    var observedPlayer = Utilities.GetPlayers().FirstOrDefault(p => p?.PlayerPawn?.Value?.Handle == pawn?.ObserverServices?.ObserverTarget?.Value?.Handle);
                     if (observedPlayer == null) return;
 
                     var observeredPlayerSkill = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == observedPlayer.SteamID);
@@ -103,7 +106,6 @@ namespace jRandomSkills
 
             if (string.IsNullOrEmpty(infoLine) && string.IsNullOrEmpty(skillLine)) return;
             var hudContent = infoLine + skillLine;
-            if (player == null || !player.IsValid) return;
             player.PrintToCenterHtml(hudContent);
         }
     }

@@ -343,5 +343,5 @@
   "summary_start": "======PODSUMOWANIE=Z=OSTATNIEJ=RUNDY======",
   "summary_end": "============================================",
 
-  "menu_controlls": "<font class='fontSize-m' color='cyan'>W/S – Przewijanie</font> <font class='fontSize-m' color='white'>  |  </font> <font class='fontSize-m' color='green'>Rozbrajanie - Wybór</font> <br>"
+  "menu_controlls": "<font class='fontSize-s' color='cyan'>W/S – Przewijanie</font> <font class='fontSize-s' color='white'>  |  </font> <font class='fontSize-s' color='green'>ROZBRAJANIE - wybór</font> <br>"
 }

@@ -186,7 +186,7 @@ namespace jRandomSkills
             var manager = GetMenuManager();
             if (manager == null) return;
 
-            IWasdMenu menu = manager.CreateMenu(skillLine, "<font class='fontSize-m' color='cyan'>W/S - Przesuwanie</font> <font class='fontSize-m' color='white'>  |  </font> <font class='fontSize-m' color='green'>Rozbrojenie - Wybór</font> <br>");
+            IWasdMenu menu = manager.CreateMenu(skillLine, "<font class='fontSize-s' color='cyan'>W/S - Przesuwanie</font> <font class='fontSize-s' color='white'>  |  </font> <font class='fontSize-s' color='green'>ROZBRAJANIE - Wybór</font> <br>");
             foreach (var enemy in enemies)
                 menu.Add(enemy.Item1, (p, option) =>
                 {
