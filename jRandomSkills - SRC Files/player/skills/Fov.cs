@@ -11,7 +11,7 @@ namespace jRandomSkills
     {
         private const Skills skillName = Skills.Fov;
         private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
-        private static int cd = 10;
+        private static int cd = 20;
 
         public static void LoadSkill()
         {

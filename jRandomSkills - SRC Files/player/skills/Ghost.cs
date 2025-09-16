@@ -77,7 +77,7 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            Event.enableTransmit = true;
+            SkillUtils.EnableTransmit();
             SetPlayerVisibility(player, false);
             SetWeaponVisibility(player, false);
             SetWeaponAttack(player, true);

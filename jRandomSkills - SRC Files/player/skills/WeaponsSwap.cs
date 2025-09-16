@@ -130,10 +130,12 @@ namespace jRandomSkills
 
                     if (enemyWeapon != null && playerWeapon != null)
                     {
-                        enemy.RemoveWeapons();
-                        player.RemoveWeapons();
+                        RemoveC4(player);
+                        RemoveC4(enemy);
                         Server.NextFrame(() =>
                         {
+                            player.RemoveWeapons();
+                            enemy.RemoveWeapons();
                             SkillUtils.TryGiveWeapon(enemy, CsItem.Knife);
                             GiveWeapons(player, enemyWeapon, playerWeapon.Contains("weapon_c4"));
                             if (enemyWeapon.Contains("weapon_c4")) SkillUtils.TryGiveWeapon(enemy, CsItem.C4);
@@ -152,10 +154,20 @@ namespace jRandomSkills
                     skillInfo.LastClick = DateTime.Now;
             }
         }
+        
+        private static void RemoveC4(CCSPlayerController player)
+        {
+            var pawn = player.PlayerPawn.Value;
+            if (pawn == null || !pawn.IsValid || pawn.WeaponServices == null) return;
+
+            foreach (var item in pawn.WeaponServices.MyWeapons)
+                if (item != null && item.IsValid && item.Value != null && item.Value.IsValid && item.Value.DesignerName == "weapon_c4")
+                    item.Value.AcceptInput("Kill");
+        }
 
         private static string[]? GetWeapons(CCSPlayerController player)
         {
-            if(player == null || player.PlayerPawn == null || player.PlayerPawn.Value == null)
+            if (player == null || player.PlayerPawn == null || player.PlayerPawn.Value == null)
                 return null;
 
             List<string> playerWeapons = [];

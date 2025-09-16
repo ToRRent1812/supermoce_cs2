@@ -60,12 +60,12 @@ namespace jRandomSkills
             var playerPawn = player.PlayerPawn?.Value;
             if (playerPawn != null && playerPawn.IsValid)
             {
-                Event.enableTransmit = true;
+                SkillUtils.EnableTransmit();
 
                 playerPawn.Health = 50;
                 Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_iHealth");
 
-                SkillUtils.ChangePlayerScale(player, .25f);
+                SkillUtils.ChangePlayerScale(player, 0.25f);
 
                 playerPawn.Render = Color.FromArgb(0, 255, 255, 255);
                 playerPawn.ShadowStrength = 0.0f;
@@ -84,7 +84,7 @@ namespace jRandomSkills
                 playerPawn.Health += 50;
                 Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_iHealth");
 
-                SkillUtils.ChangePlayerScale(player, 1);
+                SkillUtils.ChangePlayerScale(player, 1f);
 
                 playerPawn.Render = Color.FromArgb(255, 255, 255, 255);
                 playerPawn.ShadowStrength = 1.0f;

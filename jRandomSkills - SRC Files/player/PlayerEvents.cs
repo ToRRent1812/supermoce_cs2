@@ -16,7 +16,7 @@ namespace jRandomSkills
 {
     public static partial class Event
     {
-        public static bool enableTransmit = false;
+        public static bool isTransmitRegistered = false;
         public static readonly jSkill_SkillInfo noneSkill = new(Skills.None, Config.GetValue<string>(Skills.None, "color"), false);
 
         private static jSkill_SkillInfo ctSkill = noneSkill;
@@ -267,7 +267,7 @@ namespace jRandomSkills
 
         private static HookResult RoundStart(EventRoundStart @event, GameEventInfo info)
         {
-            enableTransmit = false;
+            isTransmitRegistered = false;
             Instance.AddTimer(.1f, () => DisableAll());
             foreach (var player in Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.Team is CsTeam.CounterTerrorist or CsTeam.Terrorist))
             {
@@ -346,7 +346,7 @@ namespace jRandomSkills
             Instance.SkillAction(playerInfo.Skill.ToString(), "DisableSkill", [victim]);
 
             if (victim == attacker) return HookResult.Continue;
-            if (Config.LoadedConfig.Settings.KillerSkillInfo)
+            if (Config.LoadedConfig.Settings.KillerSkillInfo && !SkillUtils.IsWarmup())
             {
                 var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
                 if (attackerInfo != null)
@@ -514,8 +514,83 @@ namespace jRandomSkills
                     });
                 }
             }
-            if (enableTransmit)
-                Instance?.RegisterListener<CheckTransmit>(CheckTransmit);
+            /*if (isTransmitRegistered)
+                Instance?.RegisterListener<CheckTransmit>(CheckTransmit);*/
+        }
+
+                public static void SetRandomSkill(CCSPlayerController player)
+        {
+            var validPlayers = Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.Team is CsTeam.CounterTerrorist or CsTeam.Terrorist).ToList();
+
+            if (Config.LoadedConfig.Settings.GameMode == (int)Config.GameModes.TeamSkills)
+            {
+                List<jSkill_SkillInfo> tSkills = new(SkillData.Skills);
+                tSkills.RemoveAll(s => s.Skill == tSkill.Skill || s.Skill == Skills.None || counterterroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
+                tSkill = tSkills.Count == 0 ? noneSkill : tSkills[0];
+
+                List<jSkill_SkillInfo> ctSkills = new(SkillData.Skills);
+                ctSkills.RemoveAll(s => s.Skill == ctSkill.Skill || s.Skill == Skills.None || terroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
+                ctSkill = ctSkills.Count == 0 ? noneSkill : ctSkills[0];
+            }
+
+            if (player == null) return;
+            var skillPlayer = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (skillPlayer == null) return;
+
+            if (player.PlayerPawn.Value == null || !player.PlayerPawn.IsValid)
+            {
+                skillPlayer.Skill = Skills.None;
+                return;
+            }
+
+            jSkill_SkillInfo randomSkill = noneSkill;
+            if (Instance?.GameRules != null && Instance?.GameRules.WarmupPeriod == false)
+            {
+                Config.GameModes gameMode = (Config.GameModes)Config.LoadedConfig.Settings.GameMode;
+                if (staticSkills.TryGetValue(player.SteamID, out var staticSkill))
+                    randomSkill = staticSkill;
+                else if (gameMode == Config.GameModes.Normal || gameMode == Config.GameModes.NoRepeat)
+                {
+                    List<jSkill_SkillInfo> skillList = new(SkillData.Skills);
+                    skillList.RemoveAll(s => s?.Skill == skillPlayer?.Skill || s?.Skill == skillPlayer?.SpecialSkill || s?.Skill == Skills.None);
+
+                    if (validPlayers.Count(p => p.Team == player.Team) == 1)
+                    {
+                        Config.DefaultSkillInfo[] skillsNeedsTeammates = Config.LoadedConfig.SkillsInfo.Where(s => s.NeedsTeammates).ToArray();
+                        skillList.RemoveAll(s => skillsNeedsTeammates.Any(s2 => s2.Name == s.Skill.ToString()));
+                    }
+
+                    if (player.Team == CsTeam.Terrorist)
+                        skillList.RemoveAll(s => counterterroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
+                    else
+                        skillList.RemoveAll(s => terroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
+
+                    if (gameMode == Config.GameModes.NoRepeat && playersSkills.TryGetValue(player.SteamID, out List<jSkill_SkillInfo>? skills))
+                    {
+                        skillList.RemoveAll(s => skills.Any(s2 => s2.Skill == s.Skill));
+                        if (skillList.Count == 0) skills.Clear();
+                    }
+
+                    randomSkill = skillList.Count == 0 ? noneSkill : skillList[Instance.Random.Next(skillList.Count)];
+                    if (gameMode == Config.GameModes.NoRepeat)
+                    {
+                        if (playersSkills.TryGetValue(player.SteamID, out List<jSkill_SkillInfo>? value))
+                            value.Add(randomSkill);
+                        else
+                            playersSkills.Add(player.SteamID, [randomSkill]);
+                    }
+                }
+                else if (gameMode == Config.GameModes.TeamSkills)
+                    randomSkill = player.Team == CsTeam.Terrorist ? tSkill : ctSkill;
+                else if (gameMode == Config.GameModes.Debug)
+                    return;
+            }
+
+            skillPlayer.Skill = randomSkill.Skill;
+            skillPlayer.SpecialSkill = Skills.None;
+            Instance?.SkillAction(randomSkill.Skill.ToString(), "EnableSkill", new[] { player });
+            Debug.WriteToDebug($"Player {skillPlayer.PlayerName} has got the skill \"{randomSkill.Name}\".");
+            skillPlayer.SkillDescriptionHudExpired = DateTime.Now.AddSeconds(Config.LoadedConfig.Settings.SkillDescriptionDuration);
         }
 
         public static void CheckTransmit([CastFrom(typeof(nint))] CCheckTransmitInfoList infoList)
@@ -549,10 +624,5 @@ namespace jRandomSkills
             var hudContent = infoLine + skillLine + remainingLine;
             player.PrintToCenterHtml(hudContent);
         }*/
-
-        [GeneratedRegex(@"\{AUTHOR1\}", RegexOptions.IgnoreCase, "pl-PL")]
-        private static partial Regex MyRegex();
-        [GeneratedRegex(@"\{AUTHOR2\}", RegexOptions.IgnoreCase, "pl-PL")]
-        private static partial Regex MyRegex1();
     }
 }

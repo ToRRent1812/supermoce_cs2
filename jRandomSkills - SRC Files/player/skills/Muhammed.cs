@@ -46,7 +46,7 @@ namespace jRandomSkills
             heProjectile.DispatchSpawn();
             heProjectile.AcceptInput("InitializeSpawnFromWorld", player.PlayerPawn.Value, player.PlayerPawn.Value, "");
             heProjectile.DetonateTime = 0;
-            Server.PrintToChatAll($" {ChatColors.DarkRed}► {ChatColors.Green}[{ChatColors.DarkRed} qRandomSkills {ChatColors.Green}] {ChatColors.DarkRed}{player.PlayerName}: {ChatColors.Lime}ALLAHU AKBAR!!!");
+            //Server.PrintToChatAll($" {ChatColors.DarkRed}► {ChatColors.Green}[{ChatColors.DarkRed} qRandomSkills {ChatColors.Green}] {ChatColors.DarkRed}{player.PlayerName}: {ChatColors.Lime}ALLAHU AKBAR!!!");
 
             var fileNames = new[] { "radiobotfallback01", "radiobotfallback02", "radiobotfallback04" };
             Instance.AddTimer(0.1f, () =>

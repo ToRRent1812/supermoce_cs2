@@ -32,19 +32,16 @@ namespace jRandomSkills
 
                 if (playerInfo == null || playerInfo.Skill != skillName) continue;
                 var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
-                if (enemies.Length > 0)
+                HashSet<(string, string)> menuItems = [];
+                foreach (var enemy in enemies)
                 {
-                    HashSet<(string, string)> menuItems = [];
-                    foreach (var enemy in enemies)
-                    {
-                        var enemyInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == enemy.SteamID);
-                        if (enemyInfo == null) continue;
-                        var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == enemyInfo.Skill);
-                        if (skillData == null) continue;
-                        menuItems.Add(($"{enemy.PlayerName} : {skillData.Name}", enemy.Index.ToString()));
-                    }
-                    SkillUtils.CreateMenu(player, menuItems);
+                    var enemyInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == enemy.SteamID);
+                    if (enemyInfo == null) continue;
+                    var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == enemyInfo.Skill);
+                    if (skillData == null) continue;
+                    menuItems.Add(($"{enemy.PlayerName} : {skillData.Name}", enemy.Index.ToString()));
                 }
+                SkillUtils.UpdateMenu(player, menuItems);
             }
         }
 
@@ -116,6 +113,7 @@ namespace jRandomSkills
                 Instance.SkillAction(enemyInfo.Skill.ToString(), "DisableSkill", [enemy]);
                 enemyInfo.SpecialSkill = enemyInfo.Skill;
                 enemyInfo.Skill = Skills.None;
+                enemyInfo.RandomPercentage = "";
                 enemy.PrintToChat($" {ChatColors.Red}" + Localization.GetTranslation("deactivator_enemy_info"));
             }
         }

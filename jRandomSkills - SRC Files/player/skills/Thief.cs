@@ -13,7 +13,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
         }
 
         public static void OnTick()
@@ -26,19 +26,16 @@ namespace jRandomSkills
 
                 if (playerInfo == null || playerInfo.Skill != skillName) continue;
                 var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
-                if (enemies.Length > 0)
+                HashSet<(string, string)> menuItems = [];
+                foreach (var enemy in enemies)
                 {
-                    HashSet<(string, string)> menuItems = [];
-                    foreach (var enemy in enemies)
-                    {
-                        var enemyInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == enemy.SteamID);
-                        if (enemyInfo == null) continue;
-                        var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == enemyInfo.Skill);
-                        if (skillData == null) continue;
-                        menuItems.Add(($"{enemy.PlayerName} : {skillData.Name}", enemy.Index.ToString()));
-                    }
-                    SkillUtils.CreateMenu(player, menuItems);
+                    var enemyInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == enemy.SteamID);
+                    if (enemyInfo == null) continue;
+                    var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == enemyInfo.Skill);
+                    if (skillData == null) continue;
+                    menuItems.Add(($"{enemy.PlayerName} : {skillData.Name}", enemy.Index.ToString()));
                 }
+                    SkillUtils.UpdateMenu(player, menuItems);
             }
         }
 
@@ -76,6 +73,7 @@ namespace jRandomSkills
             var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
             if (enemies.Length > 0)
             {
+                List<string> skills = [];
                 HashSet<(string, string)> menuItems = [];
                 foreach (var enemy in enemies)
                 {
@@ -83,7 +81,15 @@ namespace jRandomSkills
                     if (enemyInfo == null) continue;
                     var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == enemyInfo.Skill);
                     if (skillData == null) continue;
+                    skills.Add(skillData.Skill.ToString());
                     menuItems.Add(($"{enemy.PlayerName} : {skillData.Name}", enemy.Index.ToString()));
+                }
+                int ctSkills = Event.counterterroristSkills.Count(s => skills.Contains(s.Name));
+                int ttSkills = Event.terroristSkills.Count(s => skills.Contains(s.Name));
+                if ((player.Team == CsTeam.Terrorist && ctSkills == skills.Count) || (player.Team == CsTeam.CounterTerrorist && ttSkills == skills.Count))
+                {
+                    Event.SetRandomSkill(player);
+                    return;
                 }
                 SkillUtils.CreateMenu(player, menuItems);
             }
@@ -105,28 +111,37 @@ namespace jRandomSkills
             var enemyInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == enemy.SteamID);
             if (playerInfo == null || enemyInfo == null) return;
             var enemySkill = enemyInfo.Skill;
+            bool ctSkill = Event.counterterroristSkills.Any(s => s.Name == enemySkill.ToString());
+            bool ttSkill = Event.terroristSkills.Any(s => s.Name == enemySkill.ToString());
 
-            if (playerInfo != null)
+            if ((player.Team == CsTeam.Terrorist && ctSkill) || (player.Team == CsTeam.CounterTerrorist && ttSkill))
             {
                 Instance.AddTimer(.1f, () =>
                 {
-                    playerInfo.Skill = enemySkill;
-                    playerInfo.SpecialSkill = skillName;
-                    Instance.SkillAction(enemySkill.ToString(), "EnableSkill", [player]);
-                    player.PrintToChat($" {ChatColors.Green}" + Localization.GetTranslation("thief_player_info", enemy.PlayerName));
+                    Instance.SkillAction(skillName.ToString(), "EnableSkill", [player]);
+                    player.PrintToChat($" {ChatColors.Red}" + Localization.GetTranslation("thief_incorrect_skill", enemy.PlayerName));
                 });
+                return;
             }
 
-            if (enemyInfo != null)
+            SkillUtils.CloseMenu(player);
+            Instance.AddTimer(.1f, () =>
             {
-                Instance.AddTimer(.1f, () =>
-                {
-                    Instance.SkillAction(enemySkill.ToString(), "DisableSkill", [enemy]);
-                    enemyInfo.SpecialSkill = enemySkill;
-                    enemyInfo.Skill = Skills.None;
-                    enemy.PrintToChat($" {ChatColors.Red}" + Localization.GetTranslation("thief_enemy_info"));
-                });
-            }
+                playerInfo.Skill = enemySkill;
+                playerInfo.SpecialSkill = skillName;
+                SkillUtils.CloseMenu(player);
+                Instance.SkillAction(enemySkill.ToString(), "EnableSkill", [player]);
+                player.PrintToChat($" {ChatColors.Green}" + Localization.GetTranslation("thief_player_info", enemy.PlayerName));
+            });
+
+            Instance.AddTimer(.1f, () =>
+            {
+                Instance.SkillAction(enemySkill.ToString(), "DisableSkill", [enemy]);
+                enemyInfo.SpecialSkill = enemySkill;
+                enemyInfo.Skill = Skills.None;
+                enemyInfo.RandomPercentage = "";
+                enemy.PrintToChat($" {ChatColors.Red}" + Localization.GetTranslation("thief_enemy_info"));
+            });
         }
 
         public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#adaec7", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)

@@ -25,16 +25,15 @@ public class FindTarget
 
         if (targetresult.Players.Count == 0)
         {
-            if (!ignoreMessage)
-            {
+            if (!ignoreMessage && command.CallingPlayer != null)
                 command.ReplyToCommand(Localization.GetTranslation("no_player"));
-            }
 
             return (new List<CCSPlayerController>(), string.Empty);
         }
         else if (singletarget && targetresult.Players.Count > 1)
         {
-            command.ReplyToCommand(Localization.GetTranslation("duplicate_player"));
+            if (command.CallingPlayer != null)
+                command.ReplyToCommand(Localization.GetTranslation("duplicate_player"));
             return (new List<CCSPlayerController>(), string.Empty);
         }
 

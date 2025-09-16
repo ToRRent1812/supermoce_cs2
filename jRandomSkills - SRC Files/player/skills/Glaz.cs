@@ -51,7 +51,7 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            Event.enableTransmit = true;
+            SkillUtils.EnableTransmit();
             SkillUtils.TryGiveWeapon(player, CsItem.SmokeGrenade);
         }
 

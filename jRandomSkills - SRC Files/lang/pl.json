@@ -66,6 +66,9 @@
   "deactivator_player_info": "Moc gracza '{0}' została wyłączona.",
   "deactivator_select_info": "Komu wyłączyć supermoc?",
 
+  "dash": "Superman",
+  "dash_desc": "Skacząc podwójnie wykonujesz DASH",
+
   "deaf": "Głuchy",
   "deaf_desc": "Wybierasz gracza, któremu chcesz zepsuć dźwięk",
   "deaf_enemy_info": "Masz problemy ze słuchem.",
@@ -289,6 +292,7 @@
   "thief_enemy_info": "Twoja supermoc została skradziona.",
   "thief_player_info": "Moc gracza '{0}' została skradziona.",
   "thief_select_info": "Komu chcesz ukraść supermoc?",
+  "thief_incorrect_skill": "Tej supermocy nie można ukraść!",
 
   "thirdeye": "Trzecie Oko",
   "thirdeye_desc": "Możesz włączyć kamerę z 3 osoby",

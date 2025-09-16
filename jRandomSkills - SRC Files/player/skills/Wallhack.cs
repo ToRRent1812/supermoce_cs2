@@ -53,8 +53,18 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            Event.enableTransmit = true;
+            SkillUtils.EnableTransmit();
             SetGlowEffectForEnemies(player);
+        }
+
+        public static void DisableSkill(CCSPlayerController player)
+        {
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
+
+            playerInfo.Skill = Skills.None;
+            if (!Instance.SkillPlayer.Any(s => s.Skill == skillName))   
+                NewRound();
         }
 
         private static void SetGlowEffectForEnemies(CCSPlayerController player)

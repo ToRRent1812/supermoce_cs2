@@ -13,7 +13,7 @@ namespace jRandomSkills
         {
             Instance.RegisterListener<OnTick>(() =>
             {
-                //UpdateGameRules();
+                UpdateGameRules();
                 var validPlayers = Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV).ToArray();
                 if (validPlayers.Length > 0)
                     foreach (var validPlayer in validPlayers)
@@ -25,11 +25,11 @@ namespace jRandomSkills
 
         private static void OnMapStart(string mapName)
         {
-            //Instance.GameRules = null;
+            Instance.GameRules = null;
             Event.staticSkills.Clear();
         }
 
-        /*private static void InitializeGameRules()
+        private static void InitializeGameRules()
         {
             if (Instance.GameRules != null) return;
             var gameRulesProxy = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").FirstOrDefault();
@@ -41,9 +41,9 @@ namespace jRandomSkills
         {
             if (Instance?.GameRules == null || Instance?.GameRules?.Handle == IntPtr.Zero)
                 InitializeGameRules();
-            else if (Instance != null)
-                Instance.GameRules.GameRestart = Instance.GameRules?.RestartRoundTime < Server.CurrentTime;
-        }*/
+            /*else if (Instance != null)
+                Instance.GameRules.GameRestart = Instance.GameRules?.RestartRoundTime < Server.CurrentTime;*/
+        }
 
         private static void UpdatePlayerHud(CCSPlayerController player)
         {

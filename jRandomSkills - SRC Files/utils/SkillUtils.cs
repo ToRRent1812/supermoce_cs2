@@ -10,6 +10,7 @@ using jRandomSkills.src.utils;
 using System.Runtime.InteropServices;
 using WASDMenuAPI.Classes;
 using WASDSharedAPI;
+using static CounterStrikeSharp.API.Core.Listeners;
 
 namespace jRandomSkills
 {
@@ -76,7 +77,7 @@ namespace jRandomSkills
             if (playerPawn == null || !playerPawn.IsValid || playerPawn.CBodyComponent == null || playerPawn.CBodyComponent.SceneNode == null) return;
 
             playerPawn.CBodyComponent.SceneNode.Scale = scale;
-            //playerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = scale;
+            playerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = scale;
             playerPawn.AcceptInput("SetScale", null, null, scale.ToString());
             Server.NextFrame(() => Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_CBodyComponent"));
         }
@@ -110,8 +111,9 @@ namespace jRandomSkills
             Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iMaxHealth");
         }
 
-        public static string GetDesignerName(CBasePlayerWeapon weapon)
+        public static string GetDesignerName(CBasePlayerWeapon? weapon)
         {
+            if (weapon == null || !weapon.IsValid) return string.Empty;
             string designerName = weapon.DesignerName;
             ushort index = weapon.AttributeManager.Item.ItemDefinitionIndex;
 
@@ -125,6 +127,15 @@ namespace jRandomSkills
             };
 
             return designerName;
+        }
+
+        public static void EnableTransmit()
+        {
+            if (!Event.isTransmitRegistered)
+            {
+                jRandomSkills.Instance?.RegisterListener<CheckTransmit>(Event.CheckTransmit);
+                Event.isTransmitRegistered = true;
+            }
         }
 
         private static IWasdMenuManager? GetMenuManager()
@@ -180,13 +191,13 @@ namespace jRandomSkills
             if (skillData == null) return;
 
             //string infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("your_skill")}:</font> <br>";
-            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>"
+            string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>"
                 + $"<font color='green'>{Localization.GetTranslation($"{playerInfo.Skill.ToString().ToLower()}_select_info")}</font>";
 
             var manager = GetMenuManager();
             if (manager == null) return;
 
-            IWasdMenu menu = manager.CreateMenu(skillLine, "<font class='fontSize-s' color='cyan'>W/S - Przesuwanie</font> <font class='fontSize-s' color='white'>  |  </font> <font class='fontSize-s' color='green'>ROZBRAJANIE - Wybór</font> <br>");
+            IWasdMenu menu = manager.CreateMenu(skillLine, "<font class='fontSize-s' color='cyan'>W/S - góra/dół</font> <font class='fontSize-s' color='white'>  |  </font> <font class='fontSize-s' color='green'>ROZBRAJANIE - Wybór</font> <br>");
             foreach (var enemy in enemies)
                 menu.Add(enemy.Item1, (p, option) =>
                 {

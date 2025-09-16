@@ -30,17 +30,22 @@ namespace jRandomSkills
         public static void DisableSkill(CCSPlayerController player)
         {
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
             player.PlayerPawn.Value.ActualGravityScale = 1;
+            playerInfo.SkillChance = 1;
         }
 
         private static void ApplyGravityModifier(CCSPlayerController player)
         {
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
-            float gravityModifier = (float)Math.Round(Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "ChanceTo") - Config.GetValue<float>(skillName, "chanceFrom")) + Config.GetValue<float>(skillName, "chanceFrom"), 1);
-            SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("astronaut")}{ChatColors.Lime}: " + Localization.GetTranslation("astronaut_desc2", gravityModifier), false);
-            player.PlayerPawn.Value.ActualGravityScale = gravityModifier;
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if(playerInfo != null) playerInfo.RandomPercentage = ((int)(gravityModifier * 100)).ToString() + "%";
+            if (playerInfo == null) return;
+            float gravityModifier = (float)Math.Round(Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "ChanceTo") - Config.GetValue<float>(skillName, "chanceFrom")) + Config.GetValue<float>(skillName, "chanceFrom"), 1);
+            //SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("astronaut")}{ChatColors.Lime}: " + Localization.GetTranslation("astronaut_desc2", gravityModifier), false);
+            player.PlayerPawn.Value.ActualGravityScale = gravityModifier;
+            playerInfo.SkillChance = gravityModifier;
+            playerInfo.RandomPercentage = ((int)(gravityModifier * 100)).ToString() + "%";
         }
 
         public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#7E10AD", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = .25f, float chanceTo = .6f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)

@@ -9,8 +9,8 @@ namespace jRandomSkills
     public class Rambo : ISkill
     {
         private const Skills skillName = Skills.Rambo;
-        private static int minExtraHealth = Config.GetValue<int>(skillName, "minExtraHealth");
-        private static int maxExtraHealth = Config.GetValue<int>(skillName, "maxExtraHealth");
+        private static readonly int minExtraHealth = Config.GetValue<int>(skillName, "minExtraHealth");
+        private static readonly int maxExtraHealth = Config.GetValue<int>(skillName, "maxExtraHealth");
 
         public static void LoadSkill()
         {

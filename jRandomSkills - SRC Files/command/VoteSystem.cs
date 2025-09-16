@@ -92,7 +92,7 @@ namespace jRandomSkills
 
     public class VoteData(float timeToVote, Action successAction, float percentagesToSuccess, float timeToNextVoting, float timeToNextSameVoting, int minimumPlayersToStartVoting, VoteType type, string? args = null)
     {
-        private bool Active { get; set; } = true;
+        private bool Active { get; set; } = false;
         public float TimeToVote { get; set; } = timeToVote;
         public Action SuccessAction { get; set; } = successAction;
         public float PercentagesToSuccess { get; set; } = percentagesToSuccess;

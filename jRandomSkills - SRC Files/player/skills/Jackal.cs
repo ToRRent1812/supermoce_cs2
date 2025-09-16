@@ -12,7 +12,6 @@ namespace jRandomSkills
     {
         private const Skills skillName = Skills.Jackal;
         private static readonly int maxStepBeam = Config.GetValue<int>(skillName, "maxStepBeam");
-        private static bool exists = false;
         private static readonly Dictionary<CCSPlayerController, List<CBeam>> stepBeams = [];
 
         public static void LoadSkill()
@@ -27,8 +26,6 @@ namespace jRandomSkills
                     if (beam != null && beam.IsValid)
                         beam.AcceptInput("Kill");
             stepBeams.Clear();
-            Instance.RemoveListener<Listeners.CheckTransmit>(CheckTransmit);
-            exists = false;
         }
 
         public static void OnTick()
@@ -44,21 +41,20 @@ namespace jRandomSkills
                 }
 
                 var pawn = player.PlayerPawn.Value;
-                if (pawn == null || !pawn.IsValid || pawn.LifeState != (byte)LifeState_t.LIFE_ALIVE) continue;
+                if (pawn == null || !pawn.IsValid || pawn.LifeState != (byte)LifeState_t.LIFE_ALIVE || pawn.AbsOrigin == null) continue;
 
                 var beams = step.Value;
-                if (pawn.AbsOrigin == null) continue;
-                Vector lastBeamVector = beams.Count > 0
-                    ? beams.LastOrDefault()!.EndPos : pawn.AbsOrigin;
+                Vector lastBeamVector = (beams != null && beams.Count > 0 && beams.Last() != null)
+                    ? beams.Last().EndPos : pawn.AbsOrigin;
 
                 var newBeam = CreateBeamStep(step.Key.Team, lastBeamVector, pawn.AbsOrigin);
                 if (newBeam != null)
-                    beams.Add(newBeam);
+                    step.Value.Add(newBeam);
 
-                if (beams.Count >= maxStepBeam)
+                if (beams?.Count >= maxStepBeam)
                 {
                     beams[0].AcceptInput("Kill");
-                    beams.RemoveAt(0);
+                    step.Value.RemoveAt(0);
                 }
             }
         }
@@ -91,6 +87,9 @@ namespace jRandomSkills
             CBeam beam = Utilities.CreateEntityByName<CBeam>("beam")!;
             if (beam == null) return null;
 
+            beam.DispatchSpawn();
+            if (!beam.IsValid) return null;
+
             beam.Render = team == CsTeam.Terrorist ? Color.FromArgb(100, 255, 165, 0) : Color.FromArgb(100, 173, 216, 230);
             beam.Width = 2.0f;
             beam.EndWidth = 2.0f;
@@ -100,24 +99,28 @@ namespace jRandomSkills
             beam.EndPos.Y = stop.Y;
             beam.EndPos.Z = stop.Z;
 
-            beam.DispatchSpawn();
-            beam.AcceptInput("FollowEntity", beam, null!, "");
             return beam;
         }
 
-        public static void EnableSkill(CCSPlayerController player)
+        public static void EnableSkill(CCSPlayerController _)
         {
-            if (!exists)
-            {
-                Instance.RegisterListener<Listeners.CheckTransmit>(CheckTransmit);
-
-                foreach (var _player in Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator))
+            SkillUtils.EnableTransmit();
+            foreach (var _player in Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator))
+                if (!stepBeams.ContainsKey(_player))
                     stepBeams.Add(_player, []);
-            }
-            exists = true;
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#f542ef", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int maxStepBeam = 75) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public static void DisableSkill(CCSPlayerController player)
+        {
+            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
+
+            playerInfo.Skill = Skills.None;
+            if (!Instance.SkillPlayer.Any(s => s.Skill == skillName))
+                NewRound();
+        }
+
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#f542ef", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int maxStepBeam = 100) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
             public int MaxStepBeam { get; set; } = maxStepBeam;
         }
