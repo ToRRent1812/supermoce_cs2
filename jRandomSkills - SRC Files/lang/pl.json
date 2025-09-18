@@ -51,6 +51,9 @@
   "commando": "Komandos",
   "commando_desc": "Potrójne obrażenia z pistoletów i noża",
 
+  "chaoticdamage": "Podejrzane naboje",
+  "chaoticdamage_desc": "Możesz na 5 sek. wywołać losowe obrażenia pocisków dla wszystkich graczy.",
+
   "nomoney": "Komornik",
   "nomoney_desc": "Zabij wroga, by ukraść mu pieniądze",
 
@@ -125,8 +128,8 @@
 
   "gambler": "Hazardzista",
   "gambler_desc": "Wybierz swoją supermoc z listy",
-  "gambler_select_info": "Wybierz supermoc:",
-  "gambler_more": "#00FF00|Wymień listę (${0})",
+  "gambler_select_info": "Wybierz swoją supermoc:",
+  "gambler_more": "#00FF00|Przetasuj moce (${0})",
 
   "godmode": "Nieśmiertelka",
   "godmode_desc": "Chwilowo stajesz się nieśmiertelny",
@@ -143,7 +146,7 @@
   "dopamine_desc": "Możesz przyspieszyć życie na serwerze",
 
   "refillonkill": "Rusznikarz",
-  "refillonkill_desc": "Odnawiasz amunicję po każdym zabójstwie.",
+  "refillonkill_desc": "Odnawiasz amunicję i zdrowie po każdym zabójstwie.",
 
   "holyhandgrenade": "Święty Granat Ręczny",
   "holyhandgrenade_desc": "Podwójny zasięg i obrażenia z twoich granatów wybuchowych",
@@ -232,8 +235,8 @@
   "randomweapon": "Koło Fortuny",
   "randomweapon_desc": "Dostajesz losową broń na żądanie",
 
-  "randomguns": "Manipulant",
-  "randomguns_desc": "Wszystkim graczom(w tym sobie) wymieniasz broń w ręce",
+  "randomguns": "Handlarz Bronią",
+  "randomguns_desc": "Wszystkim graczom(w tym sobie) zmieniasz broń w ręce",
 
   "regeneration": "Regeneracja",
   "regeneration_desc": "Pasywnie odnawiasz zdrowie",
@@ -268,6 +271,9 @@
   "shade": "Cień",
   "shade_desc": "25% szans na pojawienie się za plecami trafionego wroga",
   "shade_nospace": "Brak miejsca!",
+
+  "rapper": "50 Cent",
+  "rapper_desc": "Zarabiasz dla siebie, i drużyny 50$ za każdy wystrzelony pocisk",
 
   "shortbomb": "Pika Paka",
   "shortbomb_desc": "Bomba wybucha znacznie szybciej",
@@ -318,8 +324,8 @@
   "disabled_weapon": "Nie możesz używać tej broni",
 
   "hud_info": "Poczekaj {0} sekund",
-  "hud_info_no_enemy": "Nie znaleziono odpowiedniego przeciwnika",
-  "active_hud_info": "Aktywne przez {0} ms",
+  "hud_info_no_enemy": "Nie znaleziono odpowiedniego wroga",
+  "active_hud_info": "Aktywne przez {0}",
 
   "skills_menu": "Lista Super Mocy",
   "no_player": "Nie znaleziono pasującego gracza.",
@@ -347,5 +353,5 @@
   "summary_start": "======PODSUMOWANIE=Z=OSTATNIEJ=RUNDY======",
   "summary_end": "============================================",
 
-  "menu_controlls": "<font class='fontSize-s' color='cyan'>W/S – Przewijanie</font> <font class='fontSize-s' color='white'>  |  </font> <font class='fontSize-s' color='green'>ROZBRAJANIE - wybór</font> <br>"
+  "menu_controlls": "<font class='fontSize-s' color='white'>W/S – Przewijanie | ROZBRAJANIE - wybór</font>"
 }

@@ -1,17 +1,19 @@
-﻿using CounterStrikeSharp.API;
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
+using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using jRandomSkills.src.player;
 using jRandomSkills.src.utils;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
-    public class Dopamine : ISkill
+    public class ChaoticDamage : ISkill
     {
-        private const Skills skillName = Skills.Dopamine;
+        private const Skills skillName = Skills.ChaoticDamage;
         private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
         private static int cd = 10;
+        private static bool Randomness = false;
 
         public static void LoadSkill()
         {
@@ -20,7 +22,8 @@ namespace jRandomSkills
 
         public static void NewRound()
         {
-            cd = Instance.Random.Next(3, 8) * 5;
+            cd = Instance.Random.Next(2, 6) * 5;
+            Randomness = false;
             SkillPlayerInfo.Clear();
         }
 
@@ -74,6 +77,7 @@ namespace jRandomSkills
 
         public static void UseSkill(CCSPlayerController player)
         {
+            if (player == null) return;
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn?.CBodyComponent == null) return;
 
@@ -85,13 +89,12 @@ namespace jRandomSkills
                     skillInfo.CanUse = false;
                     skillInfo.Cooldown = DateTime.Now;
 
-                    Server.ExecuteCommand("sv_cheats 1");
-                    Server.ExecuteCommand("host_timescale 2");
-                    SkillUtils.PrintToChatAll($" {ChatColors.LightRed}Ktoś przyspieszył serwer!");
-                    Instance.AddTimer(4.5f, () =>
+                    Randomness = true;
+                    SkillUtils.PrintToChatAll($" {player.PlayerName} {ChatColors.LightRed}włączył losowy damage na 5 sekund!");
+                    
+                    Instance.AddTimer(5.0f, () =>
                     {
-                        Server.ExecuteCommand("host_timescale 1");
-                        Server.ExecuteCommand("sv_cheats 0");
+                        Randomness = false;
                     });
                 }
             }
@@ -103,8 +106,39 @@ namespace jRandomSkills
             public bool CanUse { get; set; }
             public DateTime Cooldown { get; set; }
         }
+        
+        public static void OnTakeDamage(DynamicHook h)
+        {
+            CEntityInstance param = h.GetParam<CEntityInstance>(0);
+            CTakeDamageInfo param2 = h.GetParam<CTakeDamageInfo>(1);
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#FA050D", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+            if (Randomness == false) return;
+
+            if (param == null || param.Entity == null || param2 == null || param2.Attacker == null || param2.Attacker.Value == null)
+                return;
+
+            CCSPlayerPawn attackerPawn = new(param2.Attacker.Value.Handle);
+            CCSPlayerPawn victimPawn = new(param.Handle);
+
+            if (attackerPawn.DesignerName != "player" || victimPawn.DesignerName != "player")
+                return;
+
+            if (attackerPawn == null || attackerPawn.Controller?.Value == null || victimPawn == null || victimPawn.Controller?.Value == null)
+                return;
+
+            CCSPlayerController attacker = attackerPawn.Controller.Value.As<CCSPlayerController>();
+            CCSPlayerController victim = victimPawn.Controller.Value.As<CCSPlayerController>();
+
+            var activeWeapon = attackerPawn.WeaponServices?.ActiveWeapon.Value;
+
+            if (activeWeapon != null && attacker.PawnIsAlive)
+            {
+                var RandomDamage = Instance.Random.Next(1, 100);
+                param2.Damage = RandomDamage;
+            }
+        }
+
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#a8720c", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
         }
     }

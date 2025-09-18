@@ -17,15 +17,18 @@ namespace jRandomSkills
         public static void PlayerDeath(EventPlayerDeath @event)
         {
             var killer = @event.Attacker;
-            if (killer == null || !Instance.IsPlayerValid(killer) || !killer.PawnIsAlive) return;
+            var victim = @event.Userid;
+            if (killer == null || killer == victim || !Instance.IsPlayerValid(killer) || !killer.PawnIsAlive) return;
 
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == killer.SteamID);
             if (playerInfo?.Skill == skillName)
             {
+                var killerPawn = killer.PlayerPawn.Value;
                 var pawn = killer.Pawn?.Value;
                 var weapon = pawn?.WeaponServices?.ActiveWeapon?.Value;
                 if (weapon != null && weapon.IsValid)
                     weapon.Clip1 += 100;
+                SkillUtils.AddHealth(killerPawn, 100);
             }
         }
 

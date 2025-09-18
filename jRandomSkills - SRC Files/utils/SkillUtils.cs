@@ -18,11 +18,17 @@ namespace jRandomSkills
     {
         private static readonly MemoryFunctionVoid<nint, float, RoundEndReason, nint, nint> TerminateRoundFunc = new(GameData.GetSignature("CCSGameRules_TerminateRound"));
 
-        public static void PrintToChat(CCSPlayerController player, string msg, bool isError)
+        public static void PrintToChat(CCSPlayerController player, string msg, bool isError = false)
         {
             string checkIcon = isError ? $"{ChatColors.DarkRed}✖{ChatColors.LightRed}" : $"{ChatColors.Green}✔{ChatColors.Lime}";
             player.PrintToChat($" {ChatColors.DarkRed}► {ChatColors.Green} {checkIcon} {msg}");
         }
+        public static void PrintToChatAll(string msg, bool isError = false)
+        {
+            string checkIcon = isError ? $"{ChatColors.DarkRed}✖{ChatColors.LightRed}" : $"{ChatColors.Green}✔{ChatColors.Lime}";
+            Server.PrintToChatAll($" {ChatColors.DarkRed}► {ChatColors.Green} {checkIcon} {msg}");
+        }  
+
 
         public static void RegisterSkill(Skills skill, string color, bool display = true)
         {
@@ -197,7 +203,7 @@ namespace jRandomSkills
             var manager = GetMenuManager();
             if (manager == null) return;
 
-            IWasdMenu menu = manager.CreateMenu(skillLine, "<font class='fontSize-s' color='cyan'>W/S - góra/dół</font> <font class='fontSize-s' color='white'>  |  </font> <font class='fontSize-s' color='green'>ROZBRAJANIE - Wybór</font> <br>");
+            IWasdMenu menu = manager.CreateMenu(skillLine, "<font class='fontSize-s' color='white'>W/S – Przewijanie | ROZBRAJANIE - wybór</font>");
             foreach (var enemy in enemies)
                 menu.Add(enemy.Item1, (p, option) =>
                 {

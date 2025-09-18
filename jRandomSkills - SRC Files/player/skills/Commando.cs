@@ -58,7 +58,6 @@ namespace jRandomSkills
 
             if (playerInfo.Skill == skillName && activeWeapon != null && attacker.PawnIsAlive && guns.Contains(activeWeapon?.DesignerName))
             {
-                float? skillChance = playerInfo.SkillChance;
                 param2.Damage *= 3.0f;
             }
         }

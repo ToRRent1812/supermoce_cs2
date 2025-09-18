@@ -98,7 +98,7 @@ namespace jRandomSkills
 
                     Server.ExecuteCommand("sv_cheats 1");
                     Server.ExecuteCommand("host_timescale 0.2");
-                    Server.PrintToChatAll($" {ChatColors.LightRed}Ktoś spowolnił serwer!");
+                    SkillUtils.PrintToChatAll($" {ChatColors.LightRed}Ktoś spowolnił serwer!");
                     Instance.AddTimer(.8f, () =>
                     {
                         Server.ExecuteCommand("host_timescale 1");

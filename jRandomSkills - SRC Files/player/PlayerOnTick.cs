@@ -80,11 +80,11 @@ namespace jRandomSkills
                 }
                 else
                 {
-                    if(player.PlayerPawn.Value == null) return;
-                    var pawn = player.PlayerPawn.Value;
+                    if(player.Pawn.Value == null) return;
+                    var pawn = player.Pawn.Value;
                     if (pawn == null) return;
 
-                    var observedPlayer = Utilities.GetPlayers().FirstOrDefault(p => p?.PlayerPawn?.Value?.Handle == pawn?.ObserverServices?.ObserverTarget?.Value?.Handle);
+                    var observedPlayer = Utilities.GetPlayers().FirstOrDefault(p => p?.Pawn?.Value?.Handle == pawn?.ObserverServices?.ObserverTarget?.Value?.Handle);
                     if (observedPlayer == null) return;
 
                     var observeredPlayerSkill = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == observedPlayer.SteamID);
@@ -99,8 +99,8 @@ namespace jRandomSkills
                     string pName = observeredPlayerSkill.PlayerName;
                     if (pName.Length > 18)
                         pName = $"{pName[..17]}...";
-                    infoLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='#FFFFFF'>{Localization.GetTranslation("observer_skill")} {pName}:</font> <br>";
-                    skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{observeredPlayerSkillInfo.Color}'>{(observeredPlayerSkill.SpecialSkill == Skills.None ? observeredPlayerSkillInfo.Name : $"{observeredPlayerSpecialSkillInfo.Name}({observeredPlayerSkillInfo.Name})")}</font> <br>";
+                    infoLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='#FFFFFF'>{pName} {Localization.GetTranslation("observer_skill")}</font> <br>";
+                    skillLine = $"<font class='fontSize-s' class='fontWeight-Bold' color='{observeredPlayerSkillInfo.Color}'>{(observeredPlayerSkill.SpecialSkill == Skills.None ? observeredPlayerSkillInfo.Name : $"{observeredPlayerSpecialSkillInfo.Name}({observeredPlayerSkillInfo.Name})")}</font> <br>";
                 }
             }
 

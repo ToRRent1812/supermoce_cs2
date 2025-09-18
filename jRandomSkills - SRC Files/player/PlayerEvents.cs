@@ -435,6 +435,8 @@ namespace jRandomSkills
                 skillPlayer.IsDrawing = false;
                 jSkill_SkillInfo randomSkill = new(Skills.None, Config.GetValue<string>(Skills.None, "color"), false);
 
+                if (Instance?.GameRules != null && Instance?.GameRules.WarmupPeriod == false)
+                {
                     Config.GameModes gameMode = (Config.GameModes)Config.LoadedConfig.Settings.GameMode;
                     if (staticSkills.TryGetValue(player.SteamID, out var staticSkill))
                         randomSkill = staticSkill;
@@ -481,10 +483,11 @@ namespace jRandomSkills
                         debugSkills.RemoveAt(0);
                         player.PrintToChat($"{SkillData.Skills.Count - debugSkills.Count}/{SkillData.Skills.Count}");
                     }
+                }
 
                 //if (randomSkill.Display) SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{randomSkill.Name}{ChatColors.Lime}: {randomSkill.Description}", false);
 
-                skillPlayer.Skill = randomSkill.Skill;
+                    skillPlayer.Skill = randomSkill.Skill;
                 skillPlayer.SpecialSkill = Skills.None;
                 Instance?.SkillAction(randomSkill.Skill.ToString(), "EnableSkill", new [] { player });
                 Debug.WriteToDebug($"Player {skillPlayer.PlayerName} has got the skill \"{randomSkill.Name}\".");
@@ -518,7 +521,7 @@ namespace jRandomSkills
                 Instance?.RegisterListener<CheckTransmit>(CheckTransmit);*/
         }
 
-                public static void SetRandomSkill(CCSPlayerController player)
+        public static void SetRandomSkill(CCSPlayerController player)
         {
             var validPlayers = Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.Team is CsTeam.CounterTerrorist or CsTeam.Terrorist).ToList();
 
