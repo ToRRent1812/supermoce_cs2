@@ -365,7 +365,7 @@ namespace jRandomSkills
 
         private static void CheckUseSkill(CCSPlayerController player, PlayerButtons pressed, PlayerButtons released)
         {
-            string? button = Config.LoadedConfig.Settings.AlternativeSkillButton;
+            string? button = "Inspect";
             if (string.IsNullOrEmpty(button)) return;
 
             if (Enum.TryParse<PlayerButtons>(button, out var skillButton))
@@ -380,6 +380,7 @@ namespace jRandomSkills
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn?.CBodyComponent == null) return;
             if (!player.IsValid || !player.PawnIsAlive) return;
+            if (Instance?.GameRules?.FreezePeriod == true) return;
 
             Debug.WriteToDebug($"Player {player.PlayerName} used the skill: {playerInfo.Skill} by PlayerButtons: {pressed}");
             Instance.SkillAction(playerInfo.Skill.ToString(), "UseSkill", [player]);

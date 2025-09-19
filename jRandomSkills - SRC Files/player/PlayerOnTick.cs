@@ -100,7 +100,7 @@ namespace jRandomSkills
                     if (pName.Length > 18)
                         pName = $"{pName[..17]}...";
                     infoLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='#FFFFFF'>{pName} {Localization.GetTranslation("observer_skill")}</font> <br>";
-                    skillLine = $"<font class='fontSize-s' class='fontWeight-Bold' color='{observeredPlayerSkillInfo.Color}'>{(observeredPlayerSkill.SpecialSkill == Skills.None ? observeredPlayerSkillInfo.Name : $"{observeredPlayerSpecialSkillInfo.Name}({observeredPlayerSkillInfo.Name})")}</font> <br>";
+                    skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{observeredPlayerSkillInfo.Color}'>{(observeredPlayerSkill.SpecialSkill == Skills.None ? observeredPlayerSkillInfo.Name : $"{observeredPlayerSpecialSkillInfo.Name}({observeredPlayerSkillInfo.Name})")}</font>";
                 }
             }
 

@@ -201,7 +201,7 @@
   "onlyhead_desc": "Otrzymujesz obrażenia tylko w głowę",
 
   "paweljumper": "Pawel Jumper",
-  "paweljumper_desc": "Możesz skakać podwójnie",
+  "paweljumper_desc": "Dodatkowe skoki",
 
   "phoenix": "Feniks",
   "phoenix_desc": "Jeżeli nie jesteś ostatni żywy w drużynie, masz szansę odrodzić się po śmierci",
@@ -292,6 +292,9 @@
 
   "swapposition": "Magik",
   "swapposition_desc": "Zamieniasz się miejscami z losowym przeciwnikiem",
+
+  "watchmaker": "Sędzia chuj",
+  "watchmaker_desc": "Rzut granatem zmienia czas rundy",
 
   "thief": "Złodziej",
   "thief_desc": "Możesz ukraść supermoc wybranemu graczowi",

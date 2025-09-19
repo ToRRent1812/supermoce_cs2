@@ -51,8 +51,6 @@ namespace jRandomSkills.src.utils
                 else
                 {
                     string output = string.Format(translation, args).Replace("CHATCOLORS.RED", ChatColors.Red.ToString());
-                    if (Config.LoadedConfig.Settings.AlternativeSkillButton != null)
-                        output = output.Replace("css_useSkill", $"css_useSkill/{Config.LoadedConfig.Settings.AlternativeSkillButton}");
                     return output;
                 }
 

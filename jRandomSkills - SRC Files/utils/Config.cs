@@ -140,7 +140,7 @@ namespace jRandomSkills
             public bool TeamMateSkillInfo { get; set; }
             public bool SummaryAfterTheRound { get; set; }
             public bool DebugMode { get; set; }
-            public string? AlternativeSkillButton { get; set; }
+            //public string? AlternativeSkillButton { get; set; }
             public float SkillTimeBeforeStart { get; set; }
             public float SkillDescriptionDuration { get; set; }
             public NormalCommand SetSkillCommands { get; set; }
@@ -164,7 +164,7 @@ namespace jRandomSkills
                 TeamMateSkillInfo = true;
                 SummaryAfterTheRound = false;
                 DebugMode = true;
-                AlternativeSkillButton = "Inspect";
+                //AlternativeSkillButton = "Inspect";
                 SkillTimeBeforeStart = 4;
                 SkillDescriptionDuration = 0;
 

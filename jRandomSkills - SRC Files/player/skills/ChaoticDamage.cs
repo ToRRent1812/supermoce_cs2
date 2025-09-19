@@ -12,7 +12,7 @@ namespace jRandomSkills
     {
         private const Skills skillName = Skills.ChaoticDamage;
         private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
-        private static int cd = 10;
+        private static int cd = 20;
         private static bool Randomness = false;
 
         public static void LoadSkill()
@@ -22,7 +22,7 @@ namespace jRandomSkills
 
         public static void NewRound()
         {
-            cd = Instance.Random.Next(2, 6) * 5;
+            cd = Instance.Random.Next(4, 7) * 5;
             Randomness = false;
             SkillPlayerInfo.Clear();
         }
