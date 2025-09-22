@@ -90,7 +90,7 @@ namespace jRandomSkills
                     skillInfo.Cooldown = DateTime.Now;
 
                     Randomness = true;
-                    SkillUtils.PrintToChatAll($" {player.PlayerName} {ChatColors.LightRed}włączył losowy damage na 5 sekund!");
+                    SkillUtils.PrintToChatAll($" {player.PlayerName} {ChatColors.LightRed}włączył losowy damage na 5 sek!");
                     
                     Instance.AddTimer(5.0f, () =>
                     {

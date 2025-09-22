@@ -12,7 +12,7 @@ namespace jRandomSkills
         private const Skills skillName = Skills.Anomaly;
         private static readonly int maxSize = 3; //Seconds in back
         private static readonly float tickRate = 64;
-        private static int cd = 10;
+        private static int cd = 15;
         private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
 
         public static void LoadSkill()

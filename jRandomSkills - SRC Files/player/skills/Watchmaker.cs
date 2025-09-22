@@ -46,10 +46,10 @@ namespace jRandomSkills
             if (playerInfo?.Skill != skillName || Instance.GameRules == null) return;
 
             Instance.GameRules.RoundTime += player.Team == CsTeam.Terrorist ? roundTime : -roundTime;
-            if (player.Team == CsTeam.Terrorist)
+            /*if (player.Team == CsTeam.Terrorist)
                 Server.PrintToChatAll($" {ChatColors.Orange}{Localization.GetTranslation("watchmaker_tt", roundTime)}");
             else
-                Server.PrintToChatAll($" {ChatColors.LightBlue}{Localization.GetTranslation("watchmaker_ct", roundTime)}");
+                Server.PrintToChatAll($" {ChatColors.LightBlue}{Localization.GetTranslation("watchmaker_ct", roundTime)}");*/
         }
 
         public static void OnTick()

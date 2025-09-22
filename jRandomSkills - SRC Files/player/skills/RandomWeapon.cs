@@ -11,7 +11,7 @@ namespace jRandomSkills
     public class RandomWeapon : ISkill
     {
         private const Skills skillName = Skills.RandomWeapon;
-        private static int cd = 10;
+        private static int cd = 15;
         private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
 
         private static readonly string[] pistols = [ "weapon_deagle", "weapon_revolver", "weapon_glock", "weapon_usp_silencer",

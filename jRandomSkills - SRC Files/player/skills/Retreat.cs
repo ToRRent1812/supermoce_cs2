@@ -10,7 +10,7 @@ namespace jRandomSkills
     public class Retreat : ISkill
     {
         private const Skills skillName = Skills.Retreat;
-        private static int cd = 10;
+        private static int cd = 20;
         private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
 
         public static void LoadSkill()

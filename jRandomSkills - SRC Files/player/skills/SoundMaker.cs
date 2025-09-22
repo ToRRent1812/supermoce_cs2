@@ -10,7 +10,7 @@ namespace jRandomSkills
     public class SoundMaker : ISkill
     {
         private const Skills skillName = Skills.SoundMaker;
-        private static int cd = 10;
+        private static int cd = 20;
         private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
 
         public static void LoadSkill()
@@ -106,7 +106,7 @@ namespace jRandomSkills
 
             foreach (var enemy in Utilities.GetPlayers().Where(p => p.Team != player.Team))
                 if (enemy != null && enemy.IsValid && enemy.PawnIsAlive && enemy.PlayerPawn.Value != null && enemy.PlayerPawn.Value.IsValid)
-                    enemy.PlayerPawn.Value.EmitSound(soundToMake, volume: 0.2f);
+                    enemy.PlayerPawn.Value.EmitSound(soundToMake, volume: 0.1f);
         }
 
         public class PlayerSkillInfo

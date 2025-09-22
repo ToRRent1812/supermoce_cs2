@@ -1,22 +1,18 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="CounterStrikeSharp.API" Version="1.0.340" />
-    <PackageReference Include="CS2TraceRay" Version="1.0.8" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="CounterStrikeSharp.API" Version="1.0.340"/>
+    <PackageReference Include="CS2TraceRay" Version="1.0.8"/>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
   </ItemGroup>
-
   <ItemGroup>
     <Reference Include="WASDMenuAPI">
-      <HintPath>/home/rabbit/Github/supermoce_cs2/WASDMenuAPI/WASDMenuAPI.dll</HintPath>
+      <HintPath>/home/rabbit/Dokumenty/Github/supermoce_cs2/WASDMenuAPI/WASDMenuAPI.dll</HintPath>
     </Reference>
   </ItemGroup>
-
 </Project>

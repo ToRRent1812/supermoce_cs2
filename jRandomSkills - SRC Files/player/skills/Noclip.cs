@@ -12,7 +12,7 @@ namespace jRandomSkills
         private const Skills skillName = Skills.Noclip;
         private static readonly float duration = Config.GetValue<float>(skillName, "duration");
         private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
-        private static int cd = 10;
+        private static int cd = 20;
 
         public static void LoadSkill()
         {

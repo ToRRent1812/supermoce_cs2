@@ -10,7 +10,7 @@ namespace jRandomSkills
     public class GodMode : ISkill
     {
         private const Skills skillName = Skills.GodMode;
-        private static int cd = 10;
+        private static int cd = 20;
         private static readonly float duration = Config.GetValue<float>(skillName, "duration");
         private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
 

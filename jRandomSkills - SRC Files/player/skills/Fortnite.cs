@@ -12,7 +12,7 @@ namespace jRandomSkills
     public class Fortnite : ISkill
     {
         private const Skills skillName = Skills.Fortnite;
-        private static int cd = 10;
+        private static int cd = 12;
         private static readonly int barricadeHealth = Config.GetValue<int>(skillName, "barricadeHealth");
         private static readonly string propModel = Config.GetValue<string>(skillName, "propModel");
 

@@ -10,7 +10,7 @@ namespace jRandomSkills
     public class SwapPosition : ISkill
     {
         private const Skills skillName = Skills.SwapPosition;
-        private static int cd = 10;
+        private static int cd = 20;
         private static readonly Dictionary<ulong, ZamianaMiejsc_PlayerInfo> SkillPlayerInfo = [];
         
         public static void LoadSkill()

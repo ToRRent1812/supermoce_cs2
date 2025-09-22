@@ -19,7 +19,7 @@ namespace jRandomSkills
         {
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo == null) return;
-            playerInfo.SkillChance = 0f;
+            playerInfo.SkillChance = 0;
         }
 
         public static void OnTick()
@@ -27,12 +27,12 @@ namespace jRandomSkills
             foreach (var player in Utilities.GetPlayers())
             {
                 var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill == skillName && playerInfo.SkillChance > 0f)
+                if (playerInfo?.Skill == skillName && playerInfo.SkillChance > 0)
                     UpdateHUD(player, playerInfo.SkillChance);
             }
         }
 
-        private static void UpdateHUD(CCSPlayerController player, float? moneybonus = 0f)
+        private static void UpdateHUD(CCSPlayerController player, float? moneybonus = 0)
         {
             var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
             if (skillData == null || player == null || !player.IsValid || !player.PawnIsAlive || Instance?.GameRules == null) return;
@@ -56,7 +56,7 @@ namespace jRandomSkills
                     AddMoney(teammate, (int)(playerInfo.SkillChance ?? 0));
             }
 
-            playerInfo.SkillChance = 0f;
+            playerInfo.SkillChance = 0;
         }
 
         public static void WeaponFire(EventWeaponFire @event)
@@ -68,7 +68,7 @@ namespace jRandomSkills
             var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
 
             if (playerInfo?.Skill == skillName)
-                playerInfo.SkillChance += 50f;
+                playerInfo.SkillChance += 50;
         }
 
         private static void AddMoney(CCSPlayerController player, int money)

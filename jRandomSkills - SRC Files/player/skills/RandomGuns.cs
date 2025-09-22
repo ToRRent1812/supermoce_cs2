@@ -12,7 +12,7 @@ namespace jRandomSkills
     {
         private const Skills skillName = Skills.RandomGuns;
         private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
-        private static int cd = 10;
+        private static int cd = 15;
 
         private static readonly string[] pistols = [ "weapon_deagle", "weapon_revolver", "weapon_glock", "weapon_usp_silencer",
         "weapon_cz75a", "weapon_fiveseven", "weapon_p250", "weapon_tec9", "weapon_elite", "weapon_hkp2000" ];

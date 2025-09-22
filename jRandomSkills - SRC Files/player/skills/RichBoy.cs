@@ -15,6 +15,7 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            Server.ExecuteCommand("mp_maxmoney 99999");
         }
 
         public static void EnableSkill(CCSPlayerController player)
