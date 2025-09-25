@@ -71,7 +71,7 @@ namespace jRandomSkills
             });
         }
 
-        private static void OnTick()
+        public static void OnTick()
         {
             if (Server.TickCount % 16 != 0) return;
             foreach (var player in Utilities.GetPlayers())

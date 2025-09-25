@@ -2,6 +2,7 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Utils;
+using System.Drawing;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
@@ -58,8 +59,20 @@ namespace jRandomSkills
                     {
                         double modifier = Math.Clamp(distance / decoyRadius, 0f, 1f);
                         pawn.VelocityModifier = (float)Math.Pow(modifier, slownessMultiplier);
+                        
                     }
+                    if(pawn.VelocityModifier < 1.0f) SetPlayerColor(pawn, false);
+                    else SetPlayerColor(pawn, true);
                 }
+        }
+
+        private static void SetPlayerColor(CCSPlayerPawn pawn, bool normal)
+        {
+            var color = normal ? Color.FromArgb(255, 255, 255, 255) : Color.FromArgb(255, 10, 10, 255);
+            if(!normal && pawn.Render == Color.FromArgb(255, 10, 10, 255)) return;
+            if(normal && pawn.Render == Color.FromArgb(255, 255, 255, 255)) return;
+            pawn.Render = color;
+            Utilities.SetStateChanged(pawn, "CBaseModelEntity", "m_clrRender");
         }
 
         public static void EnableSkill(CCSPlayerController player)

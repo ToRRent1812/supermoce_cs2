@@ -85,7 +85,7 @@ namespace jRandomSkills
             LB[player.Slot] = buttons;
         }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#42bbfc", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float jumpVelocity = 150f, float pushVelocity = 600f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
+        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#42bbfc", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float jumpVelocity = 120f, float pushVelocity = 500f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
         {
             public float JumpVelocity { get; set; } = jumpVelocity;
             public float PushVelocity { get; set; } = pushVelocity;
