@@ -1,8 +1,6 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -13,7 +11,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
+            SkillUtils.RegisterSkill(skillName, "Astronauta", "Masz niską grawitację",  "#7E10AD");
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -30,28 +28,22 @@ namespace jRandomSkills
         public static void DisableSkill(CCSPlayerController player)
         {
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo == null) return;
-            player.PlayerPawn.Value.ActualGravityScale = 1;
-            playerInfo.SkillChance = 1;
+            player.PlayerPawn.Value.ActualGravityScale = 1f;
+            playerInfo.SkillChance = 1f;
         }
 
         private static void ApplyGravityModifier(CCSPlayerController player)
         {
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo == null) return;
-            float gravityModifier = (float)Math.Round(Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "ChanceTo") - Config.GetValue<float>(skillName, "chanceFrom")) + Config.GetValue<float>(skillName, "chanceFrom"), 1);
-            //SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("astronaut")}{ChatColors.Lime}: " + Localization.GetTranslation("astronaut_desc2", gravityModifier), false);
-            player.PlayerPawn.Value.ActualGravityScale = gravityModifier;
-            playerInfo.SkillChance = gravityModifier;
-            playerInfo.RandomPercentage = ((int)(gravityModifier * 100)).ToString() + "%";
-        }
 
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#7E10AD", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = .25f, float chanceTo = .6f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
-            public float ChanceFrom { get; set; } = chanceFrom;
-            public float ChanceTo { get; set; } = chanceTo;
+            int randomValue = Instance?.Random?.Next(5,13) * 5 ?? 25; //25-60%
+            playerInfo.SkillChance = randomValue / 100f;
+            player.PlayerPawn.Value.ActualGravityScale = (float)(playerInfo.SkillChance ?? 1f);
+            playerInfo.RandomPercentage = (100-randomValue).ToString() + "% mniejsza";
         }
     }
 }

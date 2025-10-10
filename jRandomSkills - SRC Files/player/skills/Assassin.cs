@@ -1,5 +1,4 @@
 ﻿using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
@@ -8,13 +7,11 @@ namespace jRandomSkills
     public class Assassin : ISkill
     {
         private const Skills skillName = Skills.Assassin;
-        private static readonly float damageMultiplier = Config.GetValue<float>(skillName, "damageMultiplier");
-        private static readonly float toleranceDeg = Config.GetValue<float>(skillName, "toleranceDeg");
         private static readonly string[] nades = ["inferno", "flashbang", "smokegrenade", "decoy", "hegrenade"];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Assassin", "Zadajesz podwójne obrażenia w plecy", "#d9d9d9");
         }
 
         public static void PlayerHurt(EventPlayerHurt @event)
@@ -25,14 +22,14 @@ namespace jRandomSkills
             var weapon = @event.Weapon;
             HitGroup_t hitgroup = (HitGroup_t)@event.Hitgroup;
 
-            if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) return;
+            if (Instance?.IsPlayerValid(attacker) == false || Instance?.IsPlayerValid(victim) == false || attacker == victim) return;
             if (nades.Contains(weapon)) return;
 
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
             if (playerInfo?.Skill != skillName) return;
 
             if (IsBehind(attacker!, victim!))
-                SkillUtils.TakeHealth(victim!.PlayerPawn.Value, (int)(damage * (damageMultiplier - 1f)));
+                SkillUtils.TakeHealth(victim!.PlayerPawn.Value, damage);
         }
 
         private static bool IsBehind(CCSPlayerController attacker, CCSPlayerController victim)
@@ -47,8 +44,8 @@ namespace jRandomSkills
 
         private static (float, float) GetAngleRange(float angle)
         {
-            float min = angle - toleranceDeg;
-            float max = angle + toleranceDeg;
+            float min = angle - 65f;
+            float max = angle + 65f;
 
             if (min < -180) min += 360f;
             if (max > 180f) max -= 360f;
@@ -61,12 +58,6 @@ namespace jRandomSkills
             if (a <= b)
                 return target >= a && target <= b;
             return target >= a || target <= b;
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#d9d9d9", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float damageMultiplier = 2f, float toleranceDeg = 65f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
-            public float DamageMultiplier { get; set; } = damageMultiplier;
-            public float ToleranceDeg { get; set; } = toleranceDeg;
         }
     }
 }

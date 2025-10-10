@@ -3,7 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
+using System.Collections.Concurrent;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -12,7 +12,8 @@ namespace jRandomSkills
     {
         private const Skills skillName = Skills.WeaponsSwap;
         private static int cd = 30;
-        private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
+        private static readonly ConcurrentDictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
+        private static readonly object setLock = new();
 
         private static readonly string[] weapons = [ "weapon_deagle", "weapon_revolver", "weapon_glock", "weapon_usp_silencer",
         "weapon_cz75a", "weapon_fiveseven", "weapon_p250", "weapon_tec9", "weapon_elite", "weapon_hkp2000",
@@ -23,18 +24,19 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Chachmęciarz", "Kradniesz ekwipunek losowego przeciwnika (Wróg zostanie z pistoletem)", "#c7e03a");
         }
 
         public static void NewRound()
         {
-            cd = Instance.Random.Next(4, 10) * 5;
-            SkillPlayerInfo.Clear();
+            cd = ((Instance?.Random.Next(4, 11)) ?? 4) * 5;
+            lock (setLock)
+                SkillPlayerInfo.Clear();
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            SkillPlayerInfo[player.SteamID] = new PlayerSkillInfo
+            SkillPlayerInfo.TryAdd(player.SteamID, new PlayerSkillInfo
             {
                 SteamID = player.SteamID,
                 CanUse = true,
@@ -42,19 +44,19 @@ namespace jRandomSkills
                 LastClick = DateTime.MinValue,
                 FindedEnemy = true,
                 HaveWeapon = true,
-            };
+            });
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            SkillPlayerInfo.Remove(player.SteamID);
+            SkillPlayerInfo.TryRemove(player.SteamID, out _);
         }
 
         public static void OnTick()
         {
             foreach (var player in Utilities.GetPlayers())
             {
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
                     if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
                         if (skillInfo.LastClick.AddSeconds(4) >= DateTime.Now)
@@ -83,12 +85,12 @@ namespace jRandomSkills
             string remainingLine = "";
 
             if (showInfo)
-                remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>{Localization.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}</font>"
-                                : skillInfo != null && !skillInfo.FindedEnemy ? $"<font class='fontSize-m' color='#FF0000'>{Localization.GetTranslation("hud_info_no_enemy")}</font>"
-                                : skillInfo != null && !skillInfo.HaveWeapon ? $"<font class='fontSize-m' color='#FF0000'>{Localization.GetTranslation("weaponsswap_hud_info2")}</font>"
+                remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>Poczekaj <font color='#FF0000'>{cooldown}</font> sek.</font>"
+                                : skillInfo != null && !skillInfo.FindedEnemy ? $"<font class='fontSize-m' color='#FF0000'>Nie znaleziono odpowiedniego wroga</font>"
+                                : skillInfo != null && !skillInfo.HaveWeapon ? $"<font class='fontSize-m' color='#FF0000'>Wróg nie ma broni głównej</font>"
                                 : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>Wciśnij INSPEKT by użyć</font>";
             else
-                remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>{Localization.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}</font> <br>" : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>Wciśnij INSPEKT by użyć</font>";
+                remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>Poczekaj <font color='#FF0000'>{cooldown}</font> sek.</font> <br>" : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>Wciśnij INSPEKT by użyć</font>";
 
             var hudContent = skillLine + remainingLine;
             player.PrintToCenterHtml(hudContent);
@@ -141,7 +143,7 @@ namespace jRandomSkills
                             if (enemyWeapon.Contains("weapon_c4")) SkillUtils.TryGiveWeapon(enemy, CsItem.C4);
                             if (enemy.Team == CsTeam.Terrorist) SkillUtils.TryGiveWeapon(enemy, CsItem.Glock);
                             else SkillUtils.TryGiveWeapon(enemy, CsItem.USPS);
-                            Instance.AddTimer(1f, () => enemy.ExecuteClientCommand("slot2"));
+                            Instance?.AddTimer(1f, () => enemy.ExecuteClientCommand("slot2"));
                         });
                         //GiveWeapons(enemy, playerWeapon, enemyWeapon.Contains("weapon_c4"), true);
                     }
@@ -170,7 +172,7 @@ namespace jRandomSkills
             if (player == null || player.PlayerPawn == null || player.PlayerPawn.Value == null)
                 return null;
 
-            List<string> playerWeapons = [];
+            ConcurrentBag<string> playerWeapons = [];
             var pawn = player.PlayerPawn.Value;
             if (pawn == null || !pawn.IsValid || player.LifeState != (byte)LifeState_t.LIFE_ALIVE) return null;
             if (pawn.WeaponServices == null) return null;
@@ -198,7 +200,7 @@ namespace jRandomSkills
         {
             CCSPlayerController[] enemies = [.. Utilities.GetPlayers().FindAll(e => e.Team != player.Team && e.PawnIsAlive)];
             if (enemies.Length == 0) return null;
-            return enemies[Instance.Random.Next(enemies.Length)];
+            return enemies[(Instance?.Random.Next(enemies.Length)) ?? 0];
         }
 
         public class PlayerSkillInfo
@@ -209,10 +211,6 @@ namespace jRandomSkills
             public DateTime LastClick { get; set; }
             public bool FindedEnemy { get; set; }
             public bool HaveWeapon { get; set; }
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#c7e03a", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
         }
     }
 }

@@ -11,87 +11,87 @@ namespace jRandomSkills
     public static class Debug
     {
         private static string sessionId = "00000";
-        private static readonly string debugFolder = Path.Combine(Instance.ModuleDirectory, "logs");
+        private static readonly string debugFolder = Path.Combine(Instance?.ModuleDirectory ?? ".", "logs");
 
         public static void Load()
         {
-            Debug.sessionId = $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}";
-            Instance.RegisterEventHandler<EventPlayerConnectFull>((@event, info) =>
+            sessionId = $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}";
+            Instance?.RegisterEventHandler<EventPlayerConnectFull>((@event, info) =>
             {
                 var player = @event.Userid;
                 if (player == null || !player.IsValid) return HookResult.Continue;
-                Debug.WriteToDebug($"{(player.IsBot ? "Bot" : "Player")} {player.PlayerName} joined the game.");
+                WriteToDebug($"{(player.IsBot ? "Bot" : "Gracz")} {player.PlayerName} wbił na serwer.");
                 return HookResult.Continue;
             });
 
-            Instance.RegisterEventHandler<EventPlayerDisconnect>((@event, info) =>
+            Instance?.RegisterEventHandler<EventPlayerDisconnect>((@event, info) =>
             {
                 var player = @event.Userid;
                 if (player == null || !player.IsValid) return HookResult.Continue;
-                Debug.WriteToDebug($"{(player.IsBot ? "Bot" : "Player")} {player.PlayerName} disconnected.");
+                WriteToDebug($"{(player.IsBot ? "Bot" : "Gracz")} {player.PlayerName} wyszedł z serwera.");
                 return HookResult.Continue;
             });
 
-            Instance.RegisterEventHandler<EventRoundStart>((@event, info) =>
+            Instance?.RegisterEventHandler<EventRoundStart>((@event, info) =>
             {
                 var teams = Utilities.FindAllEntitiesByDesignerName<CCSTeam>("cs_team_manager").Where(t => t != null).ToList();
                 var tTeam = teams.FirstOrDefault(t => t.TeamNum == (int)CsTeam.Terrorist);
                 var ctTeam = teams.FirstOrDefault(t => t.TeamNum == (int)CsTeam.CounterTerrorist);
-                Debug.WriteToDebug($"Round #{tTeam?.Score + ctTeam?.Score + 1} (CT {ctTeam?.Score} : {tTeam?.Score} TT) started.");
+                WriteToDebug($"Runda #{tTeam?.Score + ctTeam?.Score + 1} (CT {ctTeam?.Score} : {tTeam?.Score} TT) rozpoczęta.");
                 return HookResult.Continue;
             });
 
-            Instance.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
+            Instance?.RegisterEventHandler<EventRoundFreezeEnd>((@event, info) =>
             {
-                Debug.WriteToDebug($"Freeze time ended.");
+                WriteToDebug($"Skończyła się prerunda.");
                 return HookResult.Continue;
             });
 
-            Instance.RegisterEventHandler<EventRoundEnd>((@event, info) =>
+            Instance?.RegisterEventHandler<EventRoundEnd>((@event, info) =>
             {
                 var teams = Utilities.FindAllEntitiesByDesignerName<CCSTeam>("cs_team_manager").Where(t => t != null).ToList();
                 var tTeam = teams.FirstOrDefault(t => t.TeamNum == (int)CsTeam.Terrorist);
                 var ctTeam = teams.FirstOrDefault(t => t.TeamNum == (int)CsTeam.CounterTerrorist);
-                Debug.WriteToDebug($"Round #{tTeam?.Score + ctTeam?.Score} (CT {ctTeam?.Score} : {tTeam?.Score} TT) ended.");
+                WriteToDebug($"Runda #{tTeam?.Score + ctTeam?.Score} (CT {ctTeam?.Score} : {tTeam?.Score} TT) zakończona.");
                 return HookResult.Continue;
             });
 
-            Instance.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
+            Instance?.RegisterEventHandler<EventPlayerDeath>((@event, info) =>
             {
                 var victim = @event.Userid;
                 var attacker = @event.Attacker;
                 if (victim != null)
                 {
                     if (attacker != null)
-                        Debug.WriteToDebug($"{(victim.IsBot ? "Bot" : "Player")} {victim.PlayerName} died from {(attacker.IsBot ? "bot" : "player")} {attacker.PlayerName}.");
+                        WriteToDebug($"{(victim.IsBot ? "Bot" : "Gracz")} {victim.PlayerName} zmarł od {(attacker.IsBot ? "bota" : "gracza")} {attacker.PlayerName}.");
                     else
-                        Debug.WriteToDebug($"{(victim.IsBot ? "Bot" : "Player")} {victim.PlayerName} died.");
+                        WriteToDebug($"{(victim.IsBot ? "Bot" : "Gracz")} {victim.PlayerName} zmarł.");
                 }
                 return HookResult.Continue;
             });
 
-            Instance.RegisterEventHandler<EventBombPlanted>((@event, info) =>
+            Instance?.RegisterEventHandler<EventBombPlanted>((@event, info) =>
             {
-                Debug.WriteToDebug($"Bomb planted.");
+                WriteToDebug($"Bomba podłożona.");
                 return HookResult.Continue;
             });
 
-            Instance.RegisterEventHandler<EventBombDefused>((@event, info) =>
+            Instance?.RegisterEventHandler<EventBombDefused>((@event, info) =>
             {
-                Debug.WriteToDebug($"Bomb defused.");
+                WriteToDebug($"Bomba rozbrojona.");
                 return HookResult.Continue;
             });
 
-            Instance.RegisterListener<OnMapStart>((string mapName) =>
+            Instance?.RegisterListener<OnMapStart>((string mapName) =>
             {
-                Debug.WriteToDebug($"Map changed: {mapName}.");
+                WriteToDebug($"Mapa zmieniona: {mapName}.");
             });
 
-            Instance.RegisterEventHandler<EventPlayerShoot>((@event, info) =>
+            Instance?.RegisterEventHandler<EventPlayerShoot>((@event, info) =>
             {
                 var player = @event.Userid;
                 if (player == null || !player.IsValid) return HookResult.Continue;
-                Debug.WriteToDebug($"{(player.IsBot ? "Bot" : "Player")} {player.PlayerName} fired a shot.");
+                WriteToDebug($"{(player.IsBot ? "Bot" : "Gracz")} {player.PlayerName} oddał strzał.");
                 return HookResult.Continue;
             });
 
@@ -118,18 +118,15 @@ namespace jRandomSkills
             CCSPlayerController attacker = attackerPawn.Controller.Value.As<CCSPlayerController>();
             CCSPlayerController victim = victimPawn.Controller.Value.As<CCSPlayerController>();
 
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
             if (playerInfo == null) return HookResult.Continue;
 
-            Debug.WriteToDebug($"{(victim.IsBot ? "Bot" : "Player")} {victim.PlayerName} took damage from {(attacker.IsBot ? "bot" : "player")} {attacker.PlayerName}.");
+            WriteToDebug($"{(victim.IsBot ? "Bot" : "Gracz")} {victim.PlayerName} otrzymał obrażenia od {(attacker.IsBot ? "bota" : "gracza")} {attacker.PlayerName}.");
             return HookResult.Continue;
         }
 
         public static void WriteToDebug(string message)
         {
-            if (Config.LoadedConfig.Settings.DebugMode != true)
-                return;
-
             string filename = $"debug_{sessionId}.txt";
             string path = Path.Combine(debugFolder, filename);
 

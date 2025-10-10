@@ -1,5 +1,4 @@
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
@@ -11,16 +10,16 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Rusznikarz", "Odnawiasz amunicję i zdrowie po każdym zabójstwie.", "#18dda2");
         }
 
         public static void PlayerDeath(EventPlayerDeath @event)
         {
             var killer = @event.Attacker;
             var victim = @event.Userid;
-            if (killer == null || killer == victim || !Instance.IsPlayerValid(killer) || !killer.PawnIsAlive) return;
+            if (killer == null || killer == victim || Instance?.IsPlayerValid(killer) == false || !killer.PawnIsAlive) return;
 
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == killer.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == killer.SteamID);
             if (playerInfo?.Skill == skillName)
             {
                 var killerPawn = killer.PlayerPawn.Value;
@@ -30,10 +29,6 @@ namespace jRandomSkills
                     weapon.Clip1 += 100;
                 SkillUtils.AddHealth(killerPawn, 100);
             }
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#18dda2", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
@@ -12,16 +11,16 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Radarowiec", "Widzisz wrogów na radarze", "#2effcb");
         }
 
         public static void OnTick()
         {
             foreach (var player in Utilities.GetPlayers())
             {
-                if (!Instance.IsPlayerValid(player)) continue;
+                if (Instance?.IsPlayerValid(player) == false) continue;
 
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
                 {
                     SetEnemiesVisibleOnRadar(player);
@@ -38,7 +37,7 @@ namespace jRandomSkills
             {
                 var enemyPawn = enemy.PlayerPawn.Value;
                 if (enemyPawn == null) continue;
-                enemyPawn.EntitySpottedState.SpottedByMask[0] |= (1u << (int)(playerIndex % 32));
+                enemyPawn.EntitySpottedState.SpottedByMask[0] |= 1u << playerIndex % 32;
 
             }
 
@@ -47,14 +46,7 @@ namespace jRandomSkills
             {
                 var bomb = bombEntities.FirstOrDefault();
                 if (bomb != null)
-                    bomb.EntitySpottedState.SpottedByMask[0] |= (1u << (int)(playerIndex % 32));
-            }
-        }
-
-        public class SkillConfig : Config.DefaultSkillInfo
-        {
-            public SkillConfig(Skills skill = skillName, bool active = true, string color = "#2effcb", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : base(skill, active, color, onlyTeam, needsTeammates)
-            {
+                    bomb.EntitySpottedState.SpottedByMask[0] |= 1u << playerIndex % 32;
             }
         }
     }

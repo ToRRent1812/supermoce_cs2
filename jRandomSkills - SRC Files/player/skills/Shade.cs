@@ -5,7 +5,7 @@ using CounterStrikeSharp.API.Modules.Utils;
 using CS2TraceRay.Class;
 using CS2TraceRay.Struct;
 using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
+using System.Collections.Concurrent;
 using System.Numerics;
 using static jRandomSkills.jRandomSkills;
 using Vector = CounterStrikeSharp.API.Modules.Utils.Vector;
@@ -15,12 +15,11 @@ namespace jRandomSkills
     public class Shade : ISkill
     {
         private const Skills skillName = Skills.Shade;
-        private static readonly float teleportDistance = Config.GetValue<float>(skillName, "teleportDistance");
-        private static readonly Dictionary<CCSPlayerController, float> noSpace = [];
+        private static readonly ConcurrentDictionary<CCSPlayerController, float> noSpace = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Cień", "25% szans na pojawienie się za plecami trafionego wroga", "#4d4d4d");
         }
 
         public static void NewRound()
@@ -33,18 +32,18 @@ namespace jRandomSkills
             var attacker = @event.Attacker;
             var victim = @event.Userid;
 
-            if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim)) return;
+            if (Instance?.IsPlayerValid(attacker) == false || Instance?.IsPlayerValid(victim) == false) return;
 
-            var victimInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
-            var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
+            var victimInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
+            var attackerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
 
-            if (attackerInfo?.Skill == skillName && Instance.Random.Next(1,4) == 1)
+            if (attackerInfo?.Skill == skillName && Instance?.Random.Next(1,5) == 1)
                 TeleportAttackerBehindVictim(attacker!, victim!);
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            noSpace.Remove(player);
+            noSpace.TryRemove(player, out _);
         }
 
         public static void OnTick()
@@ -60,7 +59,7 @@ namespace jRandomSkills
             if (skillData == null) return;
 
             string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
-            string remainingLine = $"<font class='fontSize-s' color='#FF0000'>{Localization.GetTranslation("shade_nospace")}</font>";
+            string remainingLine = $"<font class='fontSize-s' color='#FF0000'>Brak miejsca za wrogiem</font>";
             var hudContent = skillLine + remainingLine;
             player.PrintToCenterHtml(hudContent);
         }
@@ -103,19 +102,14 @@ namespace jRandomSkills
             foreach (int extraAngle in angles)
             {
                 QAngle newAngle = new(victimAngles.X, victimAngles.Y + extraAngle, victimAngles.Z);
-                Vector behindPosition = victimEyePos - SkillUtils.GetForwardVector(newAngle) * teleportDistance;
+                Vector behindPosition = victimEyePos - SkillUtils.GetForwardVector(newAngle) * 100f;
                 if (!CheckTeleport(victim, victimEyePos, behindPosition)) continue;
                 attackerPawn.Teleport(behindPosition, newAngle, new(0, 0, 0));
                 teleported = true;
                 break;
             }
             if (!teleported)
-                noSpace[attacker] = Server.TickCount + (64 * 2);
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#4d4d4d", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float teleportDistance = 100f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
-            public float TeleportDistance { get; set; } = teleportDistance;
+                noSpace.AddOrUpdate(attacker, Server.TickCount + 128, (k, v) => Server.TickCount + 128);
         }
     }
 }

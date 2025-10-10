@@ -13,26 +13,23 @@ namespace jRandomSkills
         private static readonly int?[] J = new int?[64];
         private static readonly PlayerButtons[] LB = new PlayerButtons[64];
 
-        private static readonly float jumpVelocity = Config.GetValue<float>(skillName, "jumpVelocity");
-        private static readonly float pushVelocity = Config.GetValue<float>(skillName, "pushVelocity");
-
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Superman", "Skacząc podwójnie wykonujesz DASH", "#42bbfc");
         }
 
         public static void OnTick()
         {
             foreach (var player in Utilities.GetPlayers())
             {
-                if (!Instance.IsPlayerValid(player)) return;
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (Instance?.IsPlayerValid(player) == false) return;
+                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
-                    GiveAdditionalJump(player);
+                    HandleDash(player);
             }
         }
 
-        private static void GiveAdditionalJump(CCSPlayerController player)
+        private static void HandleDash(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn == null || !playerPawn.IsValid) return;
@@ -40,7 +37,7 @@ namespace jRandomSkills
             var flags = (PlayerFlags)playerPawn.Flags;
             var buttons = player.Buttons;
 
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerPawn == null || playerInfo == null) return;
 
             if ((LF[player.Slot] & PlayerFlags.FL_ONGROUND) != 0 && (flags & PlayerFlags.FL_ONGROUND) == 0 && (LB[player.Slot] & PlayerButtons.Jump) == 0 && (buttons & PlayerButtons.Jump) != 0)
@@ -54,7 +51,7 @@ namespace jRandomSkills
             {
                 J[player.Slot]++;
 
-                                float moveX = 0;
+                float moveX = 0;
                 float moveY = 0;
 
                 PlayerButtons playerButtons = player.Buttons;
@@ -73,8 +70,8 @@ namespace jRandomSkills
                 float moveAngle = MathF.Atan2(moveX, moveY) * (180f / MathF.PI);
                 QAngle dashAngles = new(0, playerPawn.EyeAngles.Y + moveAngle, 0);
 
-                Vector newVelocity = SkillUtils.GetForwardVector(dashAngles) * pushVelocity;
-                newVelocity.Z = playerPawn.AbsVelocity.Z + jumpVelocity;
+                Vector newVelocity = SkillUtils.GetForwardVector(dashAngles) * 500f;
+                newVelocity.Z = playerPawn.AbsVelocity.Z + 120f;
 
                 playerPawn.AbsVelocity.X = newVelocity.X;
                 playerPawn.AbsVelocity.Y = newVelocity.Y;
@@ -83,12 +80,6 @@ namespace jRandomSkills
 
             LF[player.Slot] = flags;
             LB[player.Slot] = buttons;
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#42bbfc", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float jumpVelocity = 120f, float pushVelocity = 500f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
-            public float JumpVelocity { get; set; } = jumpVelocity;
-            public float PushVelocity { get; set; } = pushVelocity;
         }
     }
 }

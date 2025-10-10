@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
+using System.Collections.Concurrent;
 using System.Drawing;
 using static jRandomSkills.jRandomSkills;
 
@@ -11,12 +12,12 @@ namespace jRandomSkills
     public class Jackal : ISkill
     {
         private const Skills skillName = Skills.Jackal;
-        private static readonly int maxStepBeam = Config.GetValue<int>(skillName, "maxStepBeam");
-        private static readonly Dictionary<CCSPlayerController, List<CBeam>> stepBeams = [];
+        private static readonly ConcurrentDictionary<ulong, byte> playersInAction = [];
+        private static readonly ConcurrentDictionary<CCSPlayerController, ConcurrentQueue<CBeam>> stepBeams = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Stópkarz", "Przeciwnicy zostawiają po sobie ślady.", "#f542ef");
         }
 
         public static void NewRound()
@@ -26,17 +27,18 @@ namespace jRandomSkills
                     if (beam != null && beam.IsValid)
                         beam.AcceptInput("Kill");
             stepBeams.Clear();
+            playersInAction.Clear();
         }
 
         public static void OnTick()
         {
-            if (Server.TickCount % 8 != 0) return;
+            if (Server.TickCount % 16 != 0) return;
             foreach (var step in stepBeams.ToList())
             {
                 var player = step.Key;
                 if (!player.IsValid)
                 {
-                    stepBeams.Remove(player);
+                    stepBeams.TryRemove(player, out _);
                     continue;
                 }
 
@@ -49,12 +51,13 @@ namespace jRandomSkills
 
                 var newBeam = CreateBeamStep(step.Key.Team, lastBeamVector, pawn.AbsOrigin);
                 if (newBeam != null)
-                    step.Value.Add(newBeam);
+                    step.Value.Enqueue(newBeam);
 
-                if (beams?.Count >= maxStepBeam)
+                if (beams?.Count >= 75)
                 {
-                    beams[0].AcceptInput("Kill");
-                    step.Value.RemoveAt(0);
+                    if (beams.TryPeek(out var beam))
+                        beam.AcceptInput("Kill");
+                    step.Value.TryDequeue(out _);
                 }
             }
         }
@@ -70,8 +73,8 @@ namespace jRandomSkills
                     var beams = step.Value;
 
                     var observedPlayer = Utilities.GetPlayers().FirstOrDefault(p => p?.Pawn?.Value?.Handle == player?.Pawn?.Value?.ObserverServices?.ObserverTarget?.Value?.Handle);
-                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                    var observerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == observedPlayer?.SteamID);
+                    var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                    var observerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == observedPlayer?.SteamID);
 
                     foreach (var beam in beams)
                         if (playerInfo?.Skill != skillName && observerInfo?.Skill != skillName)
@@ -98,31 +101,23 @@ namespace jRandomSkills
             beam.EndPos.X = stop.X;
             beam.EndPos.Y = stop.Y;
             beam.EndPos.Z = stop.Z;
-
             return beam;
         }
 
-        public static void EnableSkill(CCSPlayerController _)
+        public static void EnableSkill(CCSPlayerController player)
         {
-            SkillUtils.EnableTransmit();
-            foreach (var _player in Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator))
+            Event.EnableTransmit();
+            playersInAction.TryAdd(player.SteamID, 0);
+            foreach (var _player in Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.PawnIsAlive && p.Team is CsTeam.CounterTerrorist or CsTeam.Terrorist))
                 if (!stepBeams.ContainsKey(_player))
-                    stepBeams.Add(_player, []);
+                    stepBeams.TryAdd(_player, []);
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (playerInfo == null) return;
-
-            playerInfo.Skill = Skills.None;
-            if (!Instance.SkillPlayer.Any(s => s.Skill == skillName))
+            playersInAction.TryRemove(player.SteamID, out _);
+            if (playersInAction.IsEmpty)
                 NewRound();
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#f542ef", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int maxStepBeam = 100) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
-            public int MaxStepBeam { get; set; } = maxStepBeam;
         }
     }
 }

@@ -1,6 +1,5 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
@@ -12,7 +11,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "E-sportowiec", "Znacznie zmniejszony recoil", "#429ef5");
         }
 
         public static void NewRound()
@@ -34,8 +33,8 @@ namespace jRandomSkills
         {
             foreach (var player in Utilities.GetPlayers())
             {
-                if (!Instance.IsPlayerValid(player)) continue;
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (Instance?.IsPlayerValid(player) == false) continue;
+                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
 
                 if (playerInfo?.Skill == skillName)
                 {
@@ -47,10 +46,6 @@ namespace jRandomSkills
                     pawn.CameraServices.CsViewPunchAngleTickRatio = 0f;
                 }
             }
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#429ef5", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
         }
     }
 }

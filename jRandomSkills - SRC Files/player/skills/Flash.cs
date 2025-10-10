@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.UserMessages;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
+using System.Collections.Concurrent;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -10,11 +11,11 @@ namespace jRandomSkills
     public class Flash : ISkill
     {
         private const Skills skillName = Skills.Flash;
-        public static readonly Dictionary<ulong, int> jumpedPlayers = [];
+        public static readonly ConcurrentDictionary<ulong, int> jumpedPlayers = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
+            SkillUtils.RegisterSkill(skillName, "Struś", "Szybko biegasz", "#dd1ad3");
         }
 
         public static void NewRound()
@@ -28,12 +29,12 @@ namespace jRandomSkills
             var userIndex = um.ReadUInt("source_entity_index");
 
             if (userIndex == 0) return;
-            if (!Instance.footstepSoundEvents.Contains(soundevent)) return;
+            if (Instance?.footstepSoundEvents.Contains(soundevent) == false) return;
 
             var player = Utilities.GetPlayers().FirstOrDefault(p => p.Pawn?.Value != null && p.Pawn.Value.IsValid && p.Pawn.Value.Index == userIndex);
-            if (!Instance.IsPlayerValid(player)) return;
+            if (Instance?.IsPlayerValid(player) == false) return;
 
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
             if (playerInfo?.Skill != skillName) return;
 
             if (player!.Buttons.HasFlag(PlayerButtons.Speed) || player.Buttons.HasFlag(PlayerButtons.Duck))
@@ -45,43 +46,38 @@ namespace jRandomSkills
             var player = @event.Userid;
             if (player == null || !player.IsValid) return;
             if (!jumpedPlayers.TryGetValue(player.SteamID, out _)) return;
-            jumpedPlayers[player.SteamID] = Server.TickCount + 20;
+            jumpedPlayers.AddOrUpdate(player.SteamID, Server.TickCount + 20, (k, v) => Server.TickCount + 20);
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn.Value;
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerPawn == null || playerInfo == null) return;
 
-            var skillConfig = Config.LoadedConfig.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString());
-            if (skillConfig == null) return;
-
-            float newSpeed = (float)Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "ChanceTo") - Config.GetValue<float>(skillName, "ChanceFrom")) + Config.GetValue<float>(skillName, "ChanceFrom");
-            newSpeed = (float)Math.Round(newSpeed, 2);
-            playerInfo.SkillChance = newSpeed;
-            playerInfo.RandomPercentage = ((int)(newSpeed * 100)).ToString() + "%";
+            int randomValue = Instance?.Random?.Next(13,26) * 10 ?? 130; //130-250%
+            playerInfo.SkillChance = randomValue / 100f;
+            playerInfo.RandomPercentage = randomValue.ToString() + "%";
 
             jumpedPlayers.TryAdd(player.SteamID, 0);
-            playerPawn.VelocityModifier = newSpeed;
-            //SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("flash")}{ChatColors.Lime}: " + Localization.GetTranslation("flash_desc2", newSpeed), false);
+            playerPawn.VelocityModifier = playerInfo.SkillChance ?? 1f;
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn == null) return;
-            playerPawn.VelocityModifier = 1;
-            jumpedPlayers.Remove(player.SteamID);
+            playerPawn.VelocityModifier = 1f;
+            jumpedPlayers.TryRemove(player.SteamID, out _);
         }
 
         public static void OnTick()
         {
             foreach (var player in Utilities.GetPlayers())
             {
-                if (!Instance.IsPlayerValid(player)) continue;
+                if (Instance?.IsPlayerValid(player) == false) continue;
 
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill != skillName) continue;
 
                 var playerPawn = player.PlayerPawn?.Value;
@@ -98,12 +94,6 @@ namespace jRandomSkills
                 if (!((PlayerFlags)player.Flags).HasFlag(PlayerFlags.FL_ONGROUND))
                     playerPawn.AbsVelocity.Z = Math.Min(playerPawn.AbsVelocity.Z, 10);
             }
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#A31912", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = 1.3f, float chanceTo = 2.5f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
-            public float ChanceFrom { get; set; } = chanceFrom;
-            public float ChanceTo { get; set; } = chanceTo;
         }
     }
 }

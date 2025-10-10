@@ -1,6 +1,5 @@
 ﻿using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
-using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
@@ -12,7 +11,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Super Zeus", "Zeus natychmiastowo się odnawia", "#fbff00", 3);
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -23,9 +22,9 @@ namespace jRandomSkills
         public static void WeaponFire(EventWeaponFire @event)
         {
             var player = @event.Userid;
-            if (!Instance.IsPlayerValid(player)) return;
+            if (Instance?.IsPlayerValid(player) == false) return;
 
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
 
             if (playerInfo?.Skill == skillName)
             {
@@ -36,7 +35,7 @@ namespace jRandomSkills
                 var activeWeapon = pawn.WeaponServices.ActiveWeapon.Value;
                 if (activeWeapon.DesignerName != "weapon_taser") return;
                 var taser = activeWeapon.As<CWeaponTaser>();
-                Instance.AddTimer(.1f, () =>
+                Instance?.AddTimer(.2f, () =>
                 {
                     if (taser.IsValid)
                     {
@@ -45,11 +44,6 @@ namespace jRandomSkills
                     }
                 });
             }
-
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#fbff00", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
         }
     }
 }

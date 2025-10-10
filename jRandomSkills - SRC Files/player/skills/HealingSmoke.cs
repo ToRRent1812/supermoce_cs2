@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
+using System.Collections.Concurrent;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -10,12 +11,11 @@ namespace jRandomSkills
     public class HealingSmoke : ISkill
     {
         private const Skills skillName = Skills.HealingSmoke;
-        private static readonly float smokeRadius = Config.GetValue<float>(skillName, "smokeRadius");
-        private static readonly List<Vector> smokes = [];
+       private static readonly ConcurrentDictionary<Vector, byte> smokes = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Leczący Dym", "Twoje granaty dymne leczą", "#1fe070");
         }
 
         public static void NewRound()
@@ -27,19 +27,20 @@ namespace jRandomSkills
         {
             var player = @event.Userid;
             if (player == null || !player.IsValid) return;
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
-            smokes.Add(new Vector(@event.X, @event.Y, @event.Z));
+            smokes.TryAdd(new Vector(@event.X, @event.Y, @event.Z), 0);
         }
 
         public static void SmokegrenadeExpired(EventSmokegrenadeExpired @event)
         {
             var player = @event.Userid;
             if (player == null || !player.IsValid) return;
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
-            smokes.RemoveAll(v => v.X == @event.X && v.Y == @event.Y && v.Z == @event.Z);
-            Instance.AddTimer(20.0f, () =>
+            foreach (var smoke in smokes.Keys.Where(v => v.X == @event.X && v.Y == @event.Y && v.Z == @event.Z))    
+                smokes.TryRemove(smoke, out _);
+            Instance?.AddTimer(20.0f, () =>
             {
                 SkillUtils.TryGiveWeapon(player, CsItem.SmokeGrenade);
             });
@@ -59,7 +60,7 @@ namespace jRandomSkills
             var player = pawn.Controller.Value.As<CCSPlayerController>();
             if (player == null || !player.IsValid) return;
 
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
 
             Server.NextFrame(() =>
@@ -73,12 +74,12 @@ namespace jRandomSkills
 
         public static void OnTick()
         {
-            foreach (Vector smokePos in smokes)
+            foreach (Vector smokePos in smokes.Keys)
                 foreach (var player in Utilities.GetPlayers())
                     if (Server.TickCount % 32 == 0)
                         if (player.PlayerPawn.Value != null && player.PlayerPawn.Value.IsValid && player.PlayerPawn.Value.AbsOrigin != null)
-                            if (SkillUtils.GetDistance(smokePos, player.PlayerPawn.Value.AbsOrigin) <= smokeRadius)
-                                AddHealth(player.PlayerPawn.Value, Instance.Random.Next(3, 9));
+                            if (SkillUtils.GetDistance(smokePos, player.PlayerPawn.Value.AbsOrigin) <= 180)
+                                AddHealth(player.PlayerPawn.Value, Instance?.Random.Next(3, 10) ?? 5);
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -92,15 +93,10 @@ namespace jRandomSkills
                 return;
 
             if (player.Health != player.MaxHealth)
-                player.EmitSound("Healthshot.Success");
+                player.EmitSound("Healthshot.Success", volume: 0.2f);
 
             player.Health = Math.Min(player.Health + health, player.MaxHealth);
             Utilities.SetStateChanged(player, "CBaseEntity", "m_iHealth");
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#1fe070", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float smokeRadius = 180) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
-            public float SmokeRadius { get; set; } = smokeRadius;
         }
     }
 }

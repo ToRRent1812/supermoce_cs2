@@ -1,5 +1,4 @@
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Utils;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
@@ -28,42 +27,34 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Komandos", "Potrójne obrażenia z pistoletów i noża", "#c57f30");
         }
         
         public static void OnTakeDamage(DynamicHook h)
         {
-            CEntityInstance param = h.GetParam<CEntityInstance>(0);
-            CTakeDamageInfo param2 = h.GetParam<CTakeDamageInfo>(1);
+            var param = h.GetParam<CEntityInstance>(0);
+            var param2 = h.GetParam<CTakeDamageInfo>(1);
 
-            if (param == null || param.Entity == null || param2 == null || param2.Attacker == null || param2.Attacker.Value == null)
+            if (param?.Entity == null || param2?.Attacker?.Value == null)
                 return;
 
-            CCSPlayerPawn attackerPawn = new(param2.Attacker.Value.Handle);
-            CCSPlayerPawn victimPawn = new(param.Handle);
+            var attackerPawn = new CCSPlayerPawn(param2.Attacker.Value.Handle);
+            var victimPawn = new CCSPlayerPawn(param.Handle);
 
             if (attackerPawn.DesignerName != "player" || victimPawn.DesignerName != "player")
                 return;
 
-            if (attackerPawn == null || attackerPawn.Controller?.Value == null || victimPawn == null || victimPawn.Controller?.Value == null)
+            var attackerController = attackerPawn.Controller?.Value?.As<CCSPlayerController>();
+            if (attackerController == null || victimPawn.Controller?.Value == null)
                 return;
 
-            CCSPlayerController attacker = attackerPawn.Controller.Value.As<CCSPlayerController>();
-            CCSPlayerController victim = victimPawn.Controller.Value.As<CCSPlayerController>();
-
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim.SteamID);
-            if (playerInfo == null) return;
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attackerController.SteamID);
+            if (playerInfo?.Skill != skillName || !attackerController.PawnIsAlive)
+                return;
 
             var activeWeapon = attackerPawn.WeaponServices?.ActiveWeapon.Value;
-
-            if (playerInfo.Skill == skillName && activeWeapon != null && attacker.PawnIsAlive && guns.Contains(activeWeapon?.DesignerName))
-            {
+            if (activeWeapon != null && guns.Contains(activeWeapon.DesignerName))
                 param2.Damage *= 3.0f;
-            }
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#a8720c", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
         }
     }
 }

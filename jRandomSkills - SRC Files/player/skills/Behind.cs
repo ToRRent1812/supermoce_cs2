@@ -11,7 +11,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
+            SkillUtils.RegisterSkill(skillName, "Przekręcenie", "Szansa na obrócenie wroga po trafieniu", "#00FF00");
         }
 
         public static void PlayerHurt(EventPlayerHurt @event)
@@ -19,24 +19,22 @@ namespace jRandomSkills
             var attacker = @event!.Attacker;
             var victim = @event!.Userid;
 
-            if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) return;
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
+            if (Instance?.IsPlayerValid(attacker) == false || Instance?.IsPlayerValid(victim) == false || attacker == victim) return;
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
 
             if (playerInfo?.Skill == skillName && victim!.PawnIsAlive)
-                if (Instance.Random.NextDouble() <= playerInfo.SkillChance)
+                if (Instance?.Random.NextDouble() <= playerInfo.SkillChance)
                     RotateEnemy(victim);
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo == null) return;
-            float newChance = (float)Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "ChanceTo") - Config.GetValue<float>(skillName, "ChanceFrom")) + Config.GetValue<float>(skillName, "ChanceFrom");
-            playerInfo.SkillChance = newChance;
-            newChance = (float)Math.Round(newChance, 2) * 100;
-            newChance = (float)Math.Round(newChance);
-            playerInfo.RandomPercentage = newChance.ToString() + "%";
-            //SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("behind")}{ChatColors.Lime}: " + Localization.GetTranslation("behind_desc2", newChance), false);
+
+            int randomValue = Instance?.Random?.Next(2,6) * 5 ?? 10; //10-25%
+            playerInfo.SkillChance = randomValue / 100f;
+            playerInfo.RandomPercentage = randomValue.ToString() + "%";
         }
 
         private static void RotateEnemy(CCSPlayerController player)
@@ -56,12 +54,6 @@ namespace jRandomSkills
             );
 
             pawn.Teleport(currentPosition, newAngles, new Vector(0, 0, 0));
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#00FF00", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = .1f, float chanceTo = .25f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
-            public float ChanceFrom { get; set; } = chanceFrom;
-            public float ChanceTo { get; set; } = chanceTo;
         }
     }
 }

@@ -1,6 +1,5 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
@@ -9,17 +8,15 @@ namespace jRandomSkills
     public class Rambo : ISkill
     {
         private const Skills skillName = Skills.Rambo;
-        private static readonly int minExtraHealth = Config.GetValue<int>(skillName, "minExtraHealth");
-        private static readonly int maxExtraHealth = Config.GetValue<int>(skillName, "maxExtraHealth");
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Rambo", "Bonusowe HP w rundzie", "#009905");
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            int healthBonus = Instance.Random.Next(minExtraHealth, maxExtraHealth);
+            int healthBonus = Instance?.Random.Next(100, 501) ?? 100;
             AddHealth(player, healthBonus);
         }
 
@@ -50,12 +47,6 @@ namespace jRandomSkills
 
             pawn.Health = Math.Min(pawn.Health, 100);
             Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#009905", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int minExtraHealth = 80, int maxExtraHealth = 501) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
-            public int MinExtraHealth { get; set; } = minExtraHealth;
-            public int MaxExtraHealth { get; set; } = maxExtraHealth;
         }
     }
 }

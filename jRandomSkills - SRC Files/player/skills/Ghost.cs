@@ -3,9 +3,8 @@ using System.Drawing;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes;
-using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
+using System.Collections.Concurrent;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -25,14 +24,11 @@ namespace jRandomSkills
             "weapon_g3sg1", "weapon_nova", "weapon_xm1014", "weapon_mag7",
             "weapon_sawedoff", "weapon_m249", "weapon_negev"
         ];
-        private static readonly Dictionary<ulong, List<uint>> invisibleEntities = [];
+        private static readonly ConcurrentDictionary<ulong, ConcurrentBag<uint>> invisibleEntities = [];
 
         public static void LoadSkill()
         {
-            if (Config.LoadedConfig.SkillsInfo.FirstOrDefault(s => s.Name == skillName.ToString())?.Active != true)
-                return;
-
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Niewidka", "Twój agent jest niewidzialny ALE widać cię na radarze. STRZELANIE ZABRONIONE", "#FFFFFF", 2);
         }
 
         public static void NewRound()
@@ -44,8 +40,8 @@ namespace jRandomSkills
         public static void WeaponPickup(EventItemPickup @event)
         {
             var player = @event.Userid;
-            if (!Instance.IsPlayerValid(player)) return;
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            if (Instance?.IsPlayerValid(player) == false) return;
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
 
             if (playerInfo?.Skill != skillName) return;
             SetWeaponVisibility(player!, false);
@@ -55,8 +51,8 @@ namespace jRandomSkills
         public static void WeaponEquip(EventItemEquip @event)
         {
             var player = @event.Userid;
-            if (!Instance.IsPlayerValid(player)) return;
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            if (Instance?.IsPlayerValid(player) == false) return;
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
 
             if (playerInfo?.Skill != skillName) return;
             SetWeaponVisibility(player!, false);
@@ -77,7 +73,7 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            SkillUtils.EnableTransmit();
+            Event.EnableTransmit();
             SetPlayerVisibility(player, false);
             SetWeaponVisibility(player, false);
             SetWeaponAttack(player, true);
@@ -88,16 +84,19 @@ namespace jRandomSkills
             SetPlayerVisibility(player, true);
             SetWeaponVisibility(player, true);
             SetWeaponAttack(player, false);
-            invisibleEntities.Remove(player.SteamID);
+            invisibleEntities.TryRemove(player.SteamID, out _);
         }
 
         public static void OnTick()
         {
             foreach (var player in Utilities.GetPlayers())
             {
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
                     UpdateHUD(player);
+                if (!player.PawnIsAlive)
+                    if (invisibleEntities.ContainsKey(player.SteamID))
+                        invisibleEntities.TryRemove(player.SteamID, out _);
             }
         }
 
@@ -117,14 +116,11 @@ namespace jRandomSkills
 
         private static void SetWeaponVisibility(CCSPlayerController player, bool visible)
         {
-            if (!Instance.IsPlayerValid(player)) return;
+            if (Instance?.IsPlayerValid(player) == false) return;
             var playerPawn = player.PlayerPawn.Value!;
             if (playerPawn.WeaponServices == null) return;
 
-            // var color = visible ? Color.FromArgb(255, 255, 255, 255) : Color.FromArgb(0, 255, 255, 255);
-            // var shadowStrength = visible ? 1.0f : 0.0f;
-
-            invisibleEntities.Remove(player.SteamID);
+            invisibleEntities.TryRemove(player.SteamID, out _);
             foreach (var weapon in playerPawn.WeaponServices.MyWeapons)
             {
                 if (weapon != null && weapon.IsValid && weapon.Value != null && weapon.Value.IsValid)
@@ -137,17 +133,13 @@ namespace jRandomSkills
                                 items.Add(weapon.Index);
                         }
                         else
-                            invisibleEntities.Add(player.SteamID, [weapon.Index]);
+                            invisibleEntities.TryAdd(player.SteamID, [weapon.Index]);
                     }
-                    /*
-                    weapon.Value.Render = color;
-                    weapon.Value.ShadowStrength = shadowStrength;
-                    Utilities.SetStateChanged(weapon.Value, "CBaseModelEntity", "m_clrRender");*/
                 }
             }
 
             if (visible)
-                invisibleEntities.Remove(player.SteamID);
+                invisibleEntities.TryRemove(player.SteamID, out _);
         }
 
         private static void SetWeaponAttack(CCSPlayerController player, bool disableWeapon)
@@ -181,14 +173,10 @@ namespace jRandomSkills
             if (weapon == null || !weapon.IsValid || !disabledWeapons.Contains(weapon.DesignerName)) return;
 
             string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
-            string remainingLine = $"<font class='fontSize-m' color='#FF0000'>{Localization.GetTranslation("disabled_weapon")}</font>";
+            string remainingLine = $"<font class='fontSize-m' color='#FF0000'>Nie możesz strzelać na niewidcę!</font>";
 
             var hudContent = skillLine + remainingLine;
             player.PrintToCenterHtml(hudContent);
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#FFFFFF", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
         }
     }
 }

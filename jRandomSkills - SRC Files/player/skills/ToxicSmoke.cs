@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
+using System.Collections.Concurrent;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -10,13 +11,11 @@ namespace jRandomSkills
     public class ToxicSmoke : ISkill
     {
         private const Skills skillName = Skills.ToxicSmoke;
-        private static readonly int smokeDamage = Config.GetValue<int>(skillName, "smokeDamage");
-        private static readonly float smokeRadius = Config.GetValue<float>(skillName, "smokeRadius");
-        private static readonly List<Vector> smokes = [];
+        private static readonly ConcurrentDictionary<Vector, byte> smokes = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Chemik", "Twoje smoke'i zadają obrażenia. Granat po wypaleniu wraca do ręki", "#507529");
         }
 
         public static void NewRound()
@@ -29,52 +28,23 @@ namespace jRandomSkills
             SkillUtils.TryGiveWeapon(player, CsItem.SmokeGrenade);
         }
 
-        /*public static void OnEntitySpawned(CEntityInstance entity)
-        {
-            var name = entity.DesignerName;
-            if (name != "smokegrenade_projectile") return;
-
-            var grenade = entity.As<CBaseCSGrenadeProjectile>();
-            if (grenade == null || !grenade.IsValid || grenade.OwnerEntity == null || !grenade.OwnerEntity.IsValid || grenade.OwnerEntity.Value == null || !grenade.OwnerEntity.Value.IsValid) return;
-
-            var pawn = grenade.OwnerEntity.Value.As<CCSPlayerPawn>();
-            if (pawn == null || !pawn.IsValid || pawn.Controller == null || !pawn.Controller.IsValid || pawn.Controller.Value == null || !pawn.Controller.Value.IsValid) return;
-
-            var player = pawn.Controller.Value.As<CCSPlayerController>();
-            if (player == null || !player.IsValid) return;
-
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (playerInfo?.Skill != skillName) return;
-
-            Server.NextFrame(() =>
-            {
-                var smoke = entity.As<CSmokeGrenadeProjectile>();
-                smoke.SmokeColor.X = 255;
-                smoke.SmokeColor.Y = 0;
-                smoke.SmokeColor.Z = 255;
-            });
-        }*/
-
         public static void SmokegrenadeDetonate(EventSmokegrenadeDetonate @event)
         {
             var player = @event.Userid;
             if (player == null || !player.IsValid) return;
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
-            smokes.Add(new Vector(@event.X, @event.Y, @event.Z));
-            Instance.AddTimer(20.0f, () =>
-            {
-                SkillUtils.TryGiveWeapon(player, CsItem.SmokeGrenade);
-            });
+            smokes.TryAdd(new Vector(@event.X, @event.Y, @event.Z), 0);
         }
 
         public static void SmokegrenadeExpired(EventSmokegrenadeExpired @event)
         {
             var player = @event.Userid;
             if (player == null || !player.IsValid) return;
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
-            smokes.RemoveAll(v => v.X == @event.X && v.Y == @event.Y && v.Z == @event.Z);
+            foreach (var smoke in smokes.Keys.Where(v => v.X == @event.X && v.Y == @event.Y && v.Z == @event.Z))
+                smokes.TryRemove(smoke, out _);
         }
 
         private static void AddHealth(CCSPlayerPawn player, int health)
@@ -92,19 +62,13 @@ namespace jRandomSkills
 
         public static void OnTick()
         {
-            foreach (Vector smokePos in smokes)
+            foreach (Vector smokePos in smokes.Keys)
                 foreach (var player in Utilities.GetPlayers())
                     if (Server.TickCount % 32 == 0)
                         if (player != null && player.IsValid && player.PlayerPawn.Value != null && player.PlayerPawn.Value.IsValid)
                             if (player.PlayerPawn.Value.LifeState == (byte)LifeState_t.LIFE_ALIVE && player.PlayerPawn.Value.AbsOrigin != null)
-                                if (SkillUtils.GetDistance(smokePos, player.PlayerPawn.Value.AbsOrigin) <= smokeRadius)
-                                    AddHealth(player.PlayerPawn.Value, -smokeDamage);
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#507529", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int smokeDamage = 7, float smokeRadius = 170) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
-            public int SmokeDamage { get; set; } = smokeDamage;
-            public float SmokeRadius { get; set; } = smokeRadius;
+                                if (SkillUtils.GetDistance(smokePos, player.PlayerPawn.Value.AbsOrigin) <= 170)
+                                    AddHealth(player.PlayerPawn.Value, -7);
         }
     }
 }

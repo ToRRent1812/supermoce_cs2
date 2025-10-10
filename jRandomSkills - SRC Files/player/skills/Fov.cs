@@ -2,7 +2,7 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
+using System.Collections.Concurrent;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -10,18 +10,20 @@ namespace jRandomSkills
     public class Fov : ISkill
     {
         private const Skills skillName = Skills.Fov;
-        private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
-        private static int cd = 20;
+        private static readonly ConcurrentDictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
+        private static readonly object setLock = new();
+        private static int cd = 30;
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Ciepłe Piwo", "Możesz na 6 sek. zmienić pole widzenia losowego wroga", "#1466F5");
         }
 
         public static void NewRound()
         {
-            cd = Instance.Random.Next(4, 10) * 5;
-            SkillPlayerInfo.Clear();
+            cd = ((Instance?.Random.Next(4, 11)) ?? 4) * 5;
+            lock (setLock)
+                SkillPlayerInfo.Clear();
         }
 
         public static void PlayerDeath(EventPlayerDeath @event)
@@ -29,16 +31,16 @@ namespace jRandomSkills
             var player = @event.Userid;
             if (player == null) return;
 
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill == skillName)
-                SkillPlayerInfo.Remove(player.SteamID);
+                SkillPlayerInfo.TryRemove(player.SteamID, out _);
         }
 
         public static void OnTick()
         {
             foreach (var player in Utilities.GetPlayers())
             {
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo != null && playerInfo?.Skill == skillName)
                     if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
                         if (skillInfo.LastClick.AddSeconds(4) >= DateTime.Now)
@@ -50,19 +52,19 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            SkillPlayerInfo[player.SteamID] = new PlayerSkillInfo
+            SkillPlayerInfo.TryAdd(player.SteamID, new PlayerSkillInfo
             {
                 SteamID = player.SteamID,
                 CanUse = true,
                 Cooldown = DateTime.MinValue,
                 LastClick = DateTime.MinValue,
                 FindedEnemy = false,
-            };
+            });
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            SkillPlayerInfo.Remove(player.SteamID);
+            SkillPlayerInfo.TryRemove(player.SteamID, out _);
         }
 
         private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo, bool showInfo)
@@ -82,11 +84,11 @@ namespace jRandomSkills
             string remainingLine = "";
 
             if (showInfo)
-                remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>{Localization.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}</font>"
-                                : !skillInfo.FindedEnemy ? $"<font class='fontSize-m' color='#FF0000'>{Localization.GetTranslation("hud_info_no_enemy")}</font>"
+                remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>Poczekaj <font color='#FF0000'>{cooldown}</font> sek.</font>"
+                                : (skillInfo != null && !skillInfo.FindedEnemy) ? $"<font class='fontSize-m' color='#FF0000'>Nie znaleziono odpowiedniego wroga!</font>"
                                 : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>Wciśnij INSPEKT by użyć</font>";
             else
-                remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>{Localization.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}</font>" : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>Wciśnij INSPEKT by użyć</font>";
+                remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>Poczekaj <font color='#FF0000'>{cooldown}</font> sek.</font>" : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>Wciśnij INSPEKT by użyć</font>";
 
             var hudContent = skillLine + remainingLine;
             player.PrintToCenterHtml(hudContent);
@@ -99,15 +101,15 @@ namespace jRandomSkills
 
             if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
             {
-                List<CCSPlayerController> enemy = Utilities.GetPlayers().FindAll(p => Instance.IsPlayerValid(p) && p.Team != player.Team && p.PawnIsAlive);
-                if (enemy.Count == 0)
+                CCSPlayerController[] enemies = Utilities.GetPlayers().FindAll(e => e.Team != player.Team && e.PawnIsAlive).ToArray();
+                if (enemies.Length == 0)
                 {
                     skillInfo.FindedEnemy = false;
                     skillInfo.LastClick = DateTime.Now;
                     return;
                 }
 
-                CCSPlayerController randomEnemy = enemy[Instance.Random.Next(0, enemy.Count)];
+                CCSPlayerController randomEnemy = enemies.ElementAt(Instance?.Random.Next(0, enemies.Length) ?? 0);
                 if (randomEnemy == null || !player.IsValid || !player.PawnIsAlive || !randomEnemy.IsValid || !randomEnemy.PawnIsAlive) return;
                 if (skillInfo.CanUse)
                 {
@@ -125,7 +127,7 @@ namespace jRandomSkills
         {
             if (player != null && player.IsValid && player.PawnIsAlive)
             {
-                var randomfov = Instance.Random.Next(1, 2);
+                var randomfov = Instance?.Random.Next(1, 2);
 
                 switch (randomfov)
                 {
@@ -142,22 +144,22 @@ namespace jRandomSkills
                 Utilities.SetStateChanged(player, "CBasePlayerController", "m_iDesiredFOV");
                 SkillUtils.PrintToChat(player, $"{ChatColors.LightRed}Przeciwnik Cię upił! Zaraz wytrzeźwiejesz.", true);
 
-                Instance.AddTimer(1.5f, () =>
+                Instance?.AddTimer(1.5f, () =>
                 {
                     player.DesiredFOV = player.DesiredFOV < 100 ? player.DesiredFOV += 10 : player.DesiredFOV -= 10;
                 });
 
-                Instance.AddTimer(3.0f, () =>
+                Instance?.AddTimer(3.0f, () =>
                 {
                     player.DesiredFOV = player.DesiredFOV < 100 ? player.DesiredFOV += 10 : player.DesiredFOV -= 10;
                 });
 
-                Instance.AddTimer(4.5f, () =>
+                Instance?.AddTimer(4.5f, () =>
                 {
                     player.DesiredFOV = player.DesiredFOV < 100 ? player.DesiredFOV += 10 : player.DesiredFOV -= 10;
                 });
                 
-                Instance.AddTimer(6.0f, () =>
+                Instance?.AddTimer(6.0f, () =>
                 {
                     player.DesiredFOV = 90;
                 });
@@ -171,10 +173,6 @@ namespace jRandomSkills
             public DateTime Cooldown { get; set; }
             public DateTime LastClick { get; set; }
             public bool FindedEnemy { get; set; }
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#1466F5", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
         }
     }
 }

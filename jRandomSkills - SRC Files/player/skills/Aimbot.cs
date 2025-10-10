@@ -1,8 +1,8 @@
 ﻿using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
-using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using System.Runtime.InteropServices;
+using System.Collections.Concurrent;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -10,11 +10,11 @@ namespace jRandomSkills
     public class Aimbot : ISkill
     {
         private const Skills skillName = Skills.Aimbot;
-        private static readonly Dictionary<nint, int> hitGroups = [];
+        private static readonly ConcurrentDictionary<nint, int> hitGroups = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Aimbot", "Każdy twój trafiony pocisk to headshot", "#ff0000");
         }
 
         public static void OnTakeDamage(DynamicHook h)
@@ -37,15 +37,15 @@ namespace jRandomSkills
             CCSPlayerController attacker = attackerPawn.Controller.Value.As<CCSPlayerController>();
             CCSPlayerController victim = victimPawn.Controller.Value.As<CCSPlayerController>();
 
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
             if (playerInfo == null) return;
 
             if (attacker.PawnIsAlive)
             {   
-                IntPtr hitGroupPointer = Marshal.ReadIntPtr(param2.Handle, GameData.GetOffset("CTakeDamageInfo_HitGroup"));
+                nint hitGroupPointer = Marshal.ReadIntPtr(param2.Handle, GameData.GetOffset("CTakeDamageInfo_HitGroup"));
                 if (hitGroupPointer != nint.Zero)
                 {
-                    IntPtr hitGroupOffset = Marshal.ReadIntPtr(hitGroupPointer, 16);
+                    nint hitGroupOffset = Marshal.ReadIntPtr(hitGroupPointer, 16);
                     if (hitGroupOffset != nint.Zero)
                     {
                         if (playerInfo.Skill == skillName)
@@ -64,10 +64,6 @@ namespace jRandomSkills
         {
             foreach (var hit in hitGroups)
                 Marshal.WriteInt32(hit.Key, 56, hit.Value);
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#ff0000", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
         }
     }
 }

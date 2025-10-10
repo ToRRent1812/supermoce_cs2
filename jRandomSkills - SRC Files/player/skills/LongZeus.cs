@@ -1,6 +1,5 @@
 ﻿using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
-using CounterStrikeSharp.API.Modules.Utils;
 using CS2TraceRay.Class;
 using CS2TraceRay.Struct;
 using jRandomSkills.src.player;
@@ -13,19 +12,18 @@ namespace jRandomSkills
     public class LongZeus : ISkill
     {
         private const Skills skillName = Skills.LongZeus;
-        private static readonly float maxDistance = Config.GetValue<float>(skillName, "maxDistance");
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Railgun", "Zeus ma nielimitowany zasięg", "#6effc7");
         }
 
         public unsafe static void WeaponFire(EventWeaponFire @event)
         {
             var player = @event.Userid;
-            if (!Instance.IsPlayerValid(player)) return;
+            if (Instance?.IsPlayerValid(player) == false) return;
 
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
             if (playerInfo?.Skill != skillName) return;
 
             var pawn = player!.PlayerPawn.Value;
@@ -35,7 +33,7 @@ namespace jRandomSkills
             if (activeWeapon == null || !activeWeapon.IsValid || activeWeapon.DesignerName != "weapon_taser") return;
 
             Vector eyePos = new(pawn.AbsOrigin.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z + pawn.ViewOffset.Z);
-            Vector endPos = eyePos + SkillUtils.GetForwardVector(pawn.EyeAngles) * maxDistance;
+            Vector endPos = eyePos + SkillUtils.GetForwardVector(pawn.EyeAngles) * 4096f;
 
             Ray ray = new(Vector3.Zero);
             CTraceFilter filter = new(pawn.Index, pawn.Index)
@@ -64,11 +62,6 @@ namespace jRandomSkills
         public static void EnableSkill(CCSPlayerController player)
         {
             SkillUtils.TryGiveWeapon(player, CsItem.Zeus);
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#6effc7", CsTeam onlyTeam = CsTeam.CounterTerrorist, bool needsTeammates = false, float maxDistance = 4096f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
-            public float MaxDistance { get; set; } = maxDistance;
         }
     }
 }

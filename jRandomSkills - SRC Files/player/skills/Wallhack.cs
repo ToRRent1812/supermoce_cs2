@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
+using System.Collections.Concurrent;
 using System.Drawing;
 using static jRandomSkills.jRandomSkills;
 
@@ -11,11 +12,12 @@ namespace jRandomSkills
     public class Wallhack : ISkill
     {
         private const Skills skillName = Skills.Wallhack;
-        private static readonly List<(CDynamicProp, CDynamicProp)> glows = [];
+        private static readonly ConcurrentDictionary<ulong, byte> playersInAction = [];
+        private static readonly ConcurrentBag<(CDynamicProp, CDynamicProp, CsTeam)> glows = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Jasnowidz", "Widzisz wrogów przez ściany", "#5d00ff");
         }
 
         public static void CheckTransmit([CastFrom(typeof(nint))] CCheckTransmitInfoList infoList)
@@ -23,16 +25,16 @@ namespace jRandomSkills
             foreach (var (info, player) in infoList)
             {
                 if (player == null) continue;
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
 
                 var observedPlayer = Utilities.GetPlayers().FirstOrDefault(p => p?.Pawn?.Value?.Handle == player?.Pawn?.Value?.ObserverServices?.ObserverTarget?.Value?.Handle);
-                var observerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == observedPlayer?.SteamID);
-
-                if (playerInfo?.Skill == skillName || (observerInfo != null && observerInfo?.Skill == skillName))
-                    continue;
+                var observerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == observedPlayer?.SteamID);
 
                 foreach (var glow in glows)
                 {
+                    if (glow.Item3 != player.Team && (playerInfo?.Skill == skillName || (observerInfo != null && observerInfo?.Skill == skillName)))
+                        continue;
+
                     info.TransmitEntities.Remove(glow.Item1);
                     info.TransmitEntities.Remove(glow.Item2);
                 }
@@ -49,30 +51,29 @@ namespace jRandomSkills
                     glow.Item2.AcceptInput("Kill");
             }
             glows.Clear();
+            playersInAction.Clear();
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            SkillUtils.EnableTransmit();
-            SetGlowEffectForEnemies(player);
+            Event.EnableTransmit();
+            playersInAction.TryAdd(player.SteamID, 0);
+            if (glows.IsEmpty)
+                SetGlowEffectForAll();
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (playerInfo == null) return;
-
-            playerInfo.Skill = Skills.None;
-            if (!Instance.SkillPlayer.Any(s => s.Skill == skillName))   
+            playersInAction.TryRemove(player.SteamID, out _);
+            if (playersInAction.IsEmpty)
                 NewRound();
         }
 
-        private static void SetGlowEffectForEnemies(CCSPlayerController player)
+        private static void SetGlowEffectForAll()
         {
-            CsTeam originalTeam = player.Team;
-            foreach (var enemy in Utilities.GetPlayers().FindAll(p => p.Team != originalTeam && p.PawnIsAlive))
+            foreach (var enemy in Utilities.GetPlayers().FindAll(p => p.PawnIsAlive && p.Team is CsTeam.Terrorist or CsTeam.CounterTerrorist))
             {
-                var enemyInfo = Instance.SkillPlayer.FirstOrDefault(e => e.SteamID == enemy.SteamID);
+                var enemyInfo = Instance?.SkillPlayer.FirstOrDefault(e => e.SteamID == enemy.SteamID);
                 if (enemyInfo?.Skill == Skills.Ghost)
                     return;
 
@@ -103,12 +104,8 @@ namespace jRandomSkills
 
                 modelRelay.AcceptInput("FollowEntity", enemyPawn, modelRelay, "!activator");
                 modelGlow.AcceptInput("FollowEntity", modelRelay, modelGlow, "!activator");
-                glows.Add((modelRelay, modelGlow));
+                glows.Add((modelRelay, modelGlow, enemy.Team));
             }
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#5d00ff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
         }
     }
 }

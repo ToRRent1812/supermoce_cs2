@@ -12,7 +12,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Anty-Radar", "Przeciwnicy grają rundę bez radaru", "#f542ef");
         }
 
         public static void NewRound()
@@ -38,7 +38,7 @@ namespace jRandomSkills
             {
                 if (oplayer != null && oplayer.IsValid)
                 {
-                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == oplayer.SteamID);
+                    var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == oplayer.SteamID);
                     if (oplayer.PawnIsAlive && playerInfo?.Skill == skillName) return;
                     // Jeżeli ktoś nadal ma Glitch, to nie przywracamy radaru
 
@@ -48,10 +48,6 @@ namespace jRandomSkills
                         enemy.ReplicateConVar("sv_disable_radar", "0");
                 }
             }
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#f542ef", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using CounterStrikeSharp.API.Modules.Utils;
-using jRandomSkills.src.player;
+﻿using jRandomSkills.src.player;
 
 namespace jRandomSkills
 {
@@ -9,11 +8,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#FFFFFF", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
+            SkillUtils.RegisterSkill(skillName, "Inwalida", "Nie posiadasz supermocy", "#FFFFFF");
         }
     }
 }

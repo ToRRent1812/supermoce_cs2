@@ -1,6 +1,5 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
-using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
@@ -12,7 +11,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Super Flesz", "Odporność na błysk. Twoje flesze działają dłużej", "#D6E6FF", 3);
         }
 
         public static void PlayerBlind(EventPlayerBlind @event)
@@ -25,23 +24,19 @@ namespace jRandomSkills
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn == null || !playerPawn.IsValid) return;
 
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var attackerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
 
             if (playerInfo?.Skill == skillName)
                 playerPawn.FlashDuration = 0.0f;
             else if (attackerInfo?.Skill == skillName)
-                playerPawn.FlashDuration = 7.0f;
+                playerPawn.FlashDuration = 6.5f;
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
             if (player == null || !player.IsValid) return;
             SkillUtils.TryGiveWeapon(player, CsItem.Flashbang, 2);
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#D6E6FF", CsTeam onlyTeam = CsTeam.CounterTerrorist, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
@@ -11,7 +10,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Super Armor", "Granaty nie zadają Ci obrażeń", "#a38c1a");
         }
 
         public static void PlayerHurt(EventPlayerHurt @event)
@@ -20,8 +19,8 @@ namespace jRandomSkills
             var player = @event.Userid;
             var weapon = @event.Weapon;
 
-            if (!Instance.IsPlayerValid(player)) return;
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            if (Instance?.IsPlayerValid(player) == false) return;
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
             if (playerInfo?.Skill != skillName) return;
 
             if (weapon == "hegrenade" || weapon == "inferno")
@@ -29,10 +28,6 @@ namespace jRandomSkills
                 SkillUtils.AddHealth(player!.PlayerPawn.Value, damage);
                 damage = 0;
             }
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#a38c1a", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
         }
     }
 }

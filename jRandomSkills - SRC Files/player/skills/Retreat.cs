@@ -2,7 +2,7 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
+using System.Collections.Concurrent;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -10,25 +10,27 @@ namespace jRandomSkills
     public class Retreat : ISkill
     {
         private const Skills skillName = Skills.Retreat;
-        private static int cd = 20;
-        private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
+        private static int cd = 25;
+        private static readonly ConcurrentDictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
+        private static readonly object setLock = new();
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Ucieczka", "Powrót na spawn", "#a86eff");
         }
 
         public static void NewRound()
         {
-            cd = Instance.Random.Next(3, 8) * 5;
-            SkillPlayerInfo.Clear();
+            cd = ((Instance?.Random.Next(3, 9)) ?? 3) * 5;
+            lock (setLock)
+                SkillPlayerInfo.Clear();
         }
 
         public static void OnTick()
         {
             foreach (var player in Utilities.GetPlayers())
             {
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
                     if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
                         UpdateHUD(player, skillInfo);
@@ -37,17 +39,17 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            SkillPlayerInfo[player.SteamID] = new PlayerSkillInfo
+            SkillPlayerInfo.TryAdd(player.SteamID, new PlayerSkillInfo
             {
                 SteamID = player.SteamID,
                 CanUse = true,
                 Cooldown = DateTime.MinValue,
-            };
+            });
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            SkillPlayerInfo.Remove(player.SteamID);
+            SkillPlayerInfo.TryRemove(player.SteamID, out _);
         }
 
         private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo)
@@ -66,7 +68,7 @@ namespace jRandomSkills
             if (skillData == null) return;
 
             string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
-            string remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>{Localization.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}</font>" : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>Wciśnij INSPEKT by użyć</font>";
+            string remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>Poczekaj <font color='#FF0000'>{cooldown}</font> sek.</font>" : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>Wciśnij INSPEKT by użyć</font>";
 
             var hudContent = skillLine + remainingLine;
             player.PrintToCenterHtml(hudContent);
@@ -94,7 +96,8 @@ namespace jRandomSkills
             var spawns = Utilities.FindAllEntitiesByDesignerName<SpawnPoint>(player.Team == CsTeam.Terrorist ? "info_player_terrorist" : "info_player_counterterrorist").ToList();
             if (spawns.Count != 0)
             {
-                var randomSpawn = spawns[Instance.Random.Next(spawns.Count)];
+                var randomIndex = Instance?.Random.Next(spawns.Count) ?? 0;
+                var randomSpawn = spawns[randomIndex];
                 return randomSpawn.AbsOrigin;
             }
             return null;
@@ -105,10 +108,6 @@ namespace jRandomSkills
             public ulong SteamID { get; set; }
             public bool CanUse { get; set; }
             public DateTime Cooldown { get; set; }
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#a86eff", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
         }
     }
 }

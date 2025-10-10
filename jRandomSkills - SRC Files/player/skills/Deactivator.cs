@@ -2,7 +2,7 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
+using System.Collections.Concurrent;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -13,7 +13,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Antidotum", "Pozbawiasz 1 wroga supermocy", "#919191");
         }
 
         public static void NewRound()
@@ -28,18 +28,16 @@ namespace jRandomSkills
             foreach (var player in Utilities.GetPlayers())
             {
                 if (!SkillUtils.HasMenu(player)) continue;
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
 
                 if (playerInfo == null || playerInfo.Skill != skillName) continue;
                 var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
-                HashSet<(string, string)> menuItems = [];
+                ConcurrentBag<(string, string)> menuItems = [];
                 foreach (var enemy in enemies)
                 {
-                    var enemyInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == enemy.SteamID);
+                    var enemyInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == enemy.SteamID);
                     if (enemyInfo == null) continue;
-                    var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == enemyInfo.Skill);
-                    if (skillData == null) continue;
-                    menuItems.Add(($"{enemy.PlayerName} : {skillData.Name}", enemy.Index.ToString()));
+                    menuItems.Add(($"{enemy.PlayerName}", enemy.Index.ToString()));
                 }
                 SkillUtils.UpdateMenu(player, menuItems);
             }
@@ -49,7 +47,7 @@ namespace jRandomSkills
         {
             if (player == null) return;
 
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
 
             var playerPawn = player.PlayerPawn.Value;
@@ -61,7 +59,7 @@ namespace jRandomSkills
 
             if (enemy == null)
             {
-                player.PrintToChat($" {ChatColors.Red}" + Localization.GetTranslation("selectplayerskill_incorrect_enemy_index"));
+                player.PrintToChat($" {ChatColors.Red} Nie znaleziono gracza o takim ID.");
                 return;
             }
 
@@ -73,24 +71,22 @@ namespace jRandomSkills
             var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
             if (enemies.Length > 0)
             {
-                HashSet<(string, string)> menuItems = [];
+                ConcurrentBag<(string, string)> menuItems = [];
                 foreach (var enemy in enemies)
                 {
-                    var enemyInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == enemy.SteamID);
+                    var enemyInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == enemy.SteamID);
                     if (enemyInfo == null) continue;
-                    var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == enemyInfo.Skill);
-                    if (skillData == null) continue;
-                    menuItems.Add(($"{enemy.PlayerName} : {skillData.Name}", enemy.Index.ToString()));
+                    menuItems.Add(($"{enemy.PlayerName}", enemy.Index.ToString()));
                 }
                 SkillUtils.CreateMenu(player, menuItems);
             }
             else
-                player.PrintToChat($" {ChatColors.Red}{Localization.GetTranslation("selectplayerskill_incorrect_enemy_index")}");
+                player.PrintToChat($" {ChatColors.Red} Nie znaleziono gracza o takim ID.");
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo == null) return;
             playerInfo.SpecialSkill = Skills.None;
             SkillUtils.CloseMenu(player);
@@ -98,28 +94,24 @@ namespace jRandomSkills
 
         private static void DeacitvateSkill(CCSPlayerController player, CCSPlayerController enemy)
         {
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            var enemyInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == enemy.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var enemyInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == enemy.SteamID);
 
             if (playerInfo != null)
             {
                 playerInfo.Skill = Skills.None;
                 playerInfo.SpecialSkill = skillName;
-                player.PrintToChat($" {ChatColors.Green}" + Localization.GetTranslation("deactivator_player_info", enemy.PlayerName));
+                player.PrintToChat($" {ChatColors.Green}Supermoc została wyłączona.");
             }
 
             if (enemyInfo != null)
             {
-                Instance.SkillAction(enemyInfo.Skill.ToString(), "DisableSkill", [enemy]);
+                Instance?.SkillAction(enemyInfo.Skill.ToString(), "DisableSkill", [enemy]);
                 enemyInfo.SpecialSkill = enemyInfo.Skill;
                 enemyInfo.Skill = Skills.None;
                 enemyInfo.RandomPercentage = "";
-                enemy.PrintToChat($" {ChatColors.Red}" + Localization.GetTranslation("deactivator_enemy_info"));
+                enemy.PrintToChat($" {ChatColors.Red}Wróg podał Ci antidotum - Straciłeś supermoc.");
             }
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#919191", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
         }
     }
 }

@@ -1,5 +1,4 @@
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
@@ -11,7 +10,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Żelazna Głowa", "Nie otrzymujesz obrażeń w głowę", "#8B4513");
         }
 
         public static void PlayerHurt(EventPlayerHurt @event)
@@ -20,8 +19,8 @@ namespace jRandomSkills
             var victim = @event.Userid;
             int hitgroup = @event.Hitgroup;
 
-            if (!Instance.IsPlayerValid(attacker) || !Instance.IsPlayerValid(victim) || attacker == victim) return;
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
+            if (Instance?.IsPlayerValid(attacker) == false || Instance?.IsPlayerValid(victim) == false || attacker == victim) return;
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
             if (playerInfo?.Skill == skillName && hitgroup == (int)HitGroup_t.HITGROUP_HEAD)
                 ApplyIronHeadEffect(victim!, @event.DmgHealth);
         }
@@ -36,10 +35,6 @@ namespace jRandomSkills
                 newHealth = 100;
 
             playerPawn.Health = (int)newHealth;
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#8B4513", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
         }
     }
 }

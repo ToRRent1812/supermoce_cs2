@@ -1,6 +1,5 @@
 ﻿using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
-using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
@@ -12,19 +11,18 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
+            SkillUtils.RegisterSkill(skillName, "Ulaniec", "Dostajesz % mniej obrażeń", "#d1430a");
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo == null) return;
 
-            float newScale = (float)Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "ChanceTo") - Config.GetValue<float>(skillName, "ChanceFrom")) + Config.GetValue<float>(skillName, "ChanceFrom");
-            playerInfo.SkillChance = newScale;
-            playerInfo.RandomPercentage = (100-(int)(newScale * 100)).ToString() + "% mniej";
-            newScale = (float)Math.Round(newScale, 2);
-            //SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("armored")}{ChatColors.Lime}: " + Localization.GetTranslation("armored_desc2", newScale), false);
+            int randomValue = Instance?.Random?.Next(10,18) * 5 ?? 50; //50-85% dmg
+            playerInfo.SkillChance = randomValue / 100f;
+            playerInfo.RandomPercentage = (100-randomValue).ToString() + "% mniej";
+            
         }
 
         public static void OnTakeDamage(DynamicHook h)
@@ -47,7 +45,7 @@ namespace jRandomSkills
             CCSPlayerController attacker = attackerPawn.Controller.Value.As<CCSPlayerController>();
             CCSPlayerController victim = victimPawn.Controller.Value.As<CCSPlayerController>();
 
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == victim.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == victim.SteamID);
             if (playerInfo == null) return;
 
             if (playerInfo.Skill == skillName && victim.PawnIsAlive)
@@ -55,12 +53,6 @@ namespace jRandomSkills
                 float? skillChance = playerInfo.SkillChance;
                 param2.Damage *= skillChance ?? 1f;
             }
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#d1430a", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float chanceFrom = .65f, float chanceTo = .85f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
-            public float ChanceFrom { get; set; } = chanceFrom;
-            public float ChanceTo { get; set; } = chanceTo;
         }
     }
 }

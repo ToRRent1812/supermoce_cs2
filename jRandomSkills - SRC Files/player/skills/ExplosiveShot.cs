@@ -4,50 +4,64 @@ using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
+using Vector = CounterStrikeSharp.API.Modules.Utils.Vector;
 
 namespace jRandomSkills
 {
     public class ExplosiveShot : ISkill
     {
         private const Skills skillName = Skills.ExplosiveShot;
-        private static readonly float damage = Config.GetValue<float>(skillName, "damage");
-        private static readonly float damageRadius = Config.GetValue<float>(skillName, "damageRadius");
+
+        private static readonly QAngle angle = new(5, 10, -4);
+        private static int lastTick = 0;
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
+            SkillUtils.RegisterSkill(skillName, "Wybuchowy strzał", "Szansa na wystrzelenie pocisku wybuchowego", "#9c0000");
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo == null) return;
-            float newChance = (float)Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "ChanceTo") - Config.GetValue<float>(skillName, "ChanceFrom")) + Config.GetValue<float>(skillName, "ChanceFrom");
-            playerInfo.SkillChance = newChance;
-            newChance = (float)Math.Round(newChance, 2) * 100;
-            newChance = (float)Math.Round(newChance);
-            playerInfo.RandomPercentage = newChance.ToString() + "%";
-            //SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("explosiveshot")}{ChatColors.Lime}: " + Localization.GetTranslation("explosiveshot_desc2", newChance), false);
+            int randomValue = Instance?.Random?.Next(5,11) * 3 ?? 15; //15-30%
+            playerInfo.SkillChance = randomValue / 100f;
+            playerInfo.RandomPercentage = randomValue.ToString() + "%";
         }
 
         private static void SpawnExplosion(Vector vector)
         {
-            var heProjectile = Utilities.CreateEntityByName<CHEGrenadeProjectile>("hegrenade_projectile");
-            if (heProjectile == null || !heProjectile.IsValid) return;
-
-            Vector pos = vector;
-            heProjectile.TicksAtZeroVelocity = 100;
-            heProjectile.TeamNum = (byte)CsTeam.None;
-            heProjectile.Damage = damage;
-            heProjectile.DmgRadius = damageRadius;
-            heProjectile.Teleport(pos, null, new Vector(0, 0, -10));
-            heProjectile.DispatchSpawn();
-            heProjectile.AcceptInput("InitializeSpawnFromWorld", null, null, "");
-            heProjectile.DetonateTime = 0;
+            lastTick = Server.TickCount;
+            SkillUtils.CreateHEGrenadeProjectile(vector, angle, new Vector(0, 0, 0), 0);
         }
+
+        public static void OnEntitySpawned(CEntityInstance entity)
+        {
+            if (entity.DesignerName != "hegrenade_projectile") return;
+
+            var heProjectile = entity.As<CBaseCSGrenadeProjectile>();
+            if (heProjectile == null || !heProjectile.IsValid || heProjectile.AbsRotation == null) return;
+
+            Server.NextFrame(() =>
+            {
+                if (heProjectile == null || !heProjectile.IsValid) return;
+                if (!(NearlyEquals(angle.X, heProjectile.AbsRotation.X) && NearlyEquals(angle.Y, heProjectile.AbsRotation.Y) && NearlyEquals(angle.Z, heProjectile.AbsRotation.Z)))
+                    return;
+
+                heProjectile.TicksAtZeroVelocity = 100;
+                heProjectile.TeamNum = (byte)CsTeam.None;
+                heProjectile.Damage = 35f;
+                heProjectile.DmgRadius = 240f;
+                heProjectile.DetonateTime = 0;
+            });
+        }
+
+        private static bool NearlyEquals(float a, float b, float epsilon = 0.001f) => Math.Abs(a -b) < epsilon;
 
         public static void OnTakeDamage(DynamicHook h)
         {
+            if (lastTick == Server.TickCount) return;
+
             CEntityInstance param = h.GetParam<CEntityInstance>(0);
             CTakeDamageInfo param2 = h.GetParam<CTakeDamageInfo>(1);
 
@@ -62,19 +76,11 @@ namespace jRandomSkills
                 return;
 
             CCSPlayerController attacker = attackerPawn.Controller.Value.As<CCSPlayerController>();
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
             if (playerInfo == null || playerInfo.Skill != skillName) return;
 
-            if (Instance.Random.NextDouble() <= playerInfo.SkillChance)
+            if (Instance?.Random.NextDouble() <= playerInfo.SkillChance)
                 SpawnExplosion(param2.DamagePosition);
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#9c0000", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float damage = 15f, float damageRadius = 210f, float chanceFrom = .15f, float chanceTo = .3f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
-            public float Damage { get; set; } = damage;
-            public float DamageRadius { get; set; } = damageRadius;
-            public float ChanceFrom { get; set; } = chanceFrom;
-            public float ChanceTo { get; set; } = chanceTo;
         }
     }
 }

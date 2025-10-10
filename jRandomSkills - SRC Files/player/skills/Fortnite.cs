@@ -3,7 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
+using System.Collections.Concurrent;
 using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 
@@ -13,30 +13,32 @@ namespace jRandomSkills
     {
         private const Skills skillName = Skills.Fortnite;
         private static int cd = 12;
-        private static readonly int barricadeHealth = Config.GetValue<int>(skillName, "barricadeHealth");
-        private static readonly string propModel = Config.GetValue<string>(skillName, "propModel");
-
-        private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
-        private static readonly Dictionary<ulong, int> barricades = [];
+        private static readonly string propModel = "models/props/de_aztec/hr_aztec/aztec_scaffolding/aztec_scaffold_wall_support_128.vmdl";
+        private static readonly ConcurrentDictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
+        private static readonly ConcurrentDictionary<ulong, int> barricades = [];
+        private static readonly object setLock = new();
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
-            Instance.RegisterListener<OnServerPrecacheResources>((ResourceManifest manifest) => manifest.AddResource(propModel));
+            SkillUtils.RegisterSkill(skillName, "Bambik", "Stawiasz barykadę na żądanie", "#1b04cc");
+            Instance?.RegisterListener<OnServerPrecacheResources>((ResourceManifest manifest) => manifest.AddResource(propModel));
         }
 
         public static void NewRound()
         {
-            cd = Instance.Random.Next(2, 8) * 3;
-            SkillPlayerInfo.Clear();
-            barricades.Clear();
+            cd = ((Instance?.Random.Next(2, 9)) ?? 2) * 5;
+            lock (setLock)
+            {
+                SkillPlayerInfo.Clear();
+                barricades.Clear();
+            }
         }
 
         public static void OnTick()
         {
             foreach (var player in Utilities.GetPlayers())
             {
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
                     if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
                         UpdateHUD(player, skillInfo);
@@ -45,17 +47,17 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            SkillPlayerInfo[player.SteamID] = new PlayerSkillInfo
+            SkillPlayerInfo.TryAdd(player.SteamID, new PlayerSkillInfo
             {
                 SteamID = player.SteamID,
                 CanUse = true,
                 Cooldown = DateTime.MinValue,
-            };
+            });
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-              SkillPlayerInfo.Remove(player.SteamID);
+              SkillPlayerInfo.TryRemove(player.SteamID, out _);
         }
 
         private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo)
@@ -74,7 +76,7 @@ namespace jRandomSkills
             if (skillData == null) return;
 
             string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
-            string remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>{Localization.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}</font>" : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>Wciśnij INSPEKT by użyć</font>";
+            string remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>Poczekaj <font color='#FF0000'>{cooldown}</font> sek.</font>" : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>Wciśnij INSPEKT by użyć</font>";
 
             var hudContent = skillLine + remainingLine;
             player.PrintToCenterHtml(hudContent);
@@ -82,6 +84,7 @@ namespace jRandomSkills
 
         public static void UseSkill(CCSPlayerController player)
         {
+            if(Instance?.GameRules?.FreezePeriod == true) return;
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn?.CBodyComponent == null) return;
 
@@ -111,7 +114,7 @@ namespace jRandomSkills
             box.Collision.SolidType = SolidType_t.SOLID_VPHYSICS;
             box.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags = (uint)(box.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags & ~(1 << 2));
             box.DispatchSpawn();
-            barricades.Add(box.Index, barricadeHealth);
+            barricades.TryAdd(box.Index, 75);
             Server.NextFrame(() =>
             {
                 box.SetModel(propModel);
@@ -137,7 +140,7 @@ namespace jRandomSkills
             if (barricades.TryGetValue(box.Index, out int health))
             {
                 health -= (int)param2.Damage;
-                barricades[box.Index] = health;
+                barricades.AddOrUpdate(box.Index, health, (k, v) => health);
                 if (health <= 0) box.AcceptInput("Kill");
             }
             else box.AcceptInput("Kill");
@@ -148,12 +151,6 @@ namespace jRandomSkills
             public ulong SteamID { get; set; }
             public bool CanUse { get; set; }
             public DateTime Cooldown { get; set; }
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#1b04cc", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, int barricadeHealth = 100, string propModel = "models/props/de_aztec/hr_aztec/aztec_scaffolding/aztec_scaffold_wall_support_128.vmdl") : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
-            public int BarricadeHealth { get; set; } = barricadeHealth;
-            public string PropModel { get; set; } = propModel;
         }
     }
 }

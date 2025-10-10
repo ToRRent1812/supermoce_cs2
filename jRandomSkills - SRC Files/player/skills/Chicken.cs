@@ -3,8 +3,8 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
+using System.Collections.Concurrent;
 using static jRandomSkills.jRandomSkills;
-using jRandomSkills.src.utils;
 using CounterStrikeSharp.API.Core.Attributes;
 
 namespace jRandomSkills
@@ -22,37 +22,34 @@ namespace jRandomSkills
             "weapon_xm1014", "weapon_mag7", "weapon_sawedoff", "weapon_m249",
             "weapon_negev"
         ];
-        private static readonly Dictionary<CCSPlayerController, CBaseModelEntity> chickens = [];
+        private static readonly ConcurrentDictionary<CCSPlayerController, CBaseModelEntity> chickens = [];
+        private static readonly string defaultCTModel = "characters/models/ctm_sas/ctm_sas.vmdl";
+        private static readonly string defaultTModel = "characters/models/tm_phoenix/tm_phoenix.vmdl";
+        private static readonly ConcurrentDictionary<ulong, string> originalModels = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Kurczak", "Zamieniasz się w kurczaka. NIE możesz używać broni głównej.", "#FF8B42", 2);
         }
 
         public static void NewRound()
         {
             foreach (var player in Utilities.GetPlayers())
                 SetWeaponAttack(player, false);
+            foreach (var valuePair in chickens)
+                if (valuePair.Value != null && valuePair.Value.IsValid)
+                    valuePair.Value.AcceptInput("Kill");
+            chickens.Clear();
+            originalModels.Clear();
         }
 
         public static void WeaponPickup(EventItemPickup @event)
         {
             var player = @event.Userid;
             if (player == null || !player.IsValid) return;
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
             SetWeaponAttack(player, true);
-        }
-
-        public static void CheckTransmit([CastFrom(typeof(nint))] CCheckTransmitInfoList infoList)
-        {
-            foreach (var (info, player) in infoList)
-            {
-                if (player == null) continue;
-                if (chickens.TryGetValue(player, out var chicken))
-                    if (chicken != null && chicken.IsValid)
-                        info.TransmitEntities.Remove(chicken.Index);
-            }
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -60,7 +57,7 @@ namespace jRandomSkills
             var playerPawn = player.PlayerPawn?.Value;
             if (playerPawn != null && playerPawn.IsValid)
             {
-                SkillUtils.EnableTransmit();
+                Event.EnableTransmit();
 
                 playerPawn.Health = 50;
                 Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_iHealth");
@@ -70,6 +67,9 @@ namespace jRandomSkills
                 playerPawn.Render = Color.FromArgb(0, 255, 255, 255);
                 playerPawn.ShadowStrength = 0.0f;
                 Utilities.SetStateChanged(playerPawn, "CBaseModelEntity", "m_clrRender");
+
+                if (playerPawn.CBodyComponent != null && playerPawn.CBodyComponent.SceneNode != null)
+                    originalModels.TryAdd(player.SteamID, playerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().ModelState.ModelName);
 
                 SetWeaponAttack(player, true);
                 CreateChicken(player);
@@ -81,7 +81,7 @@ namespace jRandomSkills
             var playerPawn = player.PlayerPawn?.Value;
             if (playerPawn != null)
             {
-                playerPawn.Health += 50;
+                playerPawn.Health = Math.Min(playerPawn.Health + 50, 100);
                 Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_iHealth");
 
                 SkillUtils.ChangePlayerScale(player, 1f);
@@ -97,7 +97,24 @@ namespace jRandomSkills
             {
                 if (chicken != null && chicken.IsValid)
                     chicken.AcceptInput("Kill");
-                chickens.Remove(player);
+                chickens.TryRemove(player, out _);
+            }
+
+            if (originalModels.TryGetValue(player.SteamID, out var model))
+            {
+                var pawn = player.PlayerPawn?.Value;
+                if (pawn == null) return;
+
+                Server.NextFrame(() =>
+                {
+                    if (string.IsNullOrEmpty(model))
+                        model = player.Team == CsTeam.Terrorist ? defaultTModel : defaultCTModel;
+                    
+                    pawn.SetModel(model);
+                    var originalRender = pawn.Render;
+                    pawn.Render = Color.FromArgb(255, originalRender.R, originalRender.G, originalRender.B);
+                    originalModels.TryRemove(player.SteamID, out _);
+                });
             }
         }
 
@@ -126,16 +143,21 @@ namespace jRandomSkills
             var chickenModel = Utilities.CreateEntityByName<CDynamicProp>("prop_dynamic");
             if (chickenModel == null)
                 return;
-            Vector pos = new(0, 0, 0);
-
+            
             chickenModel.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags = (uint)(chickenModel.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags & ~(1 << 2));
             chickenModel.SetModel("models/chicken/chicken.vmdl");
             chickenModel.Render = Color.FromArgb(255, 255, 255, 255);
-            chickenModel.Teleport(pos, playerPawn.AbsRotation, null);
+            chickenModel.Teleport(playerPawn.AbsOrigin, playerPawn.AbsRotation, null);
             chickenModel.DispatchSpawn();
             chickenModel.AcceptInput("InitializeSpawnFromWorld", playerPawn, playerPawn, "");
             Utilities.SetStateChanged(chickenModel, "CBaseEntity", "m_CBodyComponent");
-            Instance.AddTimer(1f, () => chickens.TryAdd(player, chickenModel));
+
+            chickenModel.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = 1;
+            Utilities.SetStateChanged(chickenModel, "CBaseEntity", "m_CBodyComponent");
+            Server.NextFrame(() => chickenModel.AcceptInput("SetScale", chickenModel, chickenModel, "1"));
+
+            chickenModel.AcceptInput("SetParent", playerPawn, playerPawn, "!activator");
+            chickens.TryAdd(player, chickenModel);
         }
 
         public static void OnTick()
@@ -150,12 +172,6 @@ namespace jRandomSkills
                 var pawn = player.PlayerPawn.Value;
                 if (pawn == null || !pawn.IsValid || pawn.AbsOrigin == null || chicken.AbsOrigin == null) continue;
 
-                float X = (float)Math.Round(pawn.AbsOrigin.X, 2);
-                float Y = (float)Math.Round(pawn.AbsOrigin.Y, 2);
-                float Z = (float)Math.Round(pawn.AbsOrigin.Z, 2);
-                Vector pos = new(X, Y, Z);
-                if (chicken.AbsOrigin.X != pos.X || chicken.AbsOrigin.Y != pos.Y || chicken.AbsOrigin.Z != pos.Z)
-                    chicken.Teleport(pos, pawn.AbsRotation, null);
                 UpdateHUD(player);
             }
         }
@@ -172,14 +188,10 @@ namespace jRandomSkills
             if (weapon == null || !disabledWeapons.Contains(weapon.DesignerName)) return;
 
             string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
-            string remainingLine = $"<font class='fontSize-m' color='#FF0000'>{Localization.GetTranslation("disabled_weapon")}</font>";
+            string remainingLine = $"<font class='fontSize-m' color='#FF0000'>Kurczak NIE może używać tej broni!</font>";
 
             var hudContent = skillLine + remainingLine;
             player.PrintToCenterHtml(hudContent);
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#FF8B42", CsTeam onlyTeam = CsTeam.Terrorist, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
         }
     }
 }

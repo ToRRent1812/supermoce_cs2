@@ -12,7 +12,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
+            SkillUtils.RegisterSkill(skillName, "Ślepy knur", "Przeciwnicy całą rundę grają bez celownika", "#42f5a7");
         }
 
         public static void NewRound()
@@ -45,7 +45,7 @@ namespace jRandomSkills
             {
                 if (player != null && player.IsValid)
                 {
-                    var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                    var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                     if (player.PawnIsAlive && playerInfo?.Skill == skillName) return;
                     // Jeżeli ktoś nadal ma knura, to nie przywracamy celownika
 
@@ -65,10 +65,6 @@ namespace jRandomSkills
                 ? (pawn.HideHUD & ~(1 << 8))
                 : (pawn.HideHUD | (1 << 8)));
             Utilities.SetStateChanged(pawn, "CBasePlayerPawn", "m_iHideHUD");
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#42f5a7", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
         }
     }
 }

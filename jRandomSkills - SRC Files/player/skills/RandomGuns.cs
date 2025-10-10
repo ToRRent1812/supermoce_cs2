@@ -2,8 +2,8 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
 using System.Collections.Immutable;
+using System.Collections.Concurrent;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -11,8 +11,8 @@ namespace jRandomSkills
     public class RandomGuns : ISkill
     {
         private const Skills skillName = Skills.RandomGuns;
-        private static readonly Dictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
-        private static int cd = 15;
+        private static readonly ConcurrentDictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
+        private static int cd = 21;
 
         private static readonly string[] pistols = [ "weapon_deagle", "weapon_revolver", "weapon_glock", "weapon_usp_silencer",
         "weapon_cz75a", "weapon_fiveseven", "weapon_p250", "weapon_tec9", "weapon_elite", "weapon_hkp2000" ];
@@ -24,12 +24,12 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Handlarz Bronią", "Wszystkim graczom(w tym sobie) zmieniasz broń w ręce", "#cb38d8");
         }
 
         public static void NewRound()
         {
-            cd = Instance.Random.Next(3, 10) * 3;
+            cd = ((Instance?.Random.Next(3, 11)) ?? 3) * 5;
             SkillPlayerInfo.Clear();
         }
 
@@ -37,9 +37,9 @@ namespace jRandomSkills
         {
             var player = @event.Userid;
             if (player == null || !player.IsValid) return;
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill == skillName)
-                SkillPlayerInfo.Remove(player.SteamID);
+                SkillPlayerInfo.TryRemove(player.SteamID, out _);
         }
 
         public static void OnTick()
@@ -47,7 +47,7 @@ namespace jRandomSkills
             foreach (var player in Utilities.GetPlayers())
             {
                 if(player == null || !player.IsValid || player.IsBot || player.IsHLTV || player.Team == CsTeam.Spectator || !player.PawnIsAlive) continue;  
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
                     if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
                         UpdateHUD(player, skillInfo);
@@ -56,17 +56,17 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            SkillPlayerInfo[player.SteamID] = new PlayerSkillInfo
+            SkillPlayerInfo.TryAdd(player.SteamID, new PlayerSkillInfo
             {
                 SteamID = player.SteamID,
                 CanUse = true,
                 Cooldown = DateTime.MinValue,
-            };
+            });
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            SkillPlayerInfo.Remove(player.SteamID);
+            SkillPlayerInfo.TryRemove(player.SteamID, out _);
         }
 
         private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo)
@@ -85,7 +85,7 @@ namespace jRandomSkills
             if (skillData == null) return;
 
             string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
-            string remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>{Localization.GetTranslation("hud_info", $"<font color='#FF0000'>{cooldown}</font>")}</font>" : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>Wciśnij INSPEKT by użyć</font>";
+            string remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>Poczekaj <font color='#FF0000'>{cooldown}</font> sek.</font>" : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>Wciśnij INSPEKT by użyć</font>";
 
             var hudContent = skillLine + remainingLine;
             player.PrintToCenterHtml(hudContent);
@@ -114,23 +114,22 @@ namespace jRandomSkills
         private static void RemoveAndGiveWeapon(CCSPlayerController player)
         {
             var pawn = player.PlayerPawn.Value;
-            if (pawn == null || !pawn.IsValid || pawn.WeaponServices == null || !player.PawnIsAlive || player.PawnHealth <= 0) return;
+            if (pawn == null || !pawn.IsValid || pawn.WeaponServices == null) return;
 
-            List<string> playerWeapons = [];
+            ConcurrentBag<string> playerWeapons = [];
             foreach (var item in pawn.WeaponServices.MyWeapons)
                 if (item != null && item.IsValid && item.Value != null && item.Value.IsValid && !string.IsNullOrEmpty(item.Value.DesignerName))
                     playerWeapons.Add(item.Value.DesignerName);
 
-            if (playerWeapons.Count == 0)
+            if (playerWeapons.IsEmpty)
                 return;
 
-            List<string> weaponList = new(pistols.Concat(rifles));
-            weaponList.RemoveAll(w => playerWeapons.Contains(w));
+            ConcurrentBag<string> weaponList = [.. pistols.Concat(rifles).Where(w => !playerWeapons.Contains(w))];
 
             if (weaponList.Count == 0)
                 return;
 
-            string weapon = weaponList[Instance.Random.Next(weaponList.Count)];
+            string weapon = weaponList.ToArray()[Instance?.Random.Next(weaponList.Count) ?? 0];
             bool isPistol = pistols.Contains(weapon);
 
             string? weaponToRemove = playerWeapons.FirstOrDefault(itemName =>
@@ -145,7 +144,7 @@ namespace jRandomSkills
                 }
             }
 
-            Instance.AddTimer(.2f, () =>
+            Instance?.AddTimer(.1f, () =>
             {
                 player.GiveNamedItem(weapon);
             });
@@ -156,10 +155,6 @@ namespace jRandomSkills
             public ulong SteamID { get; set; }
             public bool CanUse { get; set; }
             public DateTime Cooldown { get; set; }
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#cb38d8", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
         }
     }
 }

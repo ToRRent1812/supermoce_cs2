@@ -12,15 +12,15 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Saper", "Niemal natychmiastowy plant i rozbrojenie z twoich rąk", "#8A2BE2", 3);
         }
 
         public static void BombBegindefuse(EventBombBegindefuse @event)
         {
             var player = @event.Userid;
-            if (Instance.IsPlayerValid(player))
+            if (Instance?.IsPlayerValid(player) == true)
             {
-                var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
                 if (playerInfo?.Skill == skillName)
                 {
                     var plantedBomb = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").FirstOrDefault();
@@ -33,9 +33,9 @@ namespace jRandomSkills
         public static void BombBeginplant(EventBombBeginplant @event)
         {
             var player = @event.Userid;
-            if (!Instance.IsPlayerValid(player)) return;
+            if (Instance?.IsPlayerValid(player) == false) return;
 
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
             if (playerInfo?.Skill == skillName)
             {
                 var bombEntities = Utilities.FindAllEntitiesByDesignerName<CC4>("weapon_c4").ToList();
@@ -49,10 +49,6 @@ namespace jRandomSkills
                     }
                 }
             }
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#8A2BE2", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
         }
     }
 }

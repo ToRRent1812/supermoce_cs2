@@ -1,8 +1,6 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using jRandomSkills.src.utils;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -13,54 +11,47 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"), false);
+            SkillUtils.RegisterSkill(skillName, "Mini Majk", "Jesteś malutki", "#ffff00");
         }
 
         public static void NewRound()
         {
             foreach (var player in Utilities.GetPlayers())
             {
-                if (!Instance.IsPlayerValid(player)) continue;
+                if (Instance?.IsPlayerValid(player) == false) continue;
                 DisableSkill(player);
             }
         }
 
         public static unsafe void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo == null) return;
 
             var playerPawn = player.PlayerPawn?.Value;
             if (playerPawn != null && player.IsValid)
             {
-                float newSize = (float)Instance.Random.NextDouble() * (Config.GetValue<float>(skillName, "maxScale") - Config.GetValue<float>(skillName, "minScale")) + Config.GetValue<float>(skillName, "minScale");
-                newSize = (float)Math.Round(newSize, 2);
-                playerInfo.RandomPercentage = ((int)(newSize * 100)).ToString() + "%";
-                playerInfo.SkillChance = newSize;
+                int randomValue = Instance?.Random?.Next(35,61) ?? 35; //35-60%
+                playerInfo.SkillChance = randomValue / 100f;
+                playerInfo.RandomPercentage = (100-randomValue).ToString() + "% mniejszy";
 
-                SkillUtils.ChangePlayerScale(player, newSize);
-                //SkillUtils.PrintToChat(player, $"{ChatColors.DarkRed}{Localization.GetTranslation("dwarf")}{ChatColors.Lime}: " + Localization.GetTranslation("dwarf_desc2", newSize), false);
+                SkillUtils.ChangePlayerScale(player, (float)playerInfo.SkillChance);
             }
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo == null) return;
 
             var playerPawn = player.PlayerPawn?.Value;
             if (playerPawn != null && playerPawn?.CBodyComponent != null)
             {
-                playerInfo.SkillChance = 1;
+                playerInfo.SkillChance = 1f; 
+                playerInfo.RandomPercentage = "";
                 SkillUtils.ChangePlayerScale(player, 1f);
                 Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_CBodyComponent");
             }
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#ffff00", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false, float minScale = .35f, float maxScale = .6f) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
-            public float MinScale { get; set; } = minScale;
-            public float MaxScale { get; set; } = maxScale;
         }
     }
 }

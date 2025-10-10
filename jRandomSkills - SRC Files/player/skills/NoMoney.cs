@@ -1,6 +1,5 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
@@ -12,7 +11,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, Config.GetValue<string>(skillName, "color"));
+            SkillUtils.RegisterSkill(skillName, "Komornik", "Zabij wroga, by ukraść mu pieniądze", "#4c56e4");
         }
 
         public static void PlayerDeath(EventPlayerDeath @event)
@@ -20,10 +19,10 @@ namespace jRandomSkills
             CCSPlayerController? victimPlayer = @event.Userid;
             CCSPlayerController? attackerPlayer = @event.Attacker;
 
-            if (attackerPlayer == victimPlayer) return;
             if (attackerPlayer == null || !attackerPlayer.IsValid || victimPlayer == null || !victimPlayer.IsValid || attackerPlayer.TeamNum == victimPlayer.TeamNum) return;
+            if (attackerPlayer == victimPlayer) return;
 
-            var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attackerPlayer.SteamID);
+            var attackerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attackerPlayer.SteamID);
             if (attackerInfo?.Skill == skillName)
             {
                 var vmoneyServices = victimPlayer?.InGameMoneyServices;
@@ -35,10 +34,6 @@ namespace jRandomSkills
                 Utilities.SetStateChanged(victimPlayer, "CCSPlayerController", "m_pInGameMoneyServices");
                 Utilities.SetStateChanged(attackerPlayer, "CCSPlayerController", "m_pInGameMoneyServices");
             }
-        }
-
-        public class SkillConfig(Skills skill = skillName, bool active = true, string color = "#4c56e4", CsTeam onlyTeam = CsTeam.None, bool needsTeammates = false) : Config.DefaultSkillInfo(skill, active, color, onlyTeam, needsTeammates)
-        {
         }
     }
 }
