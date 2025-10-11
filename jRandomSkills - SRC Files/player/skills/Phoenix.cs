@@ -12,7 +12,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Feniks", "Jeżeli nie jesteś ostatni żywy w drużynie, masz szansę odrodzić się po śmierci", "#ff5C0A", 2);
+            SkillUtils.RegisterSkill(skillName, "Feniks", "Jeżeli nie jesteś ostatni żywy w drużynie, masz szansę odrodzić się po śmierci", "#ff5C0A", 1);
         }
 
         public static void PlayerDeath(EventPlayerDeath @event)

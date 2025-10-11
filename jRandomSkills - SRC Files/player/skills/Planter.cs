@@ -12,7 +12,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Samowolka", "Możesz podłożyć bombę w dowolnym miejscu (Trzymaj klawisz podkładania)", "#7d7d7d", 2);
+            SkillUtils.RegisterSkill(skillName, "Samowolka", "Możesz podłożyć bombę w dowolnym miejscu (Trzymaj klawisz podkładania)", "#7d7d7d", 1);
         }
 
         public static void DisableSkill(CCSPlayerController player)

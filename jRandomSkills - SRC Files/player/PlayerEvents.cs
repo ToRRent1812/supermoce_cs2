@@ -18,41 +18,31 @@ namespace jRandomSkills
         public static bool isTransmitRegistered = false;
         public static readonly jSkill_SkillInfo noneSkill = new(Skills.None, "Inwalida", "Nie posiadasz supermocy", "#FFFFFF");
 
-        public static readonly jSkill_SkillInfo[] terroristSkills = SkillData.Skills.Where(s => s.TeamNumber == 2).ToArray();
-        public static readonly jSkill_SkillInfo[] counterterroristSkills = SkillData.Skills.Where(s => s.TeamNumber == 3).ToArray();
+        public static jSkill_SkillInfo[] terroristSkills => SkillData.Skills.Where(s => s.TeamNumber == 1).ToArray();
+        public static jSkill_SkillInfo[] counterterroristSkills => SkillData.Skills.Where(s => s.TeamNumber == 2).ToArray();
         private static readonly object setLock = new();
         public static void Load()
         {
-            // Register event handlers in a loop for similar events
-            var eventHandlers = new (Type eventType, Delegate handler)[]
-            {
-                (typeof(EventPlayerConnectFull), PlayerConnectFull),
-                (typeof(EventPlayerDisconnect), PlayerDisconnect),
-                (typeof(EventRoundStart), RoundStart),
-                (typeof(EventRoundEnd), RoundEnd),
-                (typeof(EventPlayerDeath), PlayerDeath),
-                (typeof(EventPlayerBlind), PlayerBlind),
-                (typeof(EventPlayerHurt), PlayerHurt),
-                (typeof(EventPlayerJump), PlayerJump),
-                (typeof(EventWeaponFire), WeaponFire),
-                (typeof(EventItemEquip), WeaponEquip),
-                (typeof(EventItemPickup), WeaponPickup),
-                (typeof(EventWeaponReload), WeaponReload),
-                (typeof(EventGrenadeThrown), GrenadeThrown),
-                (typeof(EventBombBeginplant), BombBeginplant),
-                (typeof(EventBombPlanted), BombPlanted),
-                (typeof(EventBombBegindefuse), BombBegindefuse),
-                (typeof(EventDecoyStarted), DecoyStarted),
-                (typeof(EventDecoyDetonate), DecoyDetonate),
-                (typeof(EventSmokegrenadeDetonate), SmokegrenadeDetonate),
-                (typeof(EventSmokegrenadeExpired), SmokegrenadeExpired)
-            };
-            foreach (var (eventType, handler) in eventHandlers)
-            {
-                var method = typeof(BasePlugin).GetMethod("RegisterEventHandler", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public);
-                var genericMethod = method?.MakeGenericMethod(eventType);
-                genericMethod?.Invoke(Instance, [handler, HookMode.Post]);
-            }
+            Instance?.RegisterEventHandler<EventPlayerConnectFull>(PlayerConnectFull);
+            Instance?.RegisterEventHandler<EventPlayerDisconnect>(PlayerDisconnect);
+            Instance?.RegisterEventHandler<EventRoundStart>(RoundStart);
+            Instance?.RegisterEventHandler<EventRoundEnd>(RoundEnd);
+            Instance?.RegisterEventHandler<EventPlayerDeath>(PlayerDeath);
+            Instance?.RegisterEventHandler<EventPlayerBlind>(PlayerBlind);
+            Instance?.RegisterEventHandler<EventPlayerHurt>(PlayerHurt);
+            Instance?.RegisterEventHandler<EventPlayerJump>(PlayerJump);
+            Instance?.RegisterEventHandler<EventWeaponFire>(WeaponFire);
+            Instance?.RegisterEventHandler<EventItemEquip>(WeaponEquip);
+            Instance?.RegisterEventHandler<EventItemPickup>(WeaponPickup);
+            Instance?.RegisterEventHandler<EventWeaponReload>(WeaponReload);
+            Instance?.RegisterEventHandler<EventGrenadeThrown>(GrenadeThrown);
+            Instance?.RegisterEventHandler<EventBombBeginplant>(BombBeginplant);
+            Instance?.RegisterEventHandler<EventBombPlanted>(BombPlanted);
+            Instance?.RegisterEventHandler<EventBombBegindefuse>(BombBegindefuse);
+            Instance?.RegisterEventHandler<EventDecoyStarted>(DecoyStarted);
+            Instance?.RegisterEventHandler<EventDecoyDetonate>(DecoyDetonate);
+            Instance?.RegisterEventHandler<EventSmokegrenadeDetonate>(SmokegrenadeDetonate);
+            Instance?.RegisterEventHandler<EventSmokegrenadeExpired>(SmokegrenadeExpired);
 
             Instance?.RegisterListener<OnPlayerButtonsChanged>(CheckUseSkill);
             Instance?.RegisterListener<OnEntitySpawned>(EntitySpawned);
@@ -275,7 +265,7 @@ namespace jRandomSkills
                 var playerPawn = player.PlayerPawn.Value;
                 if (playerPawn?.CBodyComponent == null) return;
                 if (!player.IsValid || !player.PawnIsAlive) return;
-                if (Instance?.GameRules?.FreezePeriod == true) return;
+                if (SkillUtils.IsFreezetime()) return;
 
                 Debug.WriteToDebug($"Player {player.PlayerName} used the skill: {playerInfo.Skill} by PlayerButtons: {pressed}");
                 Instance?.SkillAction(playerInfo.Skill.ToString(), "UseSkill", [player]);
@@ -299,7 +289,7 @@ namespace jRandomSkills
         {
             if (Instance?.GameRules != null && !SkillUtils.IsWarmup())
             {
-                List<jSkill_SkillInfo> skillList = new(SkillData.Skills);
+                List<jSkill_SkillInfo> skillList = [.. SkillData.Skills];
                 skillList.RemoveAll(s => s?.Skill == skillPlayer?.Skill || s?.Skill == skillPlayer?.SpecialSkill || s?.Skill == Skills.None);
 
                 if (player.Team == CsTeam.Terrorist)
@@ -375,6 +365,7 @@ namespace jRandomSkills
                 if (player == null) return;
                 var skillPlayer = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (skillPlayer == null) return;
+                skillPlayer.RandomPercentage = "";
 
                 if (player.PlayerPawn.Value == null || !player.PlayerPawn.IsValid)
                 {

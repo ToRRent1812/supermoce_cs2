@@ -15,7 +15,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Leczący Dym", "Twoje granaty dymne leczą", "#1fe070");
+            SkillUtils.RegisterSkill(skillName, "Leczący Dym", "Twoje granaty dymne leczą. Granat po wypaleniu wraca do ręki", "#1fe070");
         }
 
         public static void NewRound()

@@ -11,7 +11,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Super Zeus", "Zeus natychmiastowo się odnawia", "#fbff00", 3);
+            SkillUtils.RegisterSkill(skillName, "Super Zeus", "Zeus natychmiastowo się odnawia", "#fbff00", 2);
         }
 
         public static void EnableSkill(CCSPlayerController player)

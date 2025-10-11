@@ -44,6 +44,7 @@ namespace jRandomSkills
 
         public static void OnTick()
         {
+            if (SkillUtils.IsFreezetime()) return;
             foreach (var player in Utilities.GetPlayers())
             {
                 if(player == null || !player.IsValid || player.IsBot || player.IsHLTV || player.Team == CsTeam.Spectator || !player.PawnIsAlive) continue;  

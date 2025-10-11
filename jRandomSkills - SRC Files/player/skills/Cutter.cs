@@ -10,7 +10,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Maczeta", "Natychmiastowe zabójstwo nożem", "#88a31a", 2);
+            SkillUtils.RegisterSkill(skillName, "Maczeta", "Natychmiastowe zabójstwo nożem", "#88a31a", 1);
         }
 
         public static void PlayerHurt(EventPlayerHurt @event)

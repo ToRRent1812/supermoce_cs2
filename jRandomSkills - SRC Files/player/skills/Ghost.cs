@@ -28,7 +28,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Niewidka", "Twój agent jest niewidzialny ALE widać cię na radarze. STRZELANIE ZABRONIONE", "#FFFFFF", 2);
+            SkillUtils.RegisterSkill(skillName, "Niewidka", "Twój agent jest niewidzialny ALE widać cię na radarze. STRZELANIE ZABRONIONE", "#FFFFFF", 1);
         }
 
         public static void NewRound()

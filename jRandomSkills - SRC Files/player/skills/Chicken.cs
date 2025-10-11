@@ -29,7 +29,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Kurczak", "Zamieniasz się w kurczaka. NIE możesz używać broni głównej.", "#FF8B42", 2);
+            SkillUtils.RegisterSkill(skillName, "Kurczak", "Zamieniasz się w kurczaka. NIE możesz używać broni głównej.", "#FF8B42", 1);
         }
 
         public static void NewRound()

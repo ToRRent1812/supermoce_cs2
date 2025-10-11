@@ -11,7 +11,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Super Flesz", "Odporność na błysk. Twoje flesze działają dłużej", "#D6E6FF", 3);
+            SkillUtils.RegisterSkill(skillName, "Super Flesz", "Odporność na błysk. Twoje flesze działają dłużej", "#D6E6FF", 2);
         }
 
         public static void PlayerBlind(EventPlayerBlind @event)

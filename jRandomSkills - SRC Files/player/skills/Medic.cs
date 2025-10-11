@@ -12,7 +12,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Ćpun", "Losowa ilość zastrzyków w ekwipunku", "#10c212", 2);
+            SkillUtils.RegisterSkill(skillName, "Ćpun", "Losowa ilość zastrzyków w ekwipunku", "#10c212", 1);
         }
 
         public static void NewRound()

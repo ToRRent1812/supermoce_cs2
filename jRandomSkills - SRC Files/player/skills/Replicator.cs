@@ -29,6 +29,7 @@ namespace jRandomSkills
 
         public static void OnTick()
         {
+            if(SkillUtils.IsFreezetime()) return;
             foreach (var player in Utilities.GetPlayers())
             {
                 var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
@@ -129,7 +130,7 @@ namespace jRandomSkills
             var replica = param.As<CPhysicsPropMultiplayer>();
             if (replica == null || !replica.IsValid) return;
             replica.EmitSound("GlassBottle.BulletImpact", volume: 1f);
-            replica.AcceptInput("Kill");
+            if(Instance?.Random.Next(1,3) == 1) replica.AcceptInput("Kill");
 
             CCSPlayerPawn attackerPawn = new(param2.Attacker.Value.Handle);
             if (attackerPawn.DesignerName != "player")

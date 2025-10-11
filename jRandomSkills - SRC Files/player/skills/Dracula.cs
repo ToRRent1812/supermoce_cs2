@@ -11,7 +11,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Wampir", "1/3 zadanych obrażeń zamieniasz w życie", "#FA050D", 2);
+            SkillUtils.RegisterSkill(skillName, "Wampir", "1/3 zadanych obrażeń zamieniasz w życie", "#FA050D", 1);
         }
 
         public static void PlayerHurt(EventPlayerHurt @event)

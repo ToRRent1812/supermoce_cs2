@@ -16,7 +16,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Zombie", "Po śmierci odradzasz się jako zombie z nożem i dużą ilością zdrowia", "#ff5C0A", 2);
+            SkillUtils.RegisterSkill(skillName, "Zombie", "Po śmierci odradzasz się jako zombie z nożem i dużą ilością zdrowia", "#ff5C0A", 1);
         }
 
         public static void EnableSkill(CCSPlayerController player)

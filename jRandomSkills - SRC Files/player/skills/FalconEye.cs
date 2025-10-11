@@ -56,6 +56,7 @@ namespace jRandomSkills
 
         public static void OnTick()
         {
+            if (SkillUtils.IsFreezetime()) return;
             foreach (var player in Utilities.GetPlayers())
                 if (cameras.TryGetValue(player.SteamID, out var cameraInfo) && cameraInfo.Item2.IsValid)
                 {

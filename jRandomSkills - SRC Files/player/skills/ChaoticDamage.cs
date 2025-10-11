@@ -29,6 +29,7 @@ namespace jRandomSkills
 
         public static void OnTick()
         {
+            if (SkillUtils.IsFreezetime()) return;
             foreach (var player in Utilities.GetPlayers())
             {
                 var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);

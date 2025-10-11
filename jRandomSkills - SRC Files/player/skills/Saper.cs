@@ -1,6 +1,5 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
@@ -12,7 +11,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Saper", "Niemal natychmiastowy plant i rozbrojenie z twoich rąk", "#8A2BE2", 3);
+            SkillUtils.RegisterSkill(skillName, "Saper", "Niemal natychmiastowy plant i rozbrojenie z twoich rąk", "#8A2BE2", 2);
         }
 
         public static void BombBegindefuse(EventBombBegindefuse @event)
