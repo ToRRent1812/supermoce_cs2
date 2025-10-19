@@ -10,7 +10,7 @@ Co wyróżnia tą wersję od jrandomskills?
 - Usunąłem supermoce, które nie podobają się graczom z serwera
 - Opis supermocy dostępny na środku ekranu, zamiast na czacie
 - Usunięto niepotrzebny mi system językowy oraz configi
-- Niektóre supermoce mają doprecyzowany opis lub funkcje, oraz zmienioną nazwę lub funkcję, np. dźwiękowiec puszcza dźwięk plantu lub rozbrajania w zależności od drużyny
+- Niektóre supermoce mają doprecyzowany opis lub funkcje, oraz zmienioną nazwę lub funkcję, np. bogacz może też podwoić swoje pieniądze za kill
 - Wszystkie supermoce na przycisk mają losowy cooldown
 - Dodałem nowe lub przywróciłem stare moce: Komandos, Dopaminka, CS2, Trujące naboje, Ciepłe piwo, Ćpun, Komornik, Manipulant, Rusznikarz, Krwiopijca, Matrix, Chachmęciarz
 
