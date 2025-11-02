@@ -109,7 +109,7 @@ namespace jRandomSkills
                 pName = $"{pName[..14]}...";
 
             var infoLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='#FFFFFF'>{pName} posiada</font> <br>";
-            var skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillInfo.Color}'>{(observeredPlayerSkill.SpecialSkill == Skills.None ? skillInfo.Name : $"{specialSkillInfo.Name}({skillInfo.Name})")}</font>";
+            var skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillInfo.Color}'>{(observeredPlayerSkill.SpecialSkill == Skills.None ? skillInfo.Name : $"{specialSkillInfo.Name}({skillInfo.Name})")}</font> <br/> <font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>{skillInfo.Description}</font>";
             return (infoLine, skillLine);
         }
     }

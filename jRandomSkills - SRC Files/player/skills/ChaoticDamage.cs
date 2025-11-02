@@ -124,7 +124,7 @@ namespace jRandomSkills
             var activeWeapon = attackerPawn.WeaponServices?.ActiveWeapon.Value;
             if (activeWeapon != null && attackerController.PawnIsAlive)
             {
-                param2.Damage = Instance?.Random.Next(1, 150) ?? 1;
+                param2.Damage = Instance?.Random.Next(1, 99) ?? 1;
             }
         }
     }

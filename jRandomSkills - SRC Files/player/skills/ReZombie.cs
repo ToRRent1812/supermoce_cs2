@@ -61,30 +61,31 @@ namespace jRandomSkills
             QAngle deadRotation = new(pawn.EyeAngles.X, pawn.EyeAngles.Y, pawn.EyeAngles.Z);
 
             player.Respawn();
-            Instance?.AddTimer(0.5f, () => {
+            Instance?.AddTimer(0.3f, () =>
+            {
                 lock (setLock)
                 {
                     player.Respawn();
                     zombies.TryAdd(player, 0);
                     SetPlayerColor(pawn, false);
-                    SkillUtils.AddHealth(pawn, 400, 999);
+                    AddHealth(player, 900);
                     pawn.Teleport(deadPosition, deadRotation);
                     player.ExecuteClientCommand("slot3");
                     Instance?.AddTimer(1f, () => player.ExecuteClientCommand("slot3"));
                 }
             });
         }
-
-        public static void OnTick()
+        
+        public static void AddHealth(CCSPlayerController player, int health)
         {
-            if (Server.TickCount % 16 != 0) return;
-            foreach (var player in Utilities.GetPlayers())
-            {
-                if(player == null || !player.IsValid || !player.PawnIsAlive || !zombies.ContainsKey(player)) continue;
-                var pawn = player.PlayerPawn.Value;
-                if (pawn == null || !pawn.IsValid) continue;
-                SkillUtils.AddHealth(pawn, 1, 999);
-            }
+            var pawn = player.PlayerPawn?.Value;
+            if (pawn == null) return;
+
+            pawn.MaxHealth = Math.Min(pawn.Health + health, 1000);
+            Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iMaxHealth");
+
+            pawn.Health = pawn.MaxHealth;
+            Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
         }
 
         private static void SetPlayerColor(CCSPlayerPawn pawn, bool normal)

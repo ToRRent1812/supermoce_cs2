@@ -251,6 +251,7 @@ namespace jRandomSkills
             {
                 string? button = "Inspect";
                 if (string.IsNullOrEmpty(button)) return;
+                if (SkillUtils.IsFreezetime() == true) return;
 
                 if (Enum.TryParse<PlayerButtons>(button, out var skillButton))
                 {
@@ -329,7 +330,7 @@ namespace jRandomSkills
                     var randomSkill = GetRandomSkill(player, skillPlayer);
 
                     skillPlayer.Skill = randomSkill.Skill;
-                    player.EmitSound("UIPanorama.tab_mainmenu_news", volume: 0.3f);
+                    player.EmitSound("UIPanorama.tab_mainmenu_news", volume: 0.15f);
                     skillPlayer.SpecialSkill = Skills.None;
                     Instance?.SkillAction(randomSkill.Skill.ToString(), "EnableSkill", [player]);
                     Debug.WriteToDebug($"{skillPlayer.PlayerName} posiada \"{randomSkill.Name}\".");
