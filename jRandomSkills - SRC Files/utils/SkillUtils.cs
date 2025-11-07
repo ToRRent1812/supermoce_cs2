@@ -182,12 +182,12 @@ namespace jRandomSkills
             var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == playerInfo.Skill);
             if (skillData == null) return;
 
-            string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='white'>{skillData.Description}</font>";
+            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='white'>{skillData.Description}</font>";
 
             var manager = GetMenuManager();
             if (manager == null) return;
 
-            IWasdMenu menu = manager.CreateMenu(skillLine, "<font class='fontSize-s' color='white'>W/S – Przewijanie | ROZBRAJANIE - wybór</font>");
+            IWasdMenu menu = manager.CreateMenu(skillLine, "<font class='fontSize-s' color='yellow'>W/S – Przewijanie | ROZBRAJANIE - wybór</font>");
             foreach (var enemy in enemies)
                 menu.Add(enemy.Item1, (p, option) =>
                 {

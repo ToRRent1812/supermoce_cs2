@@ -12,7 +12,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Święty Granat Ręczny", "Podwójny zasięg i obrażenia z twoich granatów wybuchowych", "#ffdd00");
+            SkillUtils.RegisterSkill(skillName, "Święty Granat Ręczny", "Potrójny zasięg i obrażenia z twoich granatów wybuchowych", "#ffdd00");
         }
 
         public static void OnEntitySpawned(CEntityInstance @event)
@@ -33,8 +33,8 @@ namespace jRandomSkills
                 var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
                 if (playerInfo?.Skill != skillName) return;
 
-                hegrenade.Damage *= 2f;
-                hegrenade.DmgRadius *= 2f;
+                hegrenade.Damage *= 3f;
+                hegrenade.DmgRadius *= 3f;
             });
         }
 

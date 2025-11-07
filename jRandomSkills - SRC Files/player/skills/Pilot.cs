@@ -38,7 +38,7 @@ namespace jRandomSkills
             PlayerPilotInfo.TryAdd(player.SteamID, new Pilot_PlayerInfo
             {
                 SteamID = player.SteamID,
-                Fuel = 150f,
+                Fuel = 125f,
             });
         }
 
@@ -70,7 +70,7 @@ namespace jRandomSkills
             string fuelColor = GetFuelColor(pilotInfo.Fuel);
             string infoLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
             string skillLine = $"<font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>{skillData.Description}</font> <br>";
-            string remainingLine = $"<font class='fontSize-m' color='#ffffff'>Paliwo:</font> <font color='{fuelColor}'>{pilotInfo.Fuel/150f*100:F0}%</font> <br>";
+            string remainingLine = $"<font class='fontSize-m' color='#ffffff'>Paliwo:</font> <font color='{fuelColor}'>{pilotInfo.Fuel/125f*100:F0}%</font>";
 
             var hudContent = infoLine + skillLine + remainingLine;
             player.PrintToCenterHtml(hudContent);
@@ -78,8 +78,8 @@ namespace jRandomSkills
 
         private static string GetFuelColor(float fuelPercentage)
         {
-            if (fuelPercentage > (150f/2f)) return "#00FF00";
-            if (fuelPercentage > (150f/4f)) return "#FFFF00";
+            if (fuelPercentage > (125f/2f)) return "#00FF00";
+            if (fuelPercentage > (125f/4f)) return "#FFFF00";
             return "#FF0000";
         }
 

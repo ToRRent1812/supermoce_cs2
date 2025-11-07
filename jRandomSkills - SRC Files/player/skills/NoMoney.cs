@@ -29,10 +29,10 @@ namespace jRandomSkills
                 var amoneyServices = attackerPlayer?.InGameMoneyServices;
                 if (vmoneyServices == null || amoneyServices == null) return;
 
-                amoneyServices.Account += vmoneyServices.Account;
-                vmoneyServices.Account = 0;
-                Utilities.SetStateChanged(victimPlayer, "CCSPlayerController", "m_pInGameMoneyServices");
-                Utilities.SetStateChanged(attackerPlayer, "CCSPlayerController", "m_pInGameMoneyServices");
+                amoneyServices!.Account += vmoneyServices!.Account;
+                vmoneyServices!.Account = 0;
+                Utilities.SetStateChanged(victimPlayer!, "CCSPlayerController", "m_pInGameMoneyServices");
+                Utilities.SetStateChanged(attackerPlayer!, "CCSPlayerController", "m_pInGameMoneyServices");
             }
         }
     }

@@ -94,7 +94,7 @@ public enum Skills
     JumpBan,
     JumpingJack,
     KillerFlash,
-    LongZeus,
+    //LongZeus,
     Medic,
     Muhammed,
     Noclip,
