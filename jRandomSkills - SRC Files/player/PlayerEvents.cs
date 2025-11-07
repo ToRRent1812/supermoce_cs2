@@ -17,9 +17,6 @@ namespace jRandomSkills
         private static DateTime freezeTimeEnd = DateTime.MinValue;
         public static bool isTransmitRegistered = false;
         public static readonly jSkill_SkillInfo noneSkill = new(Skills.None, "Inwalida", "Nie posiadasz supermocy", "#FFFFFF");
-
-        public static jSkill_SkillInfo[] terroristSkills => SkillData.Skills.Where(s => s.TeamNumber == 1).ToArray();
-        public static jSkill_SkillInfo[] counterterroristSkills => SkillData.Skills.Where(s => s.TeamNumber == 2).ToArray();
         private static readonly object setLock = new();
         public static void Load()
         {
@@ -157,7 +154,8 @@ namespace jRandomSkills
                 Instance?.RemoveListener<CheckTransmit>(CheckTransmit);
                 int freezetime = ConVar.Find("mp_freezetime")?.GetPrimitiveValue<int>() ?? 0;
                 freezeTimeEnd = DateTime.Now.AddSeconds(freezetime + (Instance?.GameRules?.TeamIntroPeriod == true ? 7 : 0));
-                Instance?.AddTimer((Instance?.GameRules?.TeamIntroPeriod == true ? 7 : 0) + Math.Max(freezetime - 4, 0) + .3f, SetSkill);
+                Instance?.AddTimer((Instance?.GameRules?.TeamIntroPeriod == true ? 7 : 0) + Math.Max(freezetime - 5, 0) + .3f, SetSkill);
+                if(Instance?.GameRules?.ITotalRoundsPlayed == 5) Server.PrintToChatAll($" {ChatColors.Yellow}Znalazłeś błąd? Daj mi znać na discordzie {ChatColors.LightBlue}https://rbtv.pl/dc");
                 return HookResult.Continue;
             }
         }
@@ -266,7 +264,6 @@ namespace jRandomSkills
                 var playerPawn = player.PlayerPawn.Value;
                 if (playerPawn?.CBodyComponent == null) return;
                 if (!player.IsValid || !player.PawnIsAlive) return;
-                if (SkillUtils.IsFreezetime()) return;
 
                 Debug.WriteToDebug($"Player {player.PlayerName} used the skill: {playerInfo.Skill} by PlayerButtons: {pressed}");
                 Instance?.SkillAction(playerInfo.Skill.ToString(), "UseSkill", [player]);
@@ -293,10 +290,11 @@ namespace jRandomSkills
                 List<jSkill_SkillInfo> skillList = [.. SkillData.Skills];
                 skillList.RemoveAll(s => s?.Skill == skillPlayer?.Skill || s?.Skill == skillPlayer?.SpecialSkill || s?.Skill == Skills.None);
 
-                if (player.Team == CsTeam.Terrorist)
-                    skillList.RemoveAll(s => counterterroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
-                else
-                    skillList.RemoveAll(s => terroristSkills.Any(s2 => s2.Name == s.Skill.ToString()));
+                // Remove team-specific skills that don't match player's team
+                skillList.RemoveAll(s => 
+                    (player.Team == CsTeam.Terrorist && s.TeamNumber == 2) ||      // Remove CT skills for T
+                    (player.Team == CsTeam.CounterTerrorist && s.TeamNumber == 1)  // Remove T skills for CT
+                );
 
                 return skillList.Count == 0 ? noneSkill : skillList[Instance.Random.Next(skillList.Count)];
             }
@@ -343,16 +341,13 @@ namespace jRandomSkills
                             if (teammateSkill != null)
                             {
                                 var skillInfo = SkillData.Skills.FirstOrDefault(p => p.Skill == teammateSkill);
-                                teammateSkills += $" {ChatColors.Green}{teammate.PlayerName} - {ChatColors.DarkRed}{(skillInfo == null ? Skills.None : skillInfo.Name)} {ChatColors.White}| ";
+                                teammateSkills += $"{ChatColors.Lime}{(skillInfo == null ? Skills.None : skillInfo.Name)} {ChatColors.White}| ";
                             }
                         }
 
                         if (!string.IsNullOrEmpty(teammateSkills))
                         {
-                            SkillUtils.PrintToChat(player, $" {ChatColors.Lime}Supermoce kolegów:", false);
-                            foreach (string text in teammateSkills.Split("\n"))
-                                if (!string.IsNullOrEmpty(text))
-                                    player.PrintToChat(text);
+                            SkillUtils.PrintToChat(player, $" {ChatColors.Lime}Koledzy posiadają: {teammateSkills}", false);
                         }
                     });
                 }
