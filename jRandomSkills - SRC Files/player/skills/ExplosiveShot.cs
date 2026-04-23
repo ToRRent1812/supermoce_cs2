@@ -49,8 +49,8 @@ namespace jRandomSkills
 
                 heProjectile.TicksAtZeroVelocity = 100;
                 heProjectile.TeamNum = (byte)CsTeam.None;
-                heProjectile.Damage = 35f;
-                heProjectile.DmgRadius = 240f;
+                heProjectile.Damage = 55f;
+                heProjectile.DmgRadius = 260f;
                 heProjectile.DetonateTime = 0;
             });
         }

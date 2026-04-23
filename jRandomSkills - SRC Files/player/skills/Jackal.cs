@@ -4,7 +4,6 @@ using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using System.Collections.Concurrent;
-using System.Drawing;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -13,108 +12,102 @@ namespace jRandomSkills
     {
         private const Skills skillName = Skills.Jackal;
         private static readonly ConcurrentDictionary<ulong, byte> playersInAction = [];
-        private static readonly ConcurrentDictionary<CCSPlayerController, ConcurrentQueue<CBeam>> stepBeams = [];
+        private static readonly ConcurrentDictionary<CCSPlayerController, CParticleSystem?> playersStep = [];
 
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, "Stópkarz", "Przeciwnicy zostawiają po sobie ślady.", "#f542ef");
+            Instance?.AddToManifest("particles/ui/hud/ui_map_def_utility_trail.vpcf");
         }
 
         public static void NewRound()
         {
-            foreach (var beams in stepBeams.Values)
-                foreach (var beam in beams)
-                    if (beam != null && beam.IsValid)
-                        beam.AcceptInput("Kill");
-            stepBeams.Clear();
+            foreach (var step in playersStep.Values)
+                if (step != null && step.IsValid)
+                    step.AcceptInput("Kill");
+            playersStep.Clear();
             playersInAction.Clear();
-        }
-
-        public static void OnTick()
-        {
-            if (Server.TickCount % 32 != 0) return;
-            foreach (var step in stepBeams.ToList())
-            {
-                var player = step.Key;
-                if (!player.IsValid)
-                {
-                    stepBeams.TryRemove(player, out _);
-                    continue;
-                }
-
-                var pawn = player.PlayerPawn.Value;
-                if (pawn == null || !pawn.IsValid || pawn.LifeState != (byte)LifeState_t.LIFE_ALIVE || pawn.AbsOrigin == null) continue;
-
-                var beams = step.Value;
-                Vector lastBeamVector = (beams != null && beams.Count > 0 && beams.Last() != null)
-                    ? beams.Last().EndPos : pawn.AbsOrigin;
-
-                var newBeam = CreateBeamStep(step.Key.Team, lastBeamVector, pawn.AbsOrigin);
-                if (newBeam != null)
-                    step.Value.Enqueue(newBeam);
-
-                if (beams?.Count >= 75)
-                {
-                    if (beams.TryPeek(out var beam))
-                        beam.AcceptInput("Kill");
-                    step.Value.TryDequeue(out _);
-                }
-            }
         }
 
         public static void CheckTransmit([CastFrom(typeof(nint))] CCheckTransmitInfoList infoList)
         {
             foreach( var (info, player) in infoList)
             {
-                if (player == null) continue;
-                foreach (var step in stepBeams)
+                if (player == null || !player.IsValid) continue;
+                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+
+                var targetHandle = player.Pawn.Value?.ObserverServices?.ObserverTarget.Value?.Handle ?? nint.Zero;
+                bool isObservingJackal = false;
+
+                if (targetHandle != nint.Zero)
                 {
-                    var enemy = step.Key;
-                    var beams = step.Value;
+                    var target = Utilities.GetPlayers().FirstOrDefault(p => p?.Pawn?.Value?.Handle == targetHandle);
+                    var targetInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == target?.SteamID);
+                    if (targetInfo?.Skill == skillName) isObservingJackal = true;
+                }
 
-                    var observedPlayer = Utilities.GetPlayers().FirstOrDefault(p => p?.Pawn?.Value?.Handle == player?.Pawn?.Value?.ObserverServices?.ObserverTarget?.Value?.Handle);
-                    var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                    var observerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == observedPlayer?.SteamID);
+                bool hasSkill = playerInfo?.Skill == skillName || isObservingJackal;
 
-                    foreach (var beam in beams)
-                        if (playerInfo?.Skill != skillName && observerInfo?.Skill != skillName)
-                            info.TransmitEntities.Remove(beam);
-                        else if (enemy.Team == player.Team)
-                            info.TransmitEntities.Remove(beam);
+                foreach (var param in playersStep)
+                {
+                    var enemy = param.Key;
+                    var step = param.Value;
+                    if (step == null || !step.IsValid) continue;
+
+                    var entity = Utilities.GetEntityFromIndex<CBaseEntity>((int)step.Index);
+                    if (entity == null || !entity.IsValid) continue;
+
+                    if (!hasSkill || enemy.Team == player.Team)
+                        info.TransmitEntities.Remove(entity.Index);
                 }
             }
         }
 
-        public static CBeam? CreateBeamStep(CsTeam team, Vector start, Vector stop)
+        public static void CreatePlayerTrail(CCSPlayerController? player)
         {
-            CBeam beam = Utilities.CreateEntityByName<CBeam>("beam")!;
-            if (beam == null) return null;
+            if (player == null) return;
+            var playerPawn = player.PlayerPawn.Value;
 
-            beam.DispatchSpawn();
-            if (!beam.IsValid) return null;
+            if (playerPawn == null || !playerPawn.IsValid || playerPawn.AbsOrigin == null || playerPawn.LifeState != (byte)LifeState_t.LIFE_ALIVE) return;
+            if (!playersStep.ContainsKey(player)) return;
 
-            beam.Render = team == CsTeam.Terrorist ? Color.FromArgb(100, 255, 165, 0) : Color.FromArgb(100, 173, 216, 230);
-            beam.Width = 2.0f;
-            beam.EndWidth = 2.0f;
-            beam.Teleport(start);
+            CParticleSystem particle = Utilities.CreateEntityByName<CParticleSystem>("info_particle_system")!;
+            if (particle == null) return;
 
-            beam.EndPos.X = stop.X;
-            beam.EndPos.Y = stop.Y;
-            beam.EndPos.Z = stop.Z;
-            return beam;
+            particle.EffectName = "particles/ui/hud/ui_map_def_utility_trail.vpcf";
+            particle.StartActive = true;
+
+            particle.Teleport(playerPawn.AbsOrigin);
+            particle.DispatchSpawn();
+
+            // Parent the particle to the player's pawn so it follows them correctly
+            particle.AcceptInput("SetParent", playerPawn, playerPawn, "!activator");
+            particle.AcceptInput("Start");
+
+            playersStep.AddOrUpdate(player, particle, (k, v) => particle);
+
+            Instance?.AddTimer(5.0f, () => {
+                if (particle != null && particle.IsValid)
+                    particle.AcceptInput("Kill");
+                CreatePlayerTrail(player);
+            });
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
             Event.EnableTransmit();
             playersInAction.TryAdd(player.SteamID, 0);
-            foreach (var _player in Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.PawnIsAlive && p.Team is CsTeam.CounterTerrorist or CsTeam.Terrorist))
-                if (!stepBeams.ContainsKey(_player))
-                    stepBeams.TryAdd(_player, []);
+            foreach (var _player in Utilities.GetPlayers().Where(p => p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.PawnIsAlive && p.Team is CsTeam.CounterTerrorist or CsTeam.Terrorist))
+            {
+                if (!playersStep.ContainsKey(_player))
+                    playersStep.TryAdd(_player, null);
+                CreatePlayerTrail(_player);
+            }
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
+            playersStep.TryRemove(player, out _);
             playersInAction.TryRemove(player.SteamID, out _);
             if (playersInAction.IsEmpty)
                 NewRound();

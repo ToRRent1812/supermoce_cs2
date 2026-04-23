@@ -40,8 +40,6 @@ namespace jRandomSkills
                 {
                     var pawn = player.PlayerPawn.Value;
                     if (pawn == null || !pawn.IsValid || pawn.CameraServices == null) continue;
-                    pawn.AimPunchTickBase = 0;
-                    pawn.AimPunchTickFraction = 0f;
                     pawn.CameraServices.CsViewPunchAngleTick = 0;
                     pawn.CameraServices.CsViewPunchAngleTickRatio = 0f;
                 }

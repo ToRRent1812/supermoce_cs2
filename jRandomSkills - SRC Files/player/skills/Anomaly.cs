@@ -10,7 +10,7 @@ namespace jRandomSkills
     public class Anomaly : ISkill
     {
         private const Skills skillName = Skills.Anomaly;
-        private static readonly int maxSize = 3; //Seconds in back
+        private static readonly int maxSize = 4; //Seconds in back
         private static readonly float tickRate = 64;
         private static int cd = 15;
         private static readonly ConcurrentDictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
@@ -18,7 +18,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Lag Switch", "Cofasz swój ruch o 3 sekundy", "#a86eff");
+            SkillUtils.RegisterSkill(skillName, "Lag Switch", "Cofasz swój ruch o 4 sekundy", "#a86eff");
         }
 
         public static void NewRound()

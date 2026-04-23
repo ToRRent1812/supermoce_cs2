@@ -41,8 +41,7 @@ namespace jRandomSkills
                     if (weapon == null || !weapon.IsValid || pawn.CameraServices == null) continue;
                     if (!guns.Contains(weapon.DesignerName)) continue;
                     
-                    pawn.AimPunchTickBase = 0;
-                    pawn.AimPunchTickFraction = 0f;
+                    // Reset camera punch/tick values to reduce recoil (AimPunchTick members not present in this CS# API)
                     pawn.CameraServices.CsViewPunchAngleTick = 0;
                     pawn.CameraServices.CsViewPunchAngleTickRatio = 0f;
 

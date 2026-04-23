@@ -38,7 +38,7 @@ namespace jRandomSkills
             PlayerPilotInfo.TryAdd(player.SteamID, new Pilot_PlayerInfo
             {
                 SteamID = player.SteamID,
-                Fuel = 125f,
+                Fuel = 100f,
             });
         }
 
@@ -52,7 +52,7 @@ namespace jRandomSkills
             var buttons = player.Buttons;
             if (PlayerPilotInfo.TryGetValue(player.SteamID, out var pilotInfo))
             {
-                pilotInfo.Fuel = Math.Min(Math.Max(0, pilotInfo.Fuel - (buttons.HasFlag(PlayerButtons.Use) ? 0.64f : -0.1f)), 150f);
+                pilotInfo.Fuel = Math.Min(Math.Max(0, pilotInfo.Fuel - (buttons.HasFlag(PlayerButtons.Use) ? 0.64f : -0.1f)), 100f);
                 if (buttons.HasFlag(PlayerButtons.Use))
                     if (pilotInfo.Fuel > 0 && player.PlayerPawn.Value != null && player.PlayerPawn.Value.IsValid && !player.PlayerPawn.Value.IsDefusing)
                         ApplyPilotEffect(player);
@@ -70,7 +70,7 @@ namespace jRandomSkills
             string fuelColor = GetFuelColor(pilotInfo.Fuel);
             string infoLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
             string skillLine = $"<font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>{skillData.Description}</font> <br>";
-            string remainingLine = $"<font class='fontSize-m' color='#ffffff'>Paliwo:</font> <font color='{fuelColor}'>{pilotInfo.Fuel/125f*100:F0}%</font>";
+            string remainingLine = $"<font class='fontSize-m' color='#ffffff'>Paliwo:</font> <font color='{fuelColor}'>{pilotInfo.Fuel:F0}%</font>";
 
             var hudContent = infoLine + skillLine + remainingLine;
             player.PrintToCenterHtml(hudContent);
@@ -78,8 +78,8 @@ namespace jRandomSkills
 
         private static string GetFuelColor(float fuelPercentage)
         {
-            if (fuelPercentage > (125f/2f)) return "#00FF00";
-            if (fuelPercentage > (125f/4f)) return "#FFFF00";
+            if (fuelPercentage > (100f/2f)) return "#00FF00";
+            if (fuelPercentage > (100f/4f)) return "#FFFF00";
             return "#FF0000";
         }
 

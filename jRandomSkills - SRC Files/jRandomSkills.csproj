@@ -6,14 +6,16 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CounterStrikeSharp.API" Version="1.0.355"/>
-    <PackageReference Include="MaxMind.Db" Version="4.2.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
-    <PackageReference Include="CS2TraceRay" Version="1.0.8"/>
+    <PackageReference Include="CounterStrikeSharp.API" Version="1.0.367"/>
+    <PackageReference Include="MaxMind.Db" Version="5.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4"/>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="WASDMenuAPI">
       <HintPath>/home/rabbit/Dokumenty/Github/supermoce_cs2/WASDMenuAPI/bin/Debug/net8.0/WASDMenuAPI.dll</HintPath>
+    </Reference>
+    <Reference Include="RayTraceApi">
+      <HintPath>/home/rabbit/Dokumenty/Github/supermoce_cs2/jRandomSkills - SRC Files/RayTraceApi.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

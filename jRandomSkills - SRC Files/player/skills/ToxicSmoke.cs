@@ -11,11 +11,11 @@ namespace jRandomSkills
     public class ToxicSmoke : ISkill
     {
         private const Skills skillName = Skills.ToxicSmoke;
-        private static readonly ConcurrentDictionary<Vector, byte> smokes = [];
+        private static readonly ConcurrentDictionary<Vector, CsTeam> smokes = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Chemik", "Twoje smoke'i zadają obrażenia. Granat po wypaleniu wraca do ręki", "#507529");
+            SkillUtils.RegisterSkill(skillName, "Chemik", "Twoje smoke'i zadają wrogom obrażenia. Granat po wypaleniu wraca do ręki", "#507529");
         }
 
         public static void NewRound()
@@ -34,7 +34,7 @@ namespace jRandomSkills
             if (player == null || !player.IsValid) return;
             var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
-            smokes.TryAdd(new Vector(@event.X, @event.Y, @event.Z), 0);
+            smokes.TryAdd(new Vector(@event.X, @event.Y, @event.Z), player.Team);
         }
 
         public static void SmokegrenadeExpired(EventSmokegrenadeExpired @event)
@@ -62,13 +62,26 @@ namespace jRandomSkills
 
         public static void OnTick()
         {
-            foreach (Vector smokePos in smokes.Keys)
+            if (Server.TickCount % 32 != 0) return;
+
+            foreach (var kv in smokes)
+            {
+                Vector smokePos = kv.Key;
+                CsTeam ownerTeam = kv.Value;
+
                 foreach (var player in Utilities.GetPlayers())
-                    if (Server.TickCount % 32 == 0)
-                        if (player != null && player.IsValid && player.PlayerPawn.Value != null && player.PlayerPawn.Value.IsValid)
-                            if (player.PlayerPawn.Value.LifeState == (byte)LifeState_t.LIFE_ALIVE && player.PlayerPawn.Value.AbsOrigin != null)
-                                if (SkillUtils.GetDistance(smokePos, player.PlayerPawn.Value.AbsOrigin) <= 170)
-                                    AddHealth(player.PlayerPawn.Value, -7);
+                {
+                    if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) continue;
+                    if (player.PlayerPawn.Value.LifeState != (byte)LifeState_t.LIFE_ALIVE || player.PlayerPawn.Value.AbsOrigin == null) continue;
+                    if (player.Team == CsTeam.Spectator) continue;
+
+                    // only hurt opposing team
+                    if (player.Team == ownerTeam) continue;
+
+                    if (SkillUtils.GetDistance(smokePos, player.PlayerPawn.Value.AbsOrigin) <= 170)
+                        AddHealth(player.PlayerPawn.Value, -7);
+                }
+            }
         }
     }
 }

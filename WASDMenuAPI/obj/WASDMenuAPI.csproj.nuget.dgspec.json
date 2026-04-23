@@ -45,7 +45,7 @@
           "dependencies": {
             "CounterStrikeSharp.API": {
               "target": "Package",
-              "version": "[1.0.355, )"
+              "version": "[1.0.367, )"
             }
           },
           "imports": [
@@ -64,7 +64,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/nix/store/a9clw3385jmizh108ma0dhglwb573xfc-dotnet-sdk-8.0.416/share/dotnet/sdk/8.0.416/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/nix/store/4a5gzx0gw69rqyah4b1g95vs5zhfvgx8-dotnet-sdk-8.0.420/share/dotnet/sdk/8.0.420/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

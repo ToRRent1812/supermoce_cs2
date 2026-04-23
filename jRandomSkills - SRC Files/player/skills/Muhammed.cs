@@ -35,10 +35,6 @@ namespace jRandomSkills
             pos.Z += 10;
 
             SkillUtils.CreateHEGrenadeProjectile(pos, angle, new Vector(0, 0, -10), player.TeamNum);
-
-            var fileNames = new[] { "radiobotfallback01", "radiobotfallback02", "radiobotfallback04" };
-            var randomFile = fileNames[new Random().Next(fileNames.Length)];
-            player.ExecuteClientCommand($"play vo/agents/balkan/{randomFile}.vsnd");
         }
 
         public static void OnEntitySpawned(CEntityInstance entity)
@@ -55,8 +51,8 @@ namespace jRandomSkills
                     return;
 
                 heProjectile.TicksAtZeroVelocity = 100;
-                heProjectile.Damage = 300f;
-                heProjectile.DmgRadius = 1200f;
+                heProjectile.Damage = 400f;
+                heProjectile.DmgRadius = 1500f;
                 heProjectile.DetonateTime = 0;
             });
         }

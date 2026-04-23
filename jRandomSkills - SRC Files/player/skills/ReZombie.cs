@@ -68,7 +68,7 @@ namespace jRandomSkills
                     player.Respawn();
                     zombies.TryAdd(player, 0);
                     SetPlayerColor(pawn, false);
-                    AddHealth(player, 900);
+                    AddHealth(player, 1900);
                     pawn.Teleport(deadPosition, deadRotation);
                     player.ExecuteClientCommand("slot3");
                     Instance?.AddTimer(0.5f, () => player.ExecuteClientCommand("slot3"));
@@ -81,7 +81,7 @@ namespace jRandomSkills
             var pawn = player.PlayerPawn?.Value;
             if (pawn == null) return;
 
-            pawn.MaxHealth = Math.Min(pawn.Health + health, 1000);
+            pawn.MaxHealth = Math.Min(pawn.Health + health, 2000);
             Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iMaxHealth");
 
             pawn.Health = pawn.MaxHealth;

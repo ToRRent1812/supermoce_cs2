@@ -16,7 +16,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Ciepłe Piwo", "Możesz na 6 sek. zmienić pole widzenia losowego wroga", "#1466F5");
+            SkillUtils.RegisterSkill(skillName, "Ciepłe Piwo", "Możesz na kilka sekund zmienić pole widzenia losowego wroga", "#1466F5");
         }
 
         public static void NewRound()
@@ -144,22 +144,6 @@ namespace jRandomSkills
                 }
                 Utilities.SetStateChanged(player, "CBasePlayerController", "m_iDesiredFOV");
                 SkillUtils.PrintToChat(player, $"{ChatColors.LightRed}Przeciwnik Cię upił! Zaraz wytrzeźwiejesz.", true);
-
-                Instance?.AddTimer(1.5f, () =>
-                {
-                    player.DesiredFOV = player.DesiredFOV < 100 ? player.DesiredFOV += 10 : player.DesiredFOV -= 10;
-                });
-
-                Instance?.AddTimer(3.0f, () =>
-                {
-                    player.DesiredFOV = player.DesiredFOV < 100 ? player.DesiredFOV += 10 : player.DesiredFOV -= 10;
-                });
-
-                Instance?.AddTimer(4.5f, () =>
-                {
-                    player.DesiredFOV = player.DesiredFOV < 100 ? player.DesiredFOV += 10 : player.DesiredFOV -= 10;
-                });
-                
                 Instance?.AddTimer(6.0f, () =>
                 {
                     player.DesiredFOV = 90;

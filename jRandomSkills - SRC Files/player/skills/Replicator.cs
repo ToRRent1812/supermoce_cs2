@@ -126,7 +126,7 @@ namespace jRandomSkills
             var replica = entity.As<CPhysicsPropMultiplayer>();
             if (replica == null || !replica.IsValid) return HookResult.Continue;
             replica.EmitSound("GlassBottle.BulletImpact", volume: 1f);
-            if(Instance?.Random.Next(1,3) == 1) replica.AcceptInput("Kill");
+            if(Instance?.Random.Next(1,4) == 1) replica.AcceptInput("Kill");
 
             CCSPlayerPawn attackerPawn = new(info.Attacker.Value.Handle);
             if (attackerPawn.DesignerName != "player")

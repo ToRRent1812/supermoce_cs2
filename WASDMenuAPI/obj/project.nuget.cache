@@ -1,10 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "hFzCjsbH3AE=",
+  "dgSpecHash": "CbRd+2foMEg=",
   "success": true,
   "projectFilePath": "/home/rabbit/Dokumenty/Github/supermoce_cs2/WASDMenuAPI/WASDMenuAPI.csproj",
   "expectedPackageFiles": [
-    "/home/rabbit/.nuget/packages/counterstrikesharp.api/1.0.355/counterstrikesharp.api.1.0.355.nupkg.sha512",
+    "/home/rabbit/.nuget/packages/counterstrikesharp.api/1.0.367/counterstrikesharp.api.1.0.367.nupkg.sha512",
+    "/home/rabbit/.nuget/packages/fastgenericnew/3.3.1/fastgenericnew.3.3.1.nupkg.sha512",
     "/home/rabbit/.nuget/packages/mcmaster.netcore.plugins/1.4.0/mcmaster.netcore.plugins.1.4.0.nupkg.sha512",
     "/home/rabbit/.nuget/packages/microsoft.csharp/4.7.0/microsoft.csharp.4.7.0.nupkg.sha512",
     "/home/rabbit/.nuget/packages/microsoft.dotnet.apicompat.task/8.0.203/microsoft.dotnet.apicompat.task.8.0.203.nupkg.sha512",

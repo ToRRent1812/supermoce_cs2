@@ -10,7 +10,8 @@ namespace jRandomSkills
     public class JumpBan : ISkill
     {
         private const Skills skillName = Skills.JumpBan;
-        public static readonly ConcurrentDictionary<CCSPlayerPawn, int> bannedPlayers = [];
+        // Key by SteamID for stability across pawn object changes
+        public static readonly ConcurrentDictionary<ulong, int> bannedPlayers = [];
 
         public static void LoadSkill()
         {
@@ -19,6 +20,16 @@ namespace jRandomSkills
 
         public static void NewRound()
         {
+            // Revert gravity for any banned players before clearing the list
+            foreach (var kv in bannedPlayers)
+            {
+                var pl = Utilities.GetPlayers().FirstOrDefault(p => p?.SteamID == kv.Key);
+                if (pl != null && pl.IsValid && pl.PlayerPawn?.Value != null && pl.PlayerPawn.Value.IsValid)
+                {
+                    pl.PlayerPawn.Value.ActualGravityScale = 1f;
+                }
+            }
+
             bannedPlayers.Clear();
             foreach (var player in Utilities.GetPlayers())
                 SkillUtils.CloseMenu(player);
@@ -27,20 +38,28 @@ namespace jRandomSkills
         public static void PlayerJump(EventPlayerJump @event)
         {
             var player = @event.Userid;
-            if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
-            if (!bannedPlayers.TryGetValue(player.PlayerPawn.Value, out _)) return;
-            bannedPlayers.AddOrUpdate(player.PlayerPawn.Value, Server.TickCount + 10, (k, v) => Server.TickCount + 10);
+            if (player == null || !player.IsValid) return;
+            if (!bannedPlayers.ContainsKey(player.SteamID)) return;
+
+            // Immediately cancel the jump by forcing downward velocity and ensure high gravity
+            var pawn = player.PlayerPawn?.Value;
+            if (pawn == null || !pawn.IsValid) return;
+            pawn.AbsVelocity.Z = -200;
+            pawn.ActualGravityScale = 5f;
         }
 
         public static void OnTick()
         {
-            foreach (var item in bannedPlayers)
+            // Ensure banned players keep high gravity and cannot gain upward velocity
+            foreach (var kv in bannedPlayers)
             {
-                var pawn = item.Key;
-                var time = item.Value;
-                if (time > Server.TickCount)
-                    if (pawn != null && pawn.IsValid)
-                        pawn.AbsVelocity.Z = -100;
+                var steamID = kv.Key;
+                var pl = Utilities.GetPlayers().FirstOrDefault(p => p?.SteamID == steamID);
+                if (pl == null || !pl.IsValid || pl.PlayerPawn?.Value == null || !pl.PlayerPawn.Value.IsValid) continue;
+                var pawn = pl.PlayerPawn.Value;
+                pawn.ActualGravityScale = 5f;
+                if (pawn.AbsVelocity.Z > 0)
+                    pawn.AbsVelocity.Z = 0;
             }
 
             if (Server.TickCount % 32 != 0) return;
@@ -78,7 +97,12 @@ namespace jRandomSkills
                 return;
             }
 
-            bannedPlayers[enemy.PlayerPawn.Value] = 0;
+            // mark steamID as banned (value unused) and apply immediate high gravity
+            bannedPlayers[enemy.SteamID] = 1;
+            if (enemy.PlayerPawn?.Value != null && enemy.PlayerPawn.Value.IsValid)
+            {
+                enemy.PlayerPawn.Value.ActualGravityScale = 5f;
+            }
             playerInfo.SkillChance = 1;
             player.PrintToChat($" {ChatColors.Green}{enemy.PlayerName} nie może teraz skakać.");
             enemy.PrintToChat($" {ChatColors.Red}Wróg odciął ci nogi.");
@@ -102,8 +126,9 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
-            bannedPlayers.TryRemove(player.PlayerPawn.Value, out _);
+            if (player == null || !player.IsValid) return;
+            // attempt to remove any ban matching this player's SteamID (no target-owner mapping available)
+            bannedPlayers.TryRemove(player.SteamID, out _);
             SkillUtils.CloseMenu(player);
         }
     }

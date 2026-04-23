@@ -11,8 +11,8 @@ namespace jRandomSkills
     public class Impostor : ISkill
     {
         private const Skills skillName = Skills.Impostor;
-        private static readonly string defaultCTModel = "characters/models/ctm_sas/ctm_sas.vmdl";
-        private static readonly string defaultTModel = "characters/models/tm_phoenix_heavy/tm_phoenix_heavy.vmdl";
+        private static readonly string defaultCTModel = "agents/models/ctm_sas.vmdl";
+        private static readonly string defaultTModel = "agents/models/tm_phoenix_heavy.vmdl";
         private static readonly ConcurrentDictionary<ulong, string> originalModels = [];
 
         public static void LoadSkill()
@@ -30,6 +30,7 @@ namespace jRandomSkills
             string model = GetEnemyModel(player);
             if (player.PlayerPawn.Value != null && player.PlayerPawn.Value.IsValid && player.PlayerPawn.Value.CBodyComponent != null && player.PlayerPawn.Value.CBodyComponent.SceneNode != null)
                 originalModels.TryAdd(player.SteamID, player.PlayerPawn.Value.CBodyComponent.SceneNode.GetSkeletonInstance().ModelState.ModelName);
+            PrecacheModel(model);
             SetPlayerModel(player, model);
         }
 
@@ -37,8 +38,35 @@ namespace jRandomSkills
         {
             var model = originalModels.TryGetValue(player.SteamID, out var originalModel) && !string.IsNullOrEmpty(originalModel) ? originalModel :
                 player.Team == CsTeam.Terrorist ? defaultTModel : defaultCTModel;
+            PrecacheModel(model);
             SetPlayerModel(player, model);
             originalModels.TryRemove(player.SteamID, out _);
+        }
+
+        private static void PrecacheModel(string model)
+        {
+            if (string.IsNullOrEmpty(model)) return;
+            var prop = Utilities.CreateEntityByName<CDynamicProp>("prop_dynamic");
+            if (prop == null || !prop.IsValid) return;
+
+            try
+            {
+                prop.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags = (uint)(prop.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags & ~(1 << 2));
+                prop.SetModel(model);
+                prop.Render = Color.FromArgb(0, 255, 255, 255);
+                prop.Teleport(new Vector(0, 0, 0), new QAngle(0, 0, 0));
+                prop.DispatchSpawn();
+                prop.AcceptInput("InitializeSpawnFromWorld", prop, prop, "");
+                Utilities.SetStateChanged(prop, "CBaseEntity", "m_CBodyComponent");
+                if (prop.CBodyComponent != null && prop.CBodyComponent.SceneNode != null)
+                    prop.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = 1;
+                Server.NextFrame(() => prop.AcceptInput("SetScale", prop, prop, "1"));
+                Instance?.AddTimer(1.0f, () => { if (prop != null && prop.IsValid) prop.AcceptInput("Kill"); });
+            }
+            catch
+            {
+                try { if (prop != null && prop.IsValid) prop.AcceptInput("Kill"); } catch { }
+            }
         }
 
         private static string GetEnemyModel(CCSPlayerController player)

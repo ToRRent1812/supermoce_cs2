@@ -2,9 +2,10 @@
   "version": 3,
   "targets": {
     "net8.0": {
-      "CounterStrikeSharp.API/1.0.355": {
+      "CounterStrikeSharp.API/1.0.367": {
         "type": "package",
         "dependencies": {
+          "FastGenericNew": "3.3.1",
           "McMaster.NETCore.Plugins": "1.4.0",
           "Microsoft.CSharp": "4.7.0",
           "Microsoft.DotNet.ApiCompat.Task": "8.0.203",
@@ -27,6 +28,19 @@
         "runtime": {
           "lib/net8.0/CounterStrikeSharp.API.dll": {
             "related": ".runtimeconfig.json;.xml"
+          }
+        }
+      },
+      "FastGenericNew/3.3.1": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/FastGenericNew.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/FastGenericNew.dll": {
+            "related": ".xml"
           }
         }
       },
@@ -912,18 +926,43 @@
     }
   },
   "libraries": {
-    "CounterStrikeSharp.API/1.0.355": {
-      "sha512": "ljG2JsY2JHxNU5rdMR7J8SCmJ2Y/hmtiQBlGMciLUQp2trewha2CQCl6OHwixXxIt+GUUt6/QdSiJdMoEEwXWA==",
+    "CounterStrikeSharp.API/1.0.367": {
+      "sha512": "DdOM3hxCl+8oBh8lEtfw1FBSDKEK+3yOpNNMm6ttIz7Gdq63NJEnsbUWorCAuFIqNDzu4jqINiUVJuMWghInyg==",
       "type": "package",
-      "path": "counterstrikesharp.api/1.0.355",
+      "path": "counterstrikesharp.api/1.0.367",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
-        "counterstrikesharp.api.1.0.355.nupkg.sha512",
+        "counterstrikesharp.api.1.0.367.nupkg.sha512",
         "counterstrikesharp.api.nuspec",
         "lib/net8.0/CounterStrikeSharp.API.dll",
         "lib/net8.0/CounterStrikeSharp.API.runtimeconfig.json",
         "lib/net8.0/CounterStrikeSharp.API.xml"
+      ]
+    },
+    "FastGenericNew/3.3.1": {
+      "sha512": "KVd7GryA68XxM/+4gtiMuBW2yUN9yb/1JqoSFAhmK1HZ8ygKPIYdOycJeIrho9Ds1n3H5OO/bOLZ3w87eI3iaw==",
+      "type": "package",
+      "path": "fastgenericnew/3.3.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Logo.png",
+        "README_nuget.md",
+        "fastgenericnew.3.3.1.nupkg.sha512",
+        "fastgenericnew.nuspec",
+        "lib/net461/FastGenericNew.dll",
+        "lib/net461/FastGenericNew.xml",
+        "lib/net48/FastGenericNew.dll",
+        "lib/net48/FastGenericNew.xml",
+        "lib/net6.0/FastGenericNew.dll",
+        "lib/net6.0/FastGenericNew.xml",
+        "lib/net8.0/FastGenericNew.dll",
+        "lib/net8.0/FastGenericNew.xml",
+        "lib/netstandard2.0/FastGenericNew.dll",
+        "lib/netstandard2.0/FastGenericNew.xml",
+        "lib/netstandard2.1/FastGenericNew.dll",
+        "lib/netstandard2.1/FastGenericNew.xml"
       ]
     },
     "McMaster.NETCore.Plugins/1.4.0": {
@@ -2551,7 +2590,7 @@
   },
   "projectFileDependencyGroups": {
     "net8.0": [
-      "CounterStrikeSharp.API >= 1.0.355"
+      "CounterStrikeSharp.API >= 1.0.367"
     ]
   },
   "packageFolders": {
@@ -2598,7 +2637,7 @@
         "dependencies": {
           "CounterStrikeSharp.API": {
             "target": "Package",
-            "version": "[1.0.355, )"
+            "version": "[1.0.367, )"
           }
         },
         "imports": [
@@ -2617,7 +2656,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/nix/store/a9clw3385jmizh108ma0dhglwb573xfc-dotnet-sdk-8.0.416/share/dotnet/sdk/8.0.416/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/nix/store/4a5gzx0gw69rqyah4b1g95vs5zhfvgx8-dotnet-sdk-8.0.420/share/dotnet/sdk/8.0.420/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

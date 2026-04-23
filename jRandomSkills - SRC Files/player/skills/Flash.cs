@@ -91,7 +91,7 @@ namespace jRandomSkills
                 if (jumpedPlayers.TryGetValue(player.SteamID, out var time) && time > Server.TickCount)
                     continue;
 
-                if (!((PlayerFlags)player.Flags).HasFlag(PlayerFlags.FL_ONGROUND))
+                if (!((PlayerFlags)playerPawn.Flags).HasFlag(PlayerFlags.FL_ONGROUND))
                     playerPawn.AbsVelocity.Z = Math.Min(playerPawn.AbsVelocity.Z, 10);
             }
         }

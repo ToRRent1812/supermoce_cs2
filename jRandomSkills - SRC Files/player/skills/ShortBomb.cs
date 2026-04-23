@@ -24,7 +24,7 @@ namespace jRandomSkills
 
             var plantedBomb = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").FirstOrDefault();
             if (plantedBomb != null)
-                Server.NextFrame(() => plantedBomb.C4Blow = (float)Server.EngineTime + 25f);
+                Server.NextFrame(() => plantedBomb.C4Blow = (float)Server.EngineTime + 20f);
         }
     }
 }

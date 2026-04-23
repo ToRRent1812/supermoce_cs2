@@ -47,7 +47,7 @@ namespace jRandomSkills
             Instance?.RegisterListener<OnEntityTakeDamagePre>(OnTakeDamage);
         }
 
-        private static HookResult HandleSkillEvent(string eventName, object arg)
+        private static HookResult HandleSkillEvent(string eventName, params object[] args)
         {
             lock (setLock)
             {
@@ -55,7 +55,7 @@ namespace jRandomSkills
                 {
                     foreach (var playerSkill in Instance.SkillPlayer)
                         if (!playerSkill.IsDrawing)
-                            Instance.SkillAction(playerSkill.Skill.ToString(), eventName, [arg]);
+                            Instance.SkillAction(playerSkill.Skill.ToString(), eventName, args);
                 }
                 return HookResult.Continue;
             }
@@ -77,7 +77,7 @@ namespace jRandomSkills
         private static HookResult PlayerHurt(EventPlayerHurt @event, GameEventInfo info) => HandleSkillEvent("PlayerHurt", @event);
         private static HookResult PlayerJump(EventPlayerJump @event, GameEventInfo info) => HandleSkillEvent("PlayerJump", @event);
         private static HookResult PlayerBlind(EventPlayerBlind @event, GameEventInfo info) => HandleSkillEvent("PlayerBlind", @event);
-        private static HookResult OnTakeDamage(CEntityInstance entity, CTakeDamageInfo info) => HandleSkillEvent("OnTakeDamage", info);
+        private static HookResult OnTakeDamage(CEntityInstance entity, CTakeDamageInfo info) => HandleSkillEvent("OnTakeDamage", entity, info);
 
         private static void OnTick()
         {
@@ -153,6 +153,8 @@ namespace jRandomSkills
                 int freezetime = ConVar.Find("mp_freezetime")?.GetPrimitiveValue<int>() ?? 0;
                 freezeTimeEnd = DateTime.Now.AddSeconds(freezetime + (Instance?.GameRules?.TeamIntroPeriod == true ? 7 : 0));
                 Instance?.AddTimer((Instance?.GameRules?.TeamIntroPeriod == true ? 7 : 0) + Math.Max(freezetime - 5, 0) + .3f, SetSkill);
+                // Ensure any queued NoMoney players are processed at round start
+                try { NoMoney.ProcessZeroAtFreeze(); } catch { }
                 if(Instance?.GameRules?.ITotalRoundsPlayed == 5) Server.PrintToChatAll($" {ChatColors.Yellow}Znalazłeś błąd? Daj mi znać na discordzie {ChatColors.LightBlue}https://rbtv.pl/dc");
                 return HookResult.Continue;
             }

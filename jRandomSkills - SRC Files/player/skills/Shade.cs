@@ -1,12 +1,9 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Utils;
-using CS2TraceRay.Class;
-using CS2TraceRay.Struct;
 using jRandomSkills.src.player;
 using System.Collections.Concurrent;
-using System.Numerics;
+using RayTraceAPI;
 using static jRandomSkills.jRandomSkills;
 using Vector = CounterStrikeSharp.API.Modules.Utils.Vector;
 
@@ -68,23 +65,22 @@ namespace jRandomSkills
         {
             var pawn = player.PlayerPawn.Value;
             if (pawn == null || !pawn.IsValid) return false;
-            Ray ray = new(new Vector3(-16, -16, -0), new Vector3(16, 16, 72));
-            CTraceFilter filter = new(pawn.Index, pawn.Index)
-            {
-                m_nObjectSetMask = 0xf,
-                m_nCollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_PLAYER_MOVEMENT,
-                m_nInteractsWith = pawn.GetInteractsWith(),
-                m_nInteractsExclude = 0,
-                m_nBits = 11,
-                m_bIterateEntities = true,
-                m_bHitTriggers = false,
-                m_nInteractsAs = 0x40000
-            };
+            var rayTrace = RayTraceInterface.Get();
+            if (rayTrace == null) return false;
 
-            filter.m_nHierarchyIds[0] = pawn.GetHierarchyId();
-            filter.m_nHierarchyIds[1] = 0;
-            CGameTrace trace = TraceRay.TraceHull(startPos, endPos, filter, ray);
-            return !trace.HitWorld(out _);
+            TraceOptions options = new();
+            options.InteractsWith = (ulong)InteractionLayers.MASK_SHOT_PHYSICS;
+            options.InteractsExclude = 0;
+            options.DrawBeam = 0;
+
+            Vector mins = new(-16f, -16f, 0f);
+            Vector maxs = new(16f, 16f, 72f);
+
+            if (!rayTrace.TraceHullShape(startPos, endPos, mins, maxs, null, options, out TraceResult traceResult))
+                return true;
+
+            // return true if we didn't hit world geometry (i.e. either no hit or hit an entity)
+            return !traceResult.DidHit || traceResult.HitEntity != 0;
         }
 
         private static void TeleportAttackerBehindVictim(CCSPlayerController attacker, CCSPlayerController victim)

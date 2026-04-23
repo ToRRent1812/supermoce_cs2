@@ -16,6 +16,7 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, "Sokoli wzrok", "Możesz włączyć kamerę z lotu ptaka", "#d1f542");
+            Instance?.AddToManifest("models/actors/ghost_speaker.vmdl");
         }
 
         public static void NewRound()
@@ -108,9 +109,17 @@ namespace jRandomSkills
             if (pawn == null || !pawn.IsValid || pawn.AbsOrigin == null) return 0;
             Vector pos = new(pawn.AbsOrigin.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z + 1000f);
 
+            // Initialize the dynamic prop similar to other spawned props (e.g., Chicken)
+            camera.SetModel("models/actors/ghost_speaker.vmdl");
             camera.Render = Color.FromArgb(0, 255, 255, 255);
             camera.Teleport(pos, new QAngle(90, 0, 0));
             camera.DispatchSpawn();
+            camera.AcceptInput("InitializeSpawnFromWorld", pawn, pawn, "");
+            Utilities.SetStateChanged(camera, "CBaseEntity", "m_CBodyComponent");
+            if (camera.CBodyComponent != null && camera.CBodyComponent.SceneNode != null)
+                camera.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = 1;
+            Server.NextFrame(() => camera.AcceptInput("SetScale", camera, camera, "1"));
+
             cameras.AddOrUpdate(player.SteamID, (pawn.CameraServices!.ViewEntity.Raw, camera), (k, v) => (pawn.CameraServices!.ViewEntity.Raw, camera));
             return camera.EntityHandle.Raw;
         }

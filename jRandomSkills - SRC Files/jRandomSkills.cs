@@ -2,6 +2,7 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Commands;
 using CounterStrikeSharp.API.Modules.Commands;
+using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using System.Collections.Concurrent;
 using System.Reflection;
@@ -12,16 +13,18 @@ namespace jRandomSkills
     public partial class jRandomSkills : BasePlugin
     {
         public static jRandomSkills? Instance { get; private set; }
+        internal static PluginCapability<RayTraceAPI.CRayTraceInterface> RayTraceInterface { get; } = new("raytrace:craytraceinterface");
 
         public ConcurrentBag<jSkill_PlayerInfo> SkillPlayer { get; set; } = [];
         public Random Random { get; } = new();
         public CCSGameRules? GameRules { get; set; }
+        private ConcurrentBag<string> ManifestResources { get; set; } = [ "models/actors/ghost_speaker.vmdl" ];
         public IWasdMenuManager? MenuManager;
 
         public override string ModuleName => "Supermoce";
         public override string ModuleAuthor => "D3X (dRandomSkills), Juzlus (jRandomSkills), Rabbit";
         public override string ModuleDescription => "Fork forka który dodaje graczom supermoce";
-        public override string ModuleVersion => "1.2.1";
+        public override string ModuleVersion => "1.3.0";
 
         public override void Load(bool hotReload)
         {
@@ -32,6 +35,18 @@ namespace jRandomSkills
             Command.Load();
             WASDMenuAPI.WASDMenuAPI.LoadPlugin(Instance, hotReload);
             LoadAllSkills();
+        }
+
+        internal void AddToManifest(string prop)
+        {
+            if (!ManifestResources.Contains(prop))
+                ManifestResources.Add(prop);
+        }
+
+        internal void LoadManifest(ResourceManifest manifest)
+        {
+            foreach (var prop in ManifestResources)
+                manifest.AddResource(prop);
         }
 
         internal void LoadAllSkills()

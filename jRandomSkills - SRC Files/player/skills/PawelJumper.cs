@@ -63,7 +63,7 @@ namespace jRandomSkills
             else if ((LB[player.Slot] & PlayerButtons.Jump) == 0 && (buttons & PlayerButtons.Jump) != 0 && J[player.Slot] < playerInfo.SkillChance)
             {
                 J[player.Slot]++;
-                playerPawn.AbsVelocity.Z = 350;
+                playerPawn.AbsVelocity.Z = 250;
             }
 
             LF[player.Slot] = flags;

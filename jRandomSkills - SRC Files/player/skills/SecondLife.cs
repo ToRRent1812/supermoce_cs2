@@ -15,7 +15,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Drugie życie", "Po śmierci odradzasz się 1 raz z losową ilością zdrowia", "#d41c1c");
+            SkillUtils.RegisterSkill(skillName, "Drugie życie", "Po śmierci odradzasz się 1 raz z losową ilością zdrowia oraz deaglem", "#d41c1c");
         }
 
         public static void NewRound()
@@ -42,7 +42,22 @@ namespace jRandomSkills
                 SetHealth(victim, Instance?.Random.Next(10, 101) ?? 50);
                 var spawn = GetSpawnVector(victim);
                 if (spawn != null)
+                {
                     victimPawn.Teleport(spawn, victimPawn.AbsRotation, null);
+                    // give deagle after teleport to ensure pawn/weapon services initialized
+                    Instance?.AddTimer(0.15f, () =>
+                    {
+                        try
+                        {
+                            if (victim != null && victim.IsValid)
+                            {
+                                victim.GiveNamedItem("weapon_deagle");
+                                victim.ExecuteClientCommand("slot2");
+                            }
+                        }
+                        catch { }
+                    });
+                }
             }
         }
 

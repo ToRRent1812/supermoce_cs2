@@ -11,7 +11,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Wampir", "1/3 zadanych obrażeń zamieniasz w życie", "#FA050D", 1);
+            SkillUtils.RegisterSkill(skillName, "Wampir", "30% zadanych obrażeń zamieniasz w życie", "#FA050D", 1);
         }
 
         public static void PlayerHurt(EventPlayerHurt @event)
@@ -31,7 +31,7 @@ namespace jRandomSkills
             var attackerPawn = attacker.PlayerPawn.Value;
             if (attackerPawn == null) return;
 
-            int newHealth = (int)(attackerPawn.Health + (damage * 0.33f));
+            int newHealth = (int)(attackerPawn.Health + (damage * 0.3f));
 
             attackerPawn.MaxHealth = Math.Max(newHealth, 100);
             Utilities.SetStateChanged(attackerPawn, "CBaseEntity", "m_iMaxHealth");

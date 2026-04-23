@@ -114,7 +114,9 @@ namespace jRandomSkills
             box.Collision.SolidType = SolidType_t.SOLID_VPHYSICS;
             box.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags = (uint)(box.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags & ~(1 << 2));
             box.DispatchSpawn();
-            barricades.TryAdd(box.Index, 75);
+            // randomize barricade health between 50 and 150
+            int hp = Instance?.Random.Next(50, 151) ?? 50;
+            barricades.TryAdd(box.Index, hp);
             Server.NextFrame(() =>
             {
                 box.SetModel(propModel);

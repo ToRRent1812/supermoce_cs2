@@ -6,7 +6,9 @@ using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
+using RayTraceAPI;
 using System.Collections.Concurrent;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using WASDMenuAPI.Classes;
 using WASDSharedAPI;
@@ -72,17 +74,36 @@ namespace jRandomSkills
         public static void ChangePlayerScale(CCSPlayerController? player, float scale)
         {
             if (player == null || !player.IsValid) return;
-            var playerPawn = player.PlayerPawn.Value;
+            var playerPawn = player.PlayerPawn?.Value;
             if (playerPawn == null || !playerPawn.IsValid || playerPawn.CBodyComponent == null || playerPawn.CBodyComponent.SceneNode == null) return;
 
-            playerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = scale;
+            float appliedScale = Math.Max(scale, 0.01f);
+
+            playerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = appliedScale;
             Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_CBodyComponent");
-            Server.NextFrame(() => playerPawn.AcceptInput("SetScale", playerPawn, playerPawn, scale.ToString()));
+
+            // ensure invariant formatting for engine input (culture-safe)
+            Server.NextFrame(() => playerPawn.AcceptInput("SetScale", playerPawn, playerPawn, appliedScale.ToString(CultureInfo.InvariantCulture)));
         }
 
         public static void CreateHEGrenadeProjectile(Vector pos, QAngle angle, Vector vel, int teamNum)
         {
             HEGrenadeProjectile_CreateFunc.Invoke(pos.Handle, angle.Handle, vel.Handle, vel.Handle, IntPtr.Zero, 44, teamNum);
+        }
+
+        public static CCSPlayerController? GetPlayerFromTraceResult(TraceResult trace)
+        {
+            if (trace.HitEntity == 0) return null;
+
+            foreach (var p in Utilities.GetPlayers())
+            {
+                if (p == null || !p.IsValid) continue;
+                if (p.Handle == (IntPtr)trace.HitEntity) return p;
+                var pawn = p.PlayerPawn?.Value;
+                if (pawn != null && pawn.Handle == (IntPtr)trace.HitEntity) return p;
+            }
+
+            return null;
         }
 
         public static void TakeHealth(CCSPlayerPawn? pawn, int damage)
@@ -182,12 +203,17 @@ namespace jRandomSkills
             var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == playerInfo.Skill);
             if (skillData == null) return;
 
-            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='white'>{skillData.Description}</font>";
+            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='white'>{skillData.Description}</font><br/>";
 
             var manager = GetMenuManager();
             if (manager == null) return;
 
-            IWasdMenu menu = manager.CreateMenu(skillLine, "<font class='fontSize-s' color='yellow'>W/S – Przewijanie | ROZBRAJANIE - wybór</font>", "", "");
+            // Templates: {0} will be replaced by the option text/html
+            string itemTemplate = "<font class='fontSize-s' color='white'>{0}</font><br/>"; // non-selected item
+            string hoverTemplate = "<font class='fontSize-m' class='fontWeight-Bold' color='white'>{0}</font><br/>"; // selected item
+            string controlText = "<font class='fontSize-s' color='yellow'>W/S – Przewijanie | ROZBRAJANIE - wybór</font>"; // controls/help
+
+            IWasdMenu menu = manager.CreateMenu(skillLine, itemTemplate, hoverTemplate, controlText);
             foreach (var enemy in enemies)
                 menu.Add(enemy.Item1, (p, option) =>
                 {
