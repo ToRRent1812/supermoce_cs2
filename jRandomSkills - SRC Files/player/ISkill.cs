@@ -73,6 +73,7 @@ public enum Skills
     ExplosiveShot,
     FalconEye,
     FireBullets,
+    Fireball,
     Flash,
     Fortnite,
     Fov,

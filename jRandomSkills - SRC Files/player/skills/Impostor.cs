@@ -11,8 +11,8 @@ namespace jRandomSkills
     public class Impostor : ISkill
     {
         private const Skills skillName = Skills.Impostor;
-        private static readonly string defaultCTModel = "agents/models/ctm_sas.vmdl";
-        private static readonly string defaultTModel = "agents/models/tm_phoenix_heavy.vmdl";
+        private static readonly string defaultCTModel = "agents/models/ctm_sas/ctm_sas.vmdl";
+        private static readonly string defaultTModel = "agents/models/tm_phoenix/tm_phoenix.vmdl";
         private static readonly ConcurrentDictionary<ulong, string> originalModels = [];
 
         public static void LoadSkill()
