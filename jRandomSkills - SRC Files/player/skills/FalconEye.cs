@@ -16,7 +16,7 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, "Sokoli wzrok", "Możesz włączyć kamerę z lotu ptaka", "#d1f542");
-            Instance?.AddToManifest("models/actors/ghost_speaker.vmdl");
+            Instance?.AddToManifest("models/sprays/spray_plane.vmdl");
         }
 
         public static void NewRound()
@@ -110,7 +110,7 @@ namespace jRandomSkills
             Vector pos = new(pawn.AbsOrigin.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z + 1000f);
 
             // Initialize the dynamic prop similar to other spawned props (e.g., Chicken)
-            camera.SetModel("models/actors/ghost_speaker.vmdl");
+            camera.SetModel("models/sprays/spray_plane.vmdl");
             camera.Render = Color.FromArgb(0, 255, 255, 255);
             camera.Teleport(pos, new QAngle(90, 0, 0));
             camera.DispatchSpawn();
