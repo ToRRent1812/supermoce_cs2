@@ -18,13 +18,13 @@ namespace jRandomSkills
         public ConcurrentBag<jSkill_PlayerInfo> SkillPlayer { get; set; } = [];
         public Random Random { get; } = new();
         public CCSGameRules? GameRules { get; set; }
-        private ConcurrentBag<string> ManifestResources { get; set; } = [ "models/actors/ghost_speaker.vmdl" ];
+        private ConcurrentBag<string> ManifestResources { get; set; } = [ "models/sprays/spray_plane.vmdl" ];
         public IWasdMenuManager? MenuManager;
 
         public override string ModuleName => "Supermoce";
         public override string ModuleAuthor => "D3X (dRandomSkills), Juzlus (jRandomSkills), Rabbit";
         public override string ModuleDescription => "Fork forka który dodaje graczom supermoce";
-        public override string ModuleVersion => "1.3.0";
+        public override string ModuleVersion => "1.3.2";
 
         public override void Load(bool hotReload)
         {
@@ -35,6 +35,7 @@ namespace jRandomSkills
             Command.Load();
             WASDMenuAPI.WASDMenuAPI.LoadPlugin(Instance, hotReload);
             LoadAllSkills();
+            Server.ExecuteCommand("sv_legacy_jump 1");
         }
 
         internal void AddToManifest(string prop)
@@ -63,7 +64,17 @@ namespace jRandomSkills
             if (type != null && typeof(ISkill).IsAssignableFrom(type))
             {
                 MethodInfo? method = type.GetMethod(methodName, BindingFlags.Static | BindingFlags.Public);
-                method?.Invoke(null, param);
+                if (method != null)
+                {
+                    try
+                    {
+                        method.Invoke(null, param);
+                    }
+                    catch (Exception ex)
+                    {
+                        Server.PrintToConsole($"SkillAction {skill}.{methodName} threw: {ex}");
+                    }
+                }
             }
             else
                 Server.PrintToConsole($"Could not find or load {className}");

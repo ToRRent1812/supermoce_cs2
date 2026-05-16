@@ -65,6 +65,7 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
+            if (player == null || !player.IsValid) return;
             SkillUtils.TryGiveWeapon(player, CsItem.DecoyGrenade);
         }
     }

@@ -88,6 +88,7 @@ public enum Skills
     ReZombie,
     HealingSmoke,
     HolyHandGrenade,
+    //ImpactGrenade,
     Impostor,
     InfiniteAmmo,
     Jackal,

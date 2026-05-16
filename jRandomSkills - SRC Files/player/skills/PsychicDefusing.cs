@@ -63,7 +63,7 @@ namespace jRandomSkills
                 var player = playerController.As<CCSPlayerController>();
                 if (player == null || !player.IsValid) return;
 
-                if (pawn.AbsOrigin == null || SkillUtils.GetDistance(pawn.AbsOrigin, bombLocation) > 800f)
+                if (pawn.AbsOrigin == null || SkillUtils.GetDistance(pawn.AbsOrigin, bombLocation) > 700f)
                 {
                     info.Defusing = false;
                     info.DefusingTime = 12f;
@@ -82,6 +82,7 @@ namespace jRandomSkills
                     {
                         plantedBomb.AcceptInput("Kill");
                         SkillUtils.TerminateRound(CsTeam.CounterTerrorist);
+                        SkillUtils.PrintToChatAll($" {ChatColors.LightBlue}{player.PlayerName} rozbroił zdalnie bombę.", false);
                     }
                     SkillPlayerInfo.Clear();
                 }

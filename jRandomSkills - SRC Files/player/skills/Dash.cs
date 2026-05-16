@@ -15,7 +15,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Superman", "Skacząc podwójnie wykonujesz DASH", "#42bbfc");
+            SkillUtils.RegisterSkill(skillName, "Superman", "Skacząc podwójnie spacją wykonujesz DASH", "#42bbfc");
         }
 
         public static void OnTick()

@@ -49,8 +49,8 @@ namespace jRandomSkills
 
                 heProjectile.TicksAtZeroVelocity = 100;
                 heProjectile.TeamNum = (byte)CsTeam.None;
-                heProjectile.Damage = 55f;
-                heProjectile.DmgRadius = 260f;
+                heProjectile.Damage = 75f;
+                heProjectile.DmgRadius = 350f;
                 heProjectile.DetonateTime = 0;
             });
         }
@@ -75,6 +75,13 @@ namespace jRandomSkills
             CCSPlayerController attacker = attackerPawn.Controller.Value.As<CCSPlayerController>();
             var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
             if (playerInfo == null || playerInfo.Skill != skillName) return HookResult.Continue;
+            var activeWeapon = attackerPawn.WeaponServices?.ActiveWeapon.Value;
+            if (activeWeapon != null && activeWeapon.IsValid)
+            {
+                string wname = SkillUtils.GetDesignerName(activeWeapon);
+                if (string.IsNullOrEmpty(wname)) wname = activeWeapon.DesignerName ?? string.Empty;
+                if (wname.Contains("knife")) return HookResult.Continue;
+            }
             if (Instance?.Random.NextDouble() <= playerInfo.SkillChance)
                 SpawnExplosion(info.DamagePosition);
 

@@ -51,8 +51,8 @@ namespace jRandomSkills
                     return;
 
                 heProjectile.TicksAtZeroVelocity = 100;
-                heProjectile.Damage = 400f;
-                heProjectile.DmgRadius = 1500f;
+                heProjectile.Damage = 200f;
+                heProjectile.DmgRadius = 1200f;
                 heProjectile.DetonateTime = 0;
             });
         }

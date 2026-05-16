@@ -45,6 +45,10 @@ namespace jRandomSkills
             if (playerInfo?.Skill != skillName) return;
             foreach (var smoke in smokes.Keys.Where(v => v.X == @event.X && v.Y == @event.Y && v.Z == @event.Z))
                 smokes.TryRemove(smoke, out _);
+            Instance?.AddTimer(20.0f, () =>
+            {
+                SkillUtils.TryGiveWeapon(player, CsItem.SmokeGrenade);
+            });
         }
 
         private static void AddHealth(CCSPlayerPawn player, int health)
@@ -55,7 +59,7 @@ namespace jRandomSkills
             player.Health += health;
             Utilities.SetStateChanged(player, "CBaseEntity", "m_iHealth");
 
-            player.EmitSound("Player.DamageBody.Onlooker", volume: 0.3f);
+            player.EmitSound("Player.DamageBody.Onlooker", volume: 0.2f);
             if (player.Health <= 0)
                 player.CommitSuicide(false, true);
         }
@@ -78,7 +82,7 @@ namespace jRandomSkills
                     // only hurt opposing team
                     if (player.Team == ownerTeam) continue;
 
-                    if (SkillUtils.GetDistance(smokePos, player.PlayerPawn.Value.AbsOrigin) <= 170)
+                    if (SkillUtils.GetDistance(smokePos, player.PlayerPawn.Value.AbsOrigin) <= 160)
                         AddHealth(player.PlayerPawn.Value, -7);
                 }
             }

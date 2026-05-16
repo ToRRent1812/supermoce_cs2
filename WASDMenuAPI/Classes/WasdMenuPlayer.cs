@@ -13,7 +13,7 @@ public class WasdMenuPlayer
     public LinkedListNode<IWasdMenuOption>? CurrentChoice = null;
     public LinkedListNode<IWasdMenuOption>? MenuStart = null;
     public string CenterHtml = "";
-    public int VisibleOptions = 3;
+    public int VisibleOptions = 4;
     public PlayerButtons Buttons { get; set; }
 
     public int scrollIndex = 0;

@@ -40,6 +40,7 @@ namespace jRandomSkills
                     if (enemyInfo == null) continue;
                     var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == enemyInfo.Skill);
                     if (skillData == null) continue;
+                    if (skillData.TeamNumber != 0) continue;
                     menuItems.Add(($"{skillData.Name}", enemy.Index.ToString()));
                 }
                 SkillUtils.UpdateMenu(player, menuItems);
@@ -82,10 +83,15 @@ namespace jRandomSkills
                     if (enemyInfo == null) continue;
                     var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == enemyInfo.Skill);
                     if (skillData == null) continue;
+                    if (skillData.TeamNumber != 0) continue;
                     skills.Add(skillData.Skill.ToString());
                     menuItems.Add(($"{skillData.Name}", enemy.Index.ToString()));
                 }
-                SkillUtils.CreateMenu(player, menuItems);
+
+                if (menuItems.Count > 0)
+                    SkillUtils.CreateMenu(player, menuItems);
+                else
+                    player.PrintToChat($" {ChatColors.Red}Nie znaleziono gracza z uniwersalną supermocą.");
             }
             else
                 player.PrintToChat($" {ChatColors.Red}Nie znaleziono gracza o takim ID.");

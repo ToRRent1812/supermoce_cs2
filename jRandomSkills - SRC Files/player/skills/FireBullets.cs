@@ -69,7 +69,7 @@ namespace jRandomSkills
                         var playerPawn = player.PlayerPawn.Value;
                         if (playerPawn == null || !playerPawn.IsValid) continue;
                         SkillUtils.TakeHealth(playerPawn, Instance?.Random.Next(2, 7) ?? 2);
-                        playerPawn.EmitSound("Player.DamageBody.Onlooker", volume: 0.25f);
+                        playerPawn.EmitSound("Player.DamageBody.Onlooker", volume: 0.15f);
                         if (playerPawn.Health <= 0)
                         {
                             InfectedPlayers.TryRemove(player.PlayerPawn.Value, out _);

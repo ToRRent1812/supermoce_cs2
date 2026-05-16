@@ -45,7 +45,8 @@ namespace jRandomSkills
 
             if (Instance != null && Instance.GameRules != null)
             {
-                Instance.GameRules.RoundTime += player.Team == CsTeam.Terrorist ? 15 : -15;
+                if(player.Team == CsTeam.CounterTerrorist && Instance.GameRules.RoundTime > 10) Instance.GameRules.RoundTime -= 10;
+                else if(player.Team == CsTeam.Terrorist) Instance.GameRules.RoundTime += 15;
             }
         }
 

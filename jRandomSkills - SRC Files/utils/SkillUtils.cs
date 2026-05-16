@@ -82,7 +82,6 @@ namespace jRandomSkills
             playerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = appliedScale;
             Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_CBodyComponent");
 
-            // ensure invariant formatting for engine input (culture-safe)
             Server.NextFrame(() => playerPawn.AcceptInput("SetScale", playerPawn, playerPawn, appliedScale.ToString(CultureInfo.InvariantCulture)));
         }
 
@@ -208,10 +207,9 @@ namespace jRandomSkills
             var manager = GetMenuManager();
             if (manager == null) return;
 
-            // Templates: {0} will be replaced by the option text/html
             string itemTemplate = "<font class='fontSize-s' color='white'>{0}</font><br/>"; // non-selected item
-            string hoverTemplate = "<font class='fontSize-m' class='fontWeight-Bold' color='white'>{0}</font><br/>"; // selected item
-            string controlText = "<font class='fontSize-s' color='yellow'>W/S – Przewijanie | ROZBRAJANIE - wybór</font>"; // controls/help
+            string hoverTemplate = "<font class='fontSize-m' class='fontWeight-Bold' color='yellow'>=> {0}</font><br/>"; // selected item
+            string controlText = "<font class='fontSize-s' color='yellow'>W/S - Przewijanie | Rozbrajanie - wybór</font>"; // controls/help
 
             IWasdMenu menu = manager.CreateMenu(skillLine, itemTemplate, hoverTemplate, controlText);
             foreach (var enemy in enemies)

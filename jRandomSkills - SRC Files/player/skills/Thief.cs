@@ -33,6 +33,7 @@ namespace jRandomSkills
                     if (enemyInfo == null) continue;
                     var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == enemyInfo.Skill);
                     if (skillData == null) continue;
+                    if (skillData.TeamNumber != 0) continue;
                     menuItems.Add(($"{enemy.PlayerName}", enemy.Index.ToString()));
                 }
                     SkillUtils.UpdateMenu(player, menuItems);
@@ -81,6 +82,7 @@ namespace jRandomSkills
                     if (enemyInfo == null) continue;
                     var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == enemyInfo.Skill);
                     if (skillData == null) continue;
+                    if (skillData.TeamNumber != 0) continue;
                     skills.Add(skillData.Skill.ToString());
                     menuItems.Add(($"{enemy.PlayerName}", enemy.Index.ToString()));
                 }

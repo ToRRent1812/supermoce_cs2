@@ -1,6 +1,7 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
+using CounterStrikeSharp.API.Modules.Entities.Constants;
 using jRandomSkills.src.player;
 using System.Collections.Concurrent;
 using static jRandomSkills.jRandomSkills;
@@ -15,7 +16,13 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Trotylov", "Twoje mołotowy wybuchają", "#e25d2d");
+            SkillUtils.RegisterSkill(skillName, "Trotylov", "Twoje mołotowy wybuchają", "#e25d2d", 1);
+        }
+
+        public static void EnableSkill(CCSPlayerController player)
+        {
+            if (player == null || !player.IsValid) return;
+            SkillUtils.TryGiveWeapon(player, CsItem.Molotov);
         }
 
         public static void PlayerHurt(EventPlayerHurt @event)
@@ -53,8 +60,8 @@ namespace jRandomSkills
             });
 
             // Manually apply damage only to self and enemies (no friendly fire)
-            float radius = 600f;
-            int damage = 200;
+            float radius = 400f;
+            int damage = 150;
 
             foreach (var p in Utilities.GetPlayers())
             {

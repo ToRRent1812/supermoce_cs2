@@ -109,7 +109,6 @@ namespace jRandomSkills
             if (pawn == null || !pawn.IsValid || pawn.AbsOrigin == null) return 0;
             Vector pos = new(pawn.AbsOrigin.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z + 1000f);
 
-            // Initialize the dynamic prop similar to other spawned props (e.g., Chicken)
             camera.SetModel("models/sprays/spray_plane.vmdl");
             camera.Render = Color.FromArgb(0, 255, 255, 255);
             camera.Teleport(pos, new QAngle(90, 0, 0));

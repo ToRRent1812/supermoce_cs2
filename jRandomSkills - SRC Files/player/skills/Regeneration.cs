@@ -23,7 +23,7 @@ namespace jRandomSkills
 
                 var pawn = player.PlayerPawn.Value;
                 if (pawn == null || !pawn.IsValid) continue;
-                SkillUtils.AddHealth(pawn, Instance?.Random.Next(3,9) ?? 0);
+                SkillUtils.AddHealth(pawn, Instance?.Random.Next(3,7) ?? 3);
             }
         }
     }

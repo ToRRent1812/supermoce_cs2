@@ -32,9 +32,22 @@ namespace jRandomSkills
             activePlayers.Clear();
         }
 
+        private static void AddHealth(CCSPlayerPawn player, int health)
+        {
+            if (player.LifeState != (byte)LifeState_t.LIFE_ALIVE)
+                return;
+
+            player.Health += health;
+            Utilities.SetStateChanged(player, "CBaseEntity", "m_iHealth");
+
+            player.EmitSound("Player.DamageBody.Onlooker", volume: 0.1f);
+            if (player.Health <= 0)
+                player.CommitSuicide(false, true);
+        }
+
         public static void OnTick()
         {
-            if (Server.TickCount % 128 != 0) return;
+            if (Server.TickCount % 64 != 0) return;
             if (SkillUtils.IsFreezetime()) return;
             if (activePlayers.IsEmpty) return;
 
@@ -58,9 +71,7 @@ namespace jRandomSkills
 
                     if (SkillUtils.GetDistance(ownerPos, targetPawn.AbsOrigin) <= AoERadius)
                     {
-                        targetPawn.Health -= 1;
-                        Utilities.SetStateChanged(targetPawn, "CBaseEntity", "m_iHealth");
-                        if (targetPawn.Health <= 0) targetPawn.CommitSuicide(false, true);
+                        AddHealth(targetPawn, -1);
                     }
                 }
             }

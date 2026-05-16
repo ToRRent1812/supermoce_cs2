@@ -16,7 +16,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Podejrzane naboje", "Możesz na 5 sek. włączyć losowe obrażenia pocisków", "#a8720c");
+            SkillUtils.RegisterSkill(skillName, "Podejrzane naboje", "Możesz na 5 sek. włączyć losowe obrażenia na serwerze", "#a8720c");
         }
 
         public static void NewRound()

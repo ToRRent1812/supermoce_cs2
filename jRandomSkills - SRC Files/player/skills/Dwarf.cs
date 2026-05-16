@@ -31,7 +31,7 @@ namespace jRandomSkills
             var playerPawn = player.PlayerPawn?.Value;
             if (playerPawn != null && player.IsValid)
             {
-                int randomValue = Instance?.Random?.Next(35,61) ?? 35; //35-60%
+                int randomValue = Instance?.Random?.Next(40,81) ?? 40; //40-80%
                 playerInfo.SkillChance = randomValue / 100f;
                 playerInfo.RandomPercentage = (100-randomValue).ToString() + "% mniejszy";
 

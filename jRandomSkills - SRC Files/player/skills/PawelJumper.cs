@@ -15,7 +15,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Paweł Jumper", "Dodatkowe skoki", "#FFA500");
+            SkillUtils.RegisterSkill(skillName, "Paweł Jumper", "Dodatkowe skoki na spacji", "#FFA500");
         }
 
         public static void OnTick()
@@ -63,7 +63,7 @@ namespace jRandomSkills
             else if ((LB[player.Slot] & PlayerButtons.Jump) == 0 && (buttons & PlayerButtons.Jump) != 0 && J[player.Slot] < playerInfo.SkillChance)
             {
                 J[player.Slot]++;
-                playerPawn.AbsVelocity.Z = 250;
+                playerPawn.AbsVelocity.Z = 270;
             }
 
             LF[player.Slot] = flags;

@@ -43,7 +43,10 @@ namespace jRandomSkills
             options.InteractsExclude = 0;
             options.DrawBeam = 0;
 
-            if (!rayTrace.TraceEndShape(eyePos, endPos, null, options, out TraceResult traceResult))
+            Vector mins = new(-1f, -1f, -1f);
+            Vector maxs = new(1f, 1f, 1f);
+
+            if (!rayTrace.TraceHullShape(eyePos, endPos, mins, maxs, null, options, out TraceResult traceResult))
                 return;
 
             var target = SkillUtils.GetPlayerFromTraceResult(traceResult);
