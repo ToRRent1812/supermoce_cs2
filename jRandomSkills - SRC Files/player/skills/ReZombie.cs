@@ -29,6 +29,8 @@ namespace jRandomSkills
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
             zombies.TryRemove(player, out _);
             SetPlayerColor(player.PlayerPawn.Value, true);
+            ResetHealth(player);
+            player.PlayerPawn.Value.VelocityModifier = 1f;
         }
 
         public static void WeaponEquip(EventItemEquip @event)
@@ -68,10 +70,12 @@ namespace jRandomSkills
                     player.Respawn();
                     zombies.TryAdd(player, 0);
                     SetPlayerColor(pawn, false);
-                    AddHealth(player, 800);
+                    int healthBonus = Instance?.Random.Next(500, 901) ?? 500;
+                    AddHealth(player, healthBonus);
                     pawn.Teleport(deadPosition, deadRotation);
                     player.ExecuteClientCommand("slot3");
                     Instance?.AddTimer(0.5f, () => player.ExecuteClientCommand("slot3"));
+                    player.PlayerPawn.Value.VelocityModifier = 1.2f;
                 }
             });
         }
@@ -85,6 +89,18 @@ namespace jRandomSkills
             Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iMaxHealth");
 
             pawn.Health = pawn.MaxHealth;
+            Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
+        }
+
+        public static void ResetHealth(CCSPlayerController player)
+        {
+            var pawn = player.PlayerPawn?.Value;
+            if (pawn == null) return;
+
+            pawn.MaxHealth = 100;
+            Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iMaxHealth");
+
+            pawn.Health = Math.Min(pawn.Health, 100);
             Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
         }
 

@@ -52,7 +52,7 @@ namespace jRandomSkills
             var buttons = player.Buttons;
             if (PlayerPilotInfo.TryGetValue(player.SteamID, out var pilotInfo))
             {
-                pilotInfo.Fuel = Math.Min(Math.Max(0, pilotInfo.Fuel - (buttons.HasFlag(PlayerButtons.Use) ? 0.64f : -0.1f)), 100f);
+                pilotInfo.Fuel = Math.Min(Math.Max(0, pilotInfo.Fuel - (buttons.HasFlag(PlayerButtons.Use) ? 0.7f : -0.05f)), 100f);
                 if (buttons.HasFlag(PlayerButtons.Use))
                     if (pilotInfo.Fuel > 0 && player.PlayerPawn.Value != null && player.PlayerPawn.Value.IsValid && !player.PlayerPawn.Value.IsDefusing)
                         ApplyPilotEffect(player);

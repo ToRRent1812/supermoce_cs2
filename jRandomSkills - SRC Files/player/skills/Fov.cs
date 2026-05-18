@@ -136,7 +136,7 @@ namespace jRandomSkills
                         player.DesiredFOV = 20;
                         break;
                     case 2:
-                        player.DesiredFOV = 140;
+                        player.DesiredFOV = 150;
                         break;
                     default:
                         player.DesiredFOV = 55;
@@ -144,7 +144,7 @@ namespace jRandomSkills
                 }
                 Utilities.SetStateChanged(player, "CBasePlayerController", "m_iDesiredFOV");
                 SkillUtils.PrintToChat(player, $"{ChatColors.LightRed}Przeciwnik Cię upił! Zaraz wytrzeźwiejesz.", true);
-                Instance?.AddTimer(8.0f, () =>
+                Instance?.AddTimer(10.0f, () =>
                 {
                     player.DesiredFOV = 90;
                     Utilities.SetStateChanged(player, "CBasePlayerController", "m_iDesiredFOV");

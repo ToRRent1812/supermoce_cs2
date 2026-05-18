@@ -63,10 +63,10 @@ namespace jRandomSkills
                 var player = playerController.As<CCSPlayerController>();
                 if (player == null || !player.IsValid) return;
 
-                if (pawn.AbsOrigin == null || SkillUtils.GetDistance(pawn.AbsOrigin, bombLocation) > 700f)
+                if (pawn.AbsOrigin == null || SkillUtils.GetDistance(pawn.AbsOrigin, bombLocation) > 1100f)
                 {
                     info.Defusing = false;
-                    info.DefusingTime = 12f;
+                    info.DefusingTime = 16f;
                     continue;
                 }
 
@@ -99,7 +99,7 @@ namespace jRandomSkills
             {
                 SteamID = player.SteamID,
                 Defusing = false,
-                DefusingTime = 12f,
+                DefusingTime = 16f,
             });
         }
 
@@ -113,7 +113,7 @@ namespace jRandomSkills
         private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo)
         {
             if (!skillInfo.Defusing) return;
-            float percent = Math.Clamp((1f - (skillInfo.DefusingTime / 12f)) * 100f, 0f, 100f);
+            float percent = Math.Clamp((1f - (skillInfo.DefusingTime / 16f)) * 100f, 0f, 100f);
 
             var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
             if (skillData == null) return;

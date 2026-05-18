@@ -105,7 +105,6 @@ public enum Skills
     None,
     OneShot,
     PawelJumper,
-    Phoenix,
     Pilot,
     Planter,
     Prosthesis,

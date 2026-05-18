@@ -120,7 +120,7 @@ namespace jRandomSkills
                 if (!turnOff)
                 {
                     playersInDark.TryAdd(playerSteamID, 0);
-                    ApplyScreenColor(player, r: 0, g: 0, b: 0, a: 230, duration: 100, holdTime: 3000);
+                    ApplyScreenColor(player, r: 0, g: 0, b: 0, a: 235, duration: 100, holdTime: 3000);
 
                     Timer? darkTimer = null;
                     darkTimer = Instance?.AddTimer(5f, () => {
@@ -138,7 +138,7 @@ namespace jRandomSkills
                         }
 
                         if (target.PawnIsAlive)
-                            ApplyScreenColor(player, r: 0, g: 0, b: 0, a: 230, duration: 100, holdTime: 3000);
+                            ApplyScreenColor(player, r: 0, g: 0, b: 0, a: 235, duration: 100, holdTime: 3000);
                     }, TimerFlags.STOP_ON_MAPCHANGE | TimerFlags.REPEAT);
                 }
                 else

@@ -45,7 +45,7 @@ namespace jRandomSkills
             if (playerInfo?.Skill != skillName) return;
             foreach (var smoke in smokes.Keys.Where(v => v.X == @event.X && v.Y == @event.Y && v.Z == @event.Z))
                 smokes.TryRemove(smoke, out _);
-            Instance?.AddTimer(20.0f, () =>
+            Instance?.AddTimer(17.0f, () =>
             {
                 SkillUtils.TryGiveWeapon(player, CsItem.SmokeGrenade);
             });

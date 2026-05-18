@@ -16,7 +16,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Podejrzane naboje", "Możesz na 5 sek. włączyć losowe obrażenia na serwerze", "#a8720c");
+            SkillUtils.RegisterSkill(skillName, "Podejrzane naboje", "Możesz na 10 sek. włączyć losowe obrażenia na serwerze", "#a8720c");
         }
 
         public static void NewRound()
@@ -86,9 +86,9 @@ namespace jRandomSkills
                     skillInfo.Cooldown = DateTime.Now;
 
                     Randomness = true;
-                    SkillUtils.PrintToChatAll($"UWAGA! {ChatColors.LightRed}włączono losowy damage na 5 sek!");
+                    SkillUtils.PrintToChatAll($"UWAGA! {ChatColors.LightRed}włączono losowy damage na 10 sek!");
 
-                    Instance?.AddTimer(5.0f, () => Randomness = false);
+                    Instance?.AddTimer(10.0f, () => Randomness = false);
                 }
             }
         }
