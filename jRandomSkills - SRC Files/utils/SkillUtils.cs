@@ -59,6 +59,16 @@ namespace jRandomSkills
         public static string SecondsToTimer(int totalSeconds) =>
             totalSeconds <= 0 ? "00:00" : $"{totalSeconds / 60:D2}:{totalSeconds % 60:D2}";
 
+        public static void SafeKillEntity<T>(uint? index) where T : CBaseEntity
+        {
+            if (index == null) return;
+
+            var ent = Utilities.GetEntityFromIndex<T>((int)index);
+            if (ent == null || !ent.IsValid) return;
+
+            ent.AddEntityIOEvent("Kill", ent, delay: 0.1f);
+        }
+
         public static Vector GetForwardVector(QAngle angles)
         {
             float pitch = -angles.X * (float)(Math.PI / 180);

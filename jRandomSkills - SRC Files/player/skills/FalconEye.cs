@@ -1,6 +1,7 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
+using static CounterStrikeSharp.API.Core.Listeners;
 using jRandomSkills.src.player;
 using System.Drawing;
 using System.Collections.Concurrent;
@@ -16,7 +17,7 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, "Sokoli wzrok", "Możesz włączyć kamerę z lotu ptaka", "#d1f542");
-            Instance?.AddToManifest("models/sprays/spray_plane.vmdl");
+            Instance?.RegisterListener<OnServerPrecacheResources>((ResourceManifest manifest) => manifest.AddResource("models/sprays/spray_plane.vmdl"));
         }
 
         public static void NewRound()

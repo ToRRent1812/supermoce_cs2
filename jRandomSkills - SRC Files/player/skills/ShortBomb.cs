@@ -11,7 +11,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Pika Paka", "Twoja bomba wybucha w 20 sekund", "#f5b74c", 1);
+            SkillUtils.RegisterSkill(skillName, "Pika paka", "Twoje C4 wybucha w 20 sekund.", "#4d4d4d", 1);
         }
 
         public static void BombPlanted(EventBombPlanted @event)
@@ -24,7 +24,10 @@ namespace jRandomSkills
 
             var plantedBomb = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").FirstOrDefault();
             if (plantedBomb != null)
-                Server.NextFrame(() => plantedBomb.C4Blow = (float)Server.EngineTime + 20f);
+                Server.NextFrame(() => {
+                    if (plantedBomb != null && plantedBomb.IsValid)
+                        plantedBomb.C4Blow = Server.CurrentTime + 20;
+                });
         }
     }
 }

@@ -14,7 +14,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Plagiator", "Kopiujesz 1 supermoc z puli wroga", "#ffb73b");
+            SkillUtils.RegisterSkill(skillName, "Plagiator", "Kopiujesz 1 supermoc innego gracza", "#ffb73b");
         }
 
         public static void NewRound()

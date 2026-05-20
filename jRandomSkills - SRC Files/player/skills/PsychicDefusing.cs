@@ -13,11 +13,12 @@ namespace jRandomSkills
         private static readonly ConcurrentDictionary<CCSPlayerPawn, PlayerSkillInfo> SkillPlayerInfo = [];
         private static Vector? bombLocation = null;
         private static readonly float tickRate = 64f;
+        private static float bombDistance = 0;
         private static readonly object setLock = new();
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Medium", "Rozbrajasz bombę zdalnie", "#507529", 2);
+            SkillUtils.RegisterSkill(skillName, "Medium", "Rozbrajasz bombę zdalnie w obszarze 30m", "#507529", 2);
         }
 
         public static void NewRound()
@@ -63,10 +64,12 @@ namespace jRandomSkills
                 var player = playerController.As<CCSPlayerController>();
                 if (player == null || !player.IsValid) return;
 
-                if (pawn.AbsOrigin == null || SkillUtils.GetDistance(pawn.AbsOrigin, bombLocation) > 1100f)
+                if(pawn.AbsOrigin != null && Server.TickCount % 8 == 0) bombDistance = (float)SkillUtils.GetDistance(pawn.AbsOrigin, bombLocation) * 0.025f;
+
+                if (pawn.AbsOrigin == null || bombDistance > 30f)
                 {
                     info.Defusing = false;
-                    info.DefusingTime = 16f;
+                    info.DefusingTime = 14f;
                     continue;
                 }
 
@@ -99,7 +102,7 @@ namespace jRandomSkills
             {
                 SteamID = player.SteamID,
                 Defusing = false,
-                DefusingTime = 16f,
+                DefusingTime = 14f,
             });
         }
 
@@ -113,17 +116,20 @@ namespace jRandomSkills
         private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo)
         {
             if (!skillInfo.Defusing) return;
-            float percent = Math.Clamp((1f - (skillInfo.DefusingTime / 16f)) * 100f, 0f, 100f);
+            float percent = Math.Clamp((1f - (skillInfo.DefusingTime / 14f)) * 100f, 0f, 100f);
 
             var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
             if (skillData == null) return;
 
-            string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
+            string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font><br>";
             string remainingLine = percent < 100f
-                ? $"<font class='fontSize-m' color='#b5ffee'>Rozbrajanie: <font color='#00d5ff'>{percent:0}%</font></font>"
-                : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font>";
+                ? $"<font class='fontSize-m' color='#b5ffee'>Rozbrajanie: <font color='#00ff00'>{percent:0}%</font></font><br>"
+                : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br>";
+            string bombdistancetext = bombLocation != null 
+            ? $"<font class='fontSize-m' class='fontWeight-Bold' color='#ffff00'>Dystans do C4: {bombDistance}m | Zasięg: 30m</font>"
+            : "";
 
-            var hudContent = skillLine + remainingLine;
+            var hudContent = skillLine + remainingLine + bombdistancetext;
             player.PrintToCenterHtml(hudContent);
         }
         public class PlayerSkillInfo

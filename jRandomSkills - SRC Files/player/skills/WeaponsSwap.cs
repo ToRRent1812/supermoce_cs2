@@ -151,6 +151,7 @@ namespace jRandomSkills
 
                     SkillUtils.PrintToChat(enemy, $" {ChatColors.DarkRed}{player.PlayerName}{ChatColors.LightRed} ukradł Ci sprzęt.", false);
                     playerPawn.ArmorValue = 100;
+                    SkillUtils.TryGiveWeapon(player, CsItem.AssaultSuit);
                     Utilities.SetStateChanged(playerPawn, "CCSPlayerPawn", "m_ArmorValue");
                 }
                 else

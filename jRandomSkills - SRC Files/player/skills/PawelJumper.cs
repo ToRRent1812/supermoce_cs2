@@ -15,7 +15,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Paweł Jumper", "Dodatkowe skoki na spacji", "#FFA500");
+            SkillUtils.RegisterSkill(skillName, "Paweł Jumper", "Nieskończone skoki na spacji", "#FFA500");
         }
 
         public static void OnTick()
@@ -39,7 +39,7 @@ namespace jRandomSkills
                 ? (float)Instance.Random.Next(1, 4)
                 : 1f;
             playerInfo.SkillChance = extraJumps;
-            playerInfo.RandomPercentage = $"+{extraJumps}";
+            //playerInfo.RandomPercentage = $"+{extraJumps}";
         }
 
         private static void GiveAdditionalJump(CCSPlayerController player)
@@ -62,7 +62,7 @@ namespace jRandomSkills
             }
             else if ((LB[player.Slot] & PlayerButtons.Jump) == 0 && (buttons & PlayerButtons.Jump) != 0 && J[player.Slot] < playerInfo.SkillChance)
             {
-                J[player.Slot]++;
+                //J[player.Slot]++;
                 playerPawn.AbsVelocity.Z = 270;
             }
 

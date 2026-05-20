@@ -110,8 +110,8 @@ namespace jRandomSkills
                     RandomPercentage = "",
                 });
 
-                player.PrintToChat($" {ChatColors.DarkRed}UWAGA!{ChatColors.Green} By użyć niektórych supermocy, musisz wcisnąć klawisz inspekcji broni lub zrobić dodatkowy bind.");
-                player.PrintToChat($" {ChatColors.Green}By zapisać własny klawisz na stałe, musisz wyjść z serwera i wpisać komendę {ChatColors.Yellow}bind v css_useskill{ChatColors.Green} w menu głównym.");
+                player.PrintToChat($" {ChatColors.DarkRed}UWAGA!{ChatColors.Green} By zbindować supermoce na własny klawisz.");
+                player.PrintToChat($" {ChatColors.Green}wyjdź z serwera i wpisz w konsolę {ChatColors.Yellow}bind v css_useskill{ChatColors.Green} w menu głównym gdzie V to klawisz.");
                 return HookResult.Continue;
             }
         }
@@ -152,10 +152,10 @@ namespace jRandomSkills
                 Instance?.RemoveListener<CheckTransmit>(CheckTransmit);
                 int freezetime = ConVar.Find("mp_freezetime")?.GetPrimitiveValue<int>() ?? 0;
                 freezeTimeEnd = DateTime.Now.AddSeconds(freezetime + (Instance?.GameRules?.TeamIntroPeriod == true ? 7 : 0));
-                Instance?.AddTimer((Instance?.GameRules?.TeamIntroPeriod == true ? 7 : 0) + Math.Max(freezetime - 5, 0) + .3f, SetSkill);
+                Instance?.AddTimer((Instance?.GameRules?.TeamIntroPeriod == true ? 7 : 0) + Math.Max(freezetime - 6, 0) + .3f, SetSkill);
                 // Ensure any queued NoMoney players are processed at round start
                 try { NoMoney.ProcessZeroAtFreeze(); } catch { }
-                if(Instance?.GameRules?.ITotalRoundsPlayed == 5) Server.PrintToChatAll($" {ChatColors.Yellow}Znalazłeś błąd? Daj mi znać na discordzie {ChatColors.LightBlue}https://rbtv.pl/dc");
+                //if(Instance?.GameRules?.ITotalRoundsPlayed == 5) Server.PrintToChatAll($" {ChatColors.Yellow}Znalazłeś błąd? Daj mi znać na discordzie {ChatColors.LightBlue}https://rbtv.pl/dc");
                 return HookResult.Continue;
             }
         }

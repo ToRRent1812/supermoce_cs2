@@ -76,10 +76,10 @@ namespace jRandomSkills
         {
             foreach (Vector smokePos in smokes.Keys)
                 foreach (var player in Utilities.GetPlayers())
-                    if (Server.TickCount % 32 == 0)
+                    if (Server.TickCount % 128 == 0)
                         if (player.PlayerPawn.Value != null && player.PlayerPawn.Value.IsValid && player.PlayerPawn.Value.AbsOrigin != null)
                             if (SkillUtils.GetDistance(smokePos, player.PlayerPawn.Value.AbsOrigin) <= 180)
-                                AddHealth(player.PlayerPawn.Value, Instance?.Random.Next(3, 10) ?? 5);
+                                AddHealth(player.PlayerPawn.Value, Instance?.Random.Next(5, 16) ?? 5);
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -91,9 +91,6 @@ namespace jRandomSkills
         {
             if (player.LifeState != (byte)LifeState_t.LIFE_ALIVE)
                 return;
-
-            if (player.Health != player.MaxHealth)
-                player.EmitSound("Healthshot.Success", volume: 0.2f);
 
             player.Health = Math.Min(player.Health + health, player.MaxHealth);
             Utilities.SetStateChanged(player, "CBaseEntity", "m_iHealth");
