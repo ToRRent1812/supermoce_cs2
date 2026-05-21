@@ -26,7 +26,7 @@ namespace jRandomSkills
         public static void OnTick()
         {
             if (Server.TickCount % 8 != 0) return;
-            float radius = 150f;
+            float radius = 350f;
 
             foreach (var nadeIndex in nades.Keys)
             {
