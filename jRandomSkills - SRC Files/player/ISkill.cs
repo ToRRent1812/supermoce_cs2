@@ -80,6 +80,7 @@ public enum Skills
     Watchmaker,
     Dracula,
     NanoKevlar,
+    Inflation,
     Duplicator,
     Dwarf,
     EnemySpawn,
