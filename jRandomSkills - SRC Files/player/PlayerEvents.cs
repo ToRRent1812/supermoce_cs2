@@ -34,8 +34,10 @@ namespace jRandomSkills
             Instance?.RegisterEventHandler<EventBombBeginplant>(BombBeginplant);
             Instance?.RegisterEventHandler<EventBombPlanted>(BombPlanted);
             Instance?.RegisterEventHandler<EventBombBegindefuse>(BombBegindefuse);
+            Instance?.RegisterEventHandler<EventHostageFollows>(HostageFollows);
             Instance?.RegisterEventHandler<EventDecoyStarted>(DecoyStarted);
             Instance?.RegisterEventHandler<EventDecoyDetonate>(DecoyDetonate);
+            Instance?.RegisterEventHandler<EventMolotovDetonate>(MolotovDetonate);
             Instance?.RegisterEventHandler<EventSmokegrenadeDetonate>(SmokegrenadeDetonate);
             Instance?.RegisterEventHandler<EventSmokegrenadeExpired>(SmokegrenadeExpired);
 
@@ -70,8 +72,10 @@ namespace jRandomSkills
         private static HookResult BombBeginplant(EventBombBeginplant @event, GameEventInfo info) => HandleSkillEvent("BombBeginplant", @event);
         private static HookResult BombPlanted(EventBombPlanted @event, GameEventInfo info) => HandleSkillEvent("BombPlanted", @event);
         private static HookResult BombBegindefuse(EventBombBegindefuse @event, GameEventInfo info) => HandleSkillEvent("BombBegindefuse", @event);
+        private static HookResult HostageFollows(EventHostageFollows @event, GameEventInfo info) => HandleSkillEvent("HostageFollows", @event);
         private static HookResult DecoyStarted(EventDecoyStarted @event, GameEventInfo info) => HandleSkillEvent("DecoyStarted", @event);
         private static HookResult DecoyDetonate(EventDecoyDetonate @event, GameEventInfo info) => HandleSkillEvent("DecoyDetonate", @event);
+        private static HookResult MolotovDetonate(EventMolotovDetonate @event, GameEventInfo info) => HandleSkillEvent("MolotovDetonate", @event);
         private static HookResult SmokegrenadeDetonate(EventSmokegrenadeDetonate @event, GameEventInfo info) => HandleSkillEvent("SmokegrenadeDetonate", @event);
         private static HookResult SmokegrenadeExpired(EventSmokegrenadeExpired @event, GameEventInfo info) => HandleSkillEvent("SmokegrenadeExpired", @event);
         private static HookResult PlayerHurt(EventPlayerHurt @event, GameEventInfo info) => HandleSkillEvent("PlayerHurt", @event);
@@ -153,8 +157,7 @@ namespace jRandomSkills
                 int freezetime = ConVar.Find("mp_freezetime")?.GetPrimitiveValue<int>() ?? 0;
                 freezeTimeEnd = DateTime.Now.AddSeconds(freezetime + (Instance?.GameRules?.TeamIntroPeriod == true ? 7 : 0));
                 Instance?.AddTimer((Instance?.GameRules?.TeamIntroPeriod == true ? 7 : 0) + Math.Max(freezetime - 6, 0) + .3f, SetSkill);
-                // Ensure any queued NoMoney players are processed at round start
-                try { NoMoney.ProcessZeroAtFreeze(); } catch { }
+                //try { NoMoney.ProcessZeroAtFreeze(); } catch { }
                 //if(Instance?.GameRules?.ITotalRoundsPlayed == 5) Server.PrintToChatAll($" {ChatColors.Yellow}Znalazłeś błąd? Daj mi znać na discordzie {ChatColors.LightBlue}https://rbtv.pl/dc");
                 return HookResult.Continue;
             }
@@ -235,7 +238,7 @@ namespace jRandomSkills
                         if (skillData == null || specialSkillData == null) return HookResult.Continue;
                         string skillDesc = skillData.Description;
 
-                        SkillUtils.PrintToChat(victim, $"{ChatColors.DarkRed}{attacker.PlayerName}{ChatColors.Lime} posiada:", false);
+                        SkillUtils.PrintToChat(victim, $"{ChatColors.DarkRed}{attacker.PlayerName}{ChatColors.Lime} posiada ", false);
                         SkillUtils.PrintToChat(victim, $"{ChatColors.DarkRed}{(attackerInfo.SpecialSkill == Skills.None ? skillData.Name : $"{specialSkillData.Name} -> {skillData.Name}")}{ChatColors.Lime} - {skillDesc}", false);
                     }
                 }
@@ -265,7 +268,6 @@ namespace jRandomSkills
                 if (playerPawn?.CBodyComponent == null) return;
                 if (!player.IsValid || !player.PawnIsAlive) return;
 
-                Debug.WriteToDebug($"Player {player.PlayerName} used the skill: {playerInfo.Skill} by PlayerButtons: {pressed}");
                 Instance?.SkillAction(playerInfo.Skill.ToString(), "UseSkill", [player]);
             }
         }
@@ -290,11 +292,29 @@ namespace jRandomSkills
                 List<jSkill_SkillInfo> skillList = [.. SkillData.Skills];
                 skillList.RemoveAll(s => s?.Skill == skillPlayer?.Skill || s?.Skill == skillPlayer?.SpecialSkill || s?.Skill == Skills.None);
 
-                // Remove team-specific skills that don't match player's team
                 skillList.RemoveAll(s => 
                     (player.Team == CsTeam.Terrorist && s.TeamNumber == 2) ||      // Remove CT skills for T
                     (player.Team == CsTeam.CounterTerrorist && s.TeamNumber == 1)  // Remove T skills for CT
                 );
+
+                // Disable C4 skills in hostage maps and vice versa
+                var isHostageMap = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("hostage_entity");
+                if(isHostageMap.Any())
+                {
+                    skillList.RemoveAll(s => 
+                    (s?.Skill == Skills.ShortBomb) &&      
+                    (s?.Skill == Skills.PsychicDefusing) && 
+                    (s?.Skill == Skills.Planter) &&
+                    (s?.Skill == Skills.Saper)
+                    );
+                }
+                else
+                {
+                    skillList.RemoveAll(s => 
+                    (s?.Skill == Skills.FastEscape) &&      
+                    (s?.Skill == Skills.InstantEscape)
+                    );
+                }
 
                 return skillList.Count == 0 ? noneSkill : skillList[Instance.Random.Next(skillList.Count)];
             }
@@ -328,10 +348,9 @@ namespace jRandomSkills
                     var randomSkill = GetRandomSkill(player, skillPlayer);
 
                     skillPlayer.Skill = randomSkill.Skill;
-                    player.EmitSound("UIPanorama.tab_mainmenu_news", volume: 0.15f);
+                    player.EmitSound("UIPanorama.tab_mainmenu_news", volume: 0.1f);
                     skillPlayer.SpecialSkill = Skills.None;
                     Instance?.SkillAction(randomSkill.Skill.ToString(), "EnableSkill", [player]);
-                    Debug.WriteToDebug($"{skillPlayer.PlayerName} posiada \"{randomSkill.Name}\".");
 
                     Instance?.AddTimer(.3f, () =>
                     {
@@ -374,7 +393,6 @@ namespace jRandomSkills
                 skillPlayer.Skill = randomSkill.Skill;
                 skillPlayer.SpecialSkill = Skills.None;
                 Instance?.SkillAction(randomSkill.Skill.ToString(), "EnableSkill", [player]);
-                Debug.WriteToDebug($"{skillPlayer.PlayerName} posiada \"{randomSkill.Name}\".");
             }
         }
 

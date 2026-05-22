@@ -133,7 +133,6 @@ namespace jRandomSkills
                 SkillUtils.CloseMenu(player);
                 Instance.SkillAction(enemySkill.ToString(), "EnableSkill", [player]);
             });
-            player.PrintToChat($" {ChatColors.Green}Masz taką samą supermoc co przeciwnik.");
         }
     }
 }

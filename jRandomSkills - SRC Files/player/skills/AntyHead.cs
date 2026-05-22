@@ -10,7 +10,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Twarda bania", "Nie otrzymujesz obrażeń w głowę", "#8B4513");
+            SkillUtils.RegisterSkill(skillName, "Twarda Bania", "Nie otrzymujesz obrażeń w głowę", "#8B4513");
         }
 
         public static void PlayerHurt(EventPlayerHurt @event)

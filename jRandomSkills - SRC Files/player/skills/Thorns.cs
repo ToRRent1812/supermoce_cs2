@@ -22,8 +22,7 @@ namespace jRandomSkills
             var victimInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
             if (victimInfo?.Skill == skillName && victim!.PawnIsAlive && attacker!.PawnIsAlive)
             {
-                SkillUtils.TakeHealth(attacker.PlayerPawn.Value, (int)(@event.DmgHealth * .15f));
-                attacker.EmitSound("Player.DamageBody.Onlooker", volume: 0.2f);
+                SkillUtils.TakeHealth(attacker.PlayerPawn.Value, (int)(@event.DmgHealth * .15f), false);
             }
         }
     }

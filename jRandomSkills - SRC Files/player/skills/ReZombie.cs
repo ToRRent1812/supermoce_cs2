@@ -70,8 +70,7 @@ namespace jRandomSkills
                     player.Respawn();
                     zombies.TryAdd(player, 0);
                     SetPlayerColor(pawn, false);
-                    int healthBonus = Instance?.Random.Next(500, 901) ?? 500;
-                    AddHealth(player, healthBonus);
+                    SkillUtils.AddHealth(player.PlayerPawn.Value, 800, 999);
                     pawn.Teleport(deadPosition, deadRotation);
                     player.ExecuteClientCommand("slot3");
                     Instance?.AddTimer(0.5f, () => player.ExecuteClientCommand("slot3"));
@@ -79,18 +78,7 @@ namespace jRandomSkills
                 }
             });
         }
-        
-        public static void AddHealth(CCSPlayerController player, int health)
-        {
-            var pawn = player.PlayerPawn?.Value;
-            if (pawn == null) return;
 
-            pawn.MaxHealth = Math.Min(pawn.Health + health, 1000);
-            Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iMaxHealth");
-
-            pawn.Health = pawn.MaxHealth;
-            Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
-        }
 
         public static void ResetHealth(CCSPlayerController player)
         {

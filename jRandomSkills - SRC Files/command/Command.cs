@@ -23,7 +23,6 @@ namespace jRandomSkills
             if (!player.IsValid || !player.PawnIsAlive) return;
 
             string[] commands = _.ArgString.Trim().Split(" ", StringSplitOptions.RemoveEmptyEntries);
-            Debug.WriteToDebug($"{player.PlayerName} użył {playerInfo.Skill}");
             if (commands == null || commands.Length == 0)
                 Instance?.SkillAction(playerInfo.Skill.ToString(), "UseSkill", [player]);
             else

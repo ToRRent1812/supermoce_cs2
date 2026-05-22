@@ -128,14 +128,17 @@ namespace jRandomSkills
         {
             if (player != null && player.IsValid && player.PawnIsAlive)
             {
-                var randomfov = Instance?.Random.Next(1, 3);
+                var randomfov = Instance?.Random.Next(1, 4) ?? 1;
 
                 switch (randomfov)
                 {
                     case 1:
-                        player.DesiredFOV = 20;
+                        player.DesiredFOV = 15;
                         break;
                     case 2:
+                        player.DesiredFOV = 23;
+                        break;
+                    case 3:
                         player.DesiredFOV = 150;
                         break;
                     default:
@@ -143,7 +146,7 @@ namespace jRandomSkills
                         break;
                 }
                 Utilities.SetStateChanged(player, "CBasePlayerController", "m_iDesiredFOV");
-                SkillUtils.PrintToChat(player, $"{ChatColors.LightRed}Przeciwnik Cię upił! Zaraz wytrzeźwiejesz.", true);
+                SkillUtils.PrintToChat(player, $"Przeciwnik Cię upił!", true);
                 Instance?.AddTimer(10.0f, () =>
                 {
                     player.DesiredFOV = 90;

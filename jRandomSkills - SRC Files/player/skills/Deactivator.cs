@@ -101,7 +101,6 @@ namespace jRandomSkills
             {
                 playerInfo.Skill = Skills.None;
                 playerInfo.SpecialSkill = skillName;
-                player.PrintToChat($" {ChatColors.Green}Supermoc została wyłączona.");
             }
 
             if (enemyInfo != null)
@@ -110,7 +109,7 @@ namespace jRandomSkills
                 enemyInfo.SpecialSkill = enemyInfo.Skill;
                 enemyInfo.Skill = Skills.None;
                 enemyInfo.RandomPercentage = "";
-                enemy.PrintToChat($" {ChatColors.Red}Wróg podał Ci antidotum - Straciłeś supermoc.");
+                SkillUtils.PrintToChat(enemy, $"Wróg podał Ci antidotum - Straciłeś supermoc.");
             }
         }
     }

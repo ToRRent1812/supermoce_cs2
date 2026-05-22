@@ -16,7 +16,7 @@ namespace jRandomSkills
         
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Magik", "Zamieniasz się miejscami z losowym przeciwnikiem", "#1466F5");
+            SkillUtils.RegisterSkill(skillName, "Magik", "Zamieniasz się miejscem z losowym wrogiem", "#1466F5");
         }
 
         public static void NewRound()
@@ -133,6 +133,7 @@ namespace jRandomSkills
 
             victimPawn.Teleport(attackerPosition, attackerAngles, attackerVelocity);
             attackerPawn.Teleport(victimPosition, victimAngles, victimVelocity);
+            SkillUtils.PrintToChat(victim, $"Magik zamienił się z tobą miejscem!", true);
         }
 
         public class ZamianaMiejsc_PlayerInfo

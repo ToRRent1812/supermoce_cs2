@@ -88,14 +88,14 @@ namespace jRandomSkills
                     skillInfo.CanUse = false;
                     skillInfo.Cooldown = DateTime.Now;
 
-                    player.PrintToChat($" {ChatColors.Green} Nieśmiertelność wł.");
+                    SkillUtils.PrintToChat(player, $"Nieśmiertelność włączona", false);
                     player.PlayerPawn.Value.TakesDamage = false;
 
                     Instance?.AddTimer(1.5f, () => {
                         if (player.IsValid && player.PawnIsAlive)
                         {
                             player.PlayerPawn.Value.TakesDamage = true;
-                            player.PrintToChat($" {ChatColors.Red} Nieśmiertelność wył.");
+                            SkillUtils.PrintToChat(player, $"Nieśmiertelność wyłączona", true);
                         }
                     });
                 }

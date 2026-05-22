@@ -39,6 +39,7 @@ namespace jRandomSkills
             if (spawn == null) return;
             victim!.PlayerPawn!.Value!.Teleport(spawn);
             playersToSender.TryAdd(victim.Handle, 0);
+            SkillUtils.PrintToChat(victim, "Wróg cofnął Cię na spawn!", true);
         }
 
         public static void DisableSkill(CCSPlayerController player)

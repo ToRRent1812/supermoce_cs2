@@ -24,7 +24,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Handlarz Bronią", "Wszystkim graczom(w tym sobie) zmieniasz broń w ręce", "#cb38d8");
+            SkillUtils.RegisterSkill(skillName, "Handlarz Bronią", "Wszystkim graczom(w tym sobie) zmieniasz broń", "#cb38d8");
         }
 
         public static void NewRound()
@@ -107,7 +107,10 @@ namespace jRandomSkills
                     var alivePlayers = Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.PawnIsAlive && p.PawnHealth > 0).ToArray();
                     if (alivePlayers.Length > 0)
                         foreach (var alivePlayer in alivePlayers)
+                        {
                             RemoveAndGiveWeapon(alivePlayer);
+                            SkillUtils.PrintToChat(alivePlayer, "Wróg zmienił Ci broń!", true);
+                        }
                 }
             }
         }
@@ -145,7 +148,7 @@ namespace jRandomSkills
                 }
             }
 
-            Instance?.AddTimer(.1f, () =>
+            Instance?.AddTimer(.2f, () =>
             {
                 player.GiveNamedItem(weapon);
             });

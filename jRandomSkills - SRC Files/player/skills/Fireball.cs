@@ -11,7 +11,7 @@ namespace jRandomSkills
     public class Fireball : ISkill
     {
         private const Skills skillName = Skills.Fireball;
-        private static readonly ConcurrentDictionary<ulong, int> lastExplosionTick = [];
+        //private static readonly ConcurrentDictionary<ulong, int> lastExplosionTick = [];
         private static readonly QAngle explosionAngle = new(77, 11, -22);
 
         public static void LoadSkill()
@@ -25,7 +25,7 @@ namespace jRandomSkills
             SkillUtils.TryGiveWeapon(player, CsItem.Molotov);
         }
 
-        public static void PlayerHurt(EventPlayerHurt @event)
+        /*public static void PlayerHurt(EventPlayerHurt @event)
         {
             var attacker = @event.Attacker;
             var victim = @event.Userid;
@@ -33,7 +33,6 @@ namespace jRandomSkills
 
             if (attacker == null || !attacker.IsValid || victim == null || !victim.IsValid) return;
 
-            // Accept common incendiary identifiers
             if (!(weapon == "inferno" || weapon == "molotov" || weapon == "incgrenade")) return;
 
             var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
@@ -53,13 +52,11 @@ namespace jRandomSkills
                 pos = pawn.AbsOrigin + SkillUtils.GetForwardVector(pawn.AbsRotation) * 250f;
             }
 
-            // Spawn a visual HE projectile but neutralize its engine damage in OnEntitySpawned.
             Server.NextFrame(() =>
             {
                 SkillUtils.CreateHEGrenadeProjectile(pos, explosionAngle, new Vector(0, 0, 0), 0);
             });
 
-            // Manually apply damage only to self and enemies (no friendly fire)
             float radius = 400f;
             int damage = 150;
 
@@ -78,6 +75,21 @@ namespace jRandomSkills
                     SkillUtils.TakeHealth(pawn, damage);
                 }
             }
+        }*/
+
+        public static void MolotovDetonate(EventMolotovDetonate @event)
+        {
+            var player = @event.Userid;
+            if (player == null || !player.IsValid) return;
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo?.Skill != skillName) return;
+
+            Vector pos = new(@event.X, @event.Y, @event.Z+10);
+
+            Server.NextFrame(() =>
+            {
+                SkillUtils.CreateHEGrenadeProjectile(pos, explosionAngle, new Vector(0, 0, -10), player.TeamNum);
+            });
         }
 
         public static void OnEntitySpawned(CEntityInstance entity)
@@ -94,11 +106,10 @@ namespace jRandomSkills
                 if (!(NearlyEquals(explosionAngle.X, heProjectile.AbsRotation.X) && NearlyEquals(explosionAngle.Y, heProjectile.AbsRotation.Y) && NearlyEquals(explosionAngle.Z, heProjectile.AbsRotation.Z)))
                     return;
 
-                // Make it detonate immediately but neutralize engine damage (we apply damage manually)
                 heProjectile.TicksAtZeroVelocity = 100;
-                heProjectile.TeamNum = (byte)CsTeam.None;
-                heProjectile.Damage = 0f;
-                heProjectile.DmgRadius = 1f;
+                //heProjectile.TeamNum = (byte)CsTeam.None;
+                heProjectile.Damage = 100f;
+                heProjectile.DmgRadius = 400f;
                 heProjectile.DetonateTime = 0;
             });
         }

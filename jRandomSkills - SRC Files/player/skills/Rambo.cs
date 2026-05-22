@@ -17,24 +17,12 @@ namespace jRandomSkills
         public static void EnableSkill(CCSPlayerController player)
         {
             int healthBonus = Instance?.Random.Next(100, 501) ?? 100;
-            AddHealth(player, healthBonus);
+            SkillUtils.AddHealth(player.PlayerPawn.Value, healthBonus, 600);
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
             ResetHealth(player);
-        }
-
-        public static void AddHealth(CCSPlayerController player, int health)
-        {
-            var pawn = player.PlayerPawn?.Value;
-            if (pawn == null) return;
-
-            pawn.MaxHealth = Math.Min(pawn.Health + health, 1000);
-            Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iMaxHealth");
-
-            pawn.Health = pawn.MaxHealth;
-            Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
         }
 
         public static void ResetHealth(CCSPlayerController player)

@@ -30,7 +30,7 @@ namespace jRandomSkills
             CCSPlayerController attacker = attackerPawn.Controller.Value.As<CCSPlayerController>();
             CCSPlayerController victim = victimPawn.Controller.Value.As<CCSPlayerController>();
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == victim.SteamID);
             if (playerInfo == null) return HookResult.Continue;
             if (playerInfo?.Skill == skillName && victim.PawnIsAlive && Instance?.Random.Next(1, 5) == 1)
             {

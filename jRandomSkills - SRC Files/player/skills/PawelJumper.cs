@@ -29,19 +29,6 @@ namespace jRandomSkills
             }
         }
 
-        public static void EnableSkill(CCSPlayerController player)
-        {
-            var playerPawn = player.PlayerPawn.Value;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (playerPawn == null || playerInfo == null) return;
-
-            float extraJumps = Instance != null
-                ? (float)Instance.Random.Next(1, 4)
-                : 1f;
-            playerInfo.SkillChance = extraJumps;
-            //playerInfo.RandomPercentage = $"+{extraJumps}";
-        }
-
         private static void GiveAdditionalJump(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn.Value;
@@ -53,17 +40,9 @@ namespace jRandomSkills
             var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerPawn == null || playerInfo == null) return;
 
-            if ((LF[player.Slot] & PlayerFlags.FL_ONGROUND) != 0 && (flags & PlayerFlags.FL_ONGROUND) == 0 && (LB[player.Slot] & PlayerButtons.Jump) == 0 && (buttons & PlayerButtons.Jump) != 0)
+            if ((LB[player.Slot] & PlayerButtons.Jump) == 0 && (buttons & PlayerButtons.Jump) != 0)
             {
-            }
-            else if ((flags & PlayerFlags.FL_ONGROUND) != 0)
-            {
-                J[player.Slot] = 0;
-            }
-            else if ((LB[player.Slot] & PlayerButtons.Jump) == 0 && (buttons & PlayerButtons.Jump) != 0 && J[player.Slot] < playerInfo.SkillChance)
-            {
-                //J[player.Slot]++;
-                playerPawn.AbsVelocity.Z = 270;
+                playerPawn.AbsVelocity.Z = 280;
             }
 
             LF[player.Slot] = flags;

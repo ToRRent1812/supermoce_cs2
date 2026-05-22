@@ -24,18 +24,18 @@ namespace jRandomSkills
         public override string ModuleName => "Supermoce";
         public override string ModuleAuthor => "D3X (dRandomSkills), Juzlus (jRandomSkills), Rabbit";
         public override string ModuleDescription => "Fork forka który dodaje graczom supermoce";
-        public override string ModuleVersion => "1.3.3";
+        public override string ModuleVersion => "1.3.4";
 
         public override void Load(bool hotReload)
         {
             Instance = this;
-            Debug.Load();
             PlayerOnTick.Load();
             Event.Load();
             Command.Load();
             WASDMenuAPI.WASDMenuAPI.LoadPlugin(Instance, hotReload);
             LoadAllSkills();
             Server.ExecuteCommand("sv_legacy_jump 1");
+            Server.ExecuteCommand("mp_freezetime 13");
         }
 
         internal void AddToManifest(string prop)

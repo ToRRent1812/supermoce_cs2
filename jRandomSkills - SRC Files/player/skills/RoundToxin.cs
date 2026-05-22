@@ -10,11 +10,9 @@ namespace jRandomSkills
         private const Skills skillName = Skills.RoundToxin;
         private static readonly ConcurrentDictionary<ulong, byte> activePlayers = new ConcurrentDictionary<ulong, byte>();
 
-        private const int AoERadius = 1000; // units
-
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Bąk morderca", "Wrogowie w twoim pobliżu tracą życie", "#4d2b2b");
+            SkillUtils.RegisterSkill(skillName, "Bąk morderca", "Wrogowie w twoim pobliżu otrzymują obrażenia", "#8b4e4e");
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -30,19 +28,6 @@ namespace jRandomSkills
         public static void NewRound()
         {
             activePlayers.Clear();
-        }
-
-        private static void AddHealth(CCSPlayerPawn player, int health)
-        {
-            if (player.LifeState != (byte)LifeState_t.LIFE_ALIVE)
-                return;
-
-            player.Health += health;
-            Utilities.SetStateChanged(player, "CBaseEntity", "m_iHealth");
-
-            player.EmitSound("Player.DamageBody.Onlooker", volume: 0.1f);
-            if (player.Health <= 0)
-                player.CommitSuicide(false, true);
         }
 
         public static void OnTick()
@@ -69,10 +54,8 @@ namespace jRandomSkills
                     var targetPawn = target.PlayerPawn.Value;
                     if (targetPawn == null || targetPawn.AbsOrigin == null) continue;
 
-                    if (SkillUtils.GetDistance(ownerPos, targetPawn.AbsOrigin) <= AoERadius)
-                    {
-                        AddHealth(targetPawn, -1);
-                    }
+                    if (SkillUtils.GetDistance(ownerPos, targetPawn.AbsOrigin) <= 1000f)
+                        SkillUtils.TakeHealth(targetPawn, -1);
                 }
             }
         }

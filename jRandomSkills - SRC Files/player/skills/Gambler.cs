@@ -13,7 +13,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Polityk", "Wybierasz sobie supermoc", "#7eff47");
+            SkillUtils.RegisterSkill(skillName, "Polityk", "Wybierasz sobie 1 z 3 supermocy", "#7eff47");
         }
 
         public static void NewRound()

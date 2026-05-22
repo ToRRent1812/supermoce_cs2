@@ -16,7 +16,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Wybuchowy strzał", "Szansa na wystrzelenie pocisku wybuchowego", "#9c0000");
+            SkillUtils.RegisterSkill(skillName, "Wybuchowy strzał", "Szansa na zamianę trafionego pocisku w wybuch", "#9c0000");
         }
 
         public static void EnableSkill(CCSPlayerController player)

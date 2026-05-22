@@ -33,7 +33,6 @@ namespace jRandomSkills
 
                 amoneyServices!.Account += vmoneyServices!.Account;
                 vmoneyServices!.Account = 0;
-                // ensure victim stays at 0 at next round freeze
                 if (victimPlayer != null)
                     zeroAtFreeze.TryAdd(victimPlayer.SteamID, 0);
                 Utilities.SetStateChanged(victimPlayer!, "CCSPlayerController", "m_pInGameMoneyServices");
@@ -41,17 +40,11 @@ namespace jRandomSkills
             }
         }
 
-        public static void OnTick()
+        public static void NewRound()
         {
-            if (zeroAtFreeze.IsEmpty) return;
-            if (!SkillUtils.IsFreezetime()) return;
-
-            ProcessZeroAtFreeze();
+             ProcessZeroAtFreeze();
         }
 
-        // Process queued players to ensure they start next round with zero money.
-        // Made public so it can be invoked from round lifecycle handlers even
-        // when no player currently has the NoMoney skill (so OnTick won't run).
         public static void ProcessZeroAtFreeze()
         {
             if (zeroAtFreeze.IsEmpty) return;

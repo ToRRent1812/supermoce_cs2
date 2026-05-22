@@ -1,7 +1,6 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
-using CounterStrikeSharp.API.Modules.Utils;
 using System.Collections.Concurrent;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
@@ -27,7 +26,7 @@ namespace jRandomSkills
             if (weapon != "decoy") return;
             if (Instance == null || !Instance.IsPlayerValid(victim) || !Instance.IsPlayerValid(attacker)) return;
 
-            var attackerInfo = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
+            var attackerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
             if (attackerInfo?.Skill != skillName) return;
 
             SkillUtils.TakeHealth(victim!.PlayerPawn.Value, 999);

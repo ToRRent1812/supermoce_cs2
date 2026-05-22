@@ -113,18 +113,6 @@ namespace jRandomSkills
             var enemyInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == enemy.SteamID);
             if (playerInfo == null || enemyInfo == null) return;
             var enemySkill = enemyInfo.Skill;
-            bool ctSkill = SkillData.Skills.Any(s => s.Name == enemySkill.ToString() && s.TeamNumber == 2);
-            bool ttSkill = SkillData.Skills.Any(s => s.Name == enemySkill.ToString() && s.TeamNumber == 1);
-
-            if ((player.Team == CsTeam.Terrorist && ctSkill) || (player.Team == CsTeam.CounterTerrorist && ttSkill))
-            {
-                Instance?.AddTimer(.1f, () =>
-                {
-                    Instance.SkillAction(skillName.ToString(), "EnableSkill", [player]);
-                    player.PrintToChat($" {ChatColors.Red}Ta supermoc działa tylko po 1 stronie!");
-                });
-                return;
-            }
 
             SkillUtils.CloseMenu(player);
             Instance?.AddTimer(.1f, () =>
@@ -133,7 +121,6 @@ namespace jRandomSkills
                 playerInfo.SpecialSkill = skillName;
                 SkillUtils.CloseMenu(player);
                 Instance?.SkillAction(enemySkill.ToString(), "EnableSkill", [player]);
-                player.PrintToChat($" {ChatColors.Green}supermoc została skradziona.");
             });
 
             Instance?.AddTimer(.1f, () =>
@@ -142,7 +129,7 @@ namespace jRandomSkills
                 enemyInfo.SpecialSkill = enemySkill;
                 enemyInfo.Skill = Skills.None;
                 enemyInfo.RandomPercentage = "";
-                enemy.PrintToChat($" {ChatColors.Red}Twoja supermoc została skradziona.");
+                SkillUtils.PrintToChat(enemy, $"Twoja supermoc została skradziona.", true);
             });
         }
     }

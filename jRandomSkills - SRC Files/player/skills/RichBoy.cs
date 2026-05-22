@@ -19,7 +19,7 @@ namespace jRandomSkills
         {
             var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo == null) return;
-            int moneyBonus = (Instance?.Random.Next(5000, 10000)) ?? 5000;
+            int moneyBonus = (Instance?.Random.Next(5, 11)) * 1000 ?? 5000;
             playerInfo.SkillChance = moneyBonus;
             AddMoney(player, moneyBonus);
         }
@@ -28,7 +28,6 @@ namespace jRandomSkills
         {
             var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo == null) return;
-            // Do not remove player's money on skill disable — keep earned money.
             playerInfo.SkillChance = 0;
         }
 
@@ -47,8 +46,7 @@ namespace jRandomSkills
                 var moneyServices = attackerPlayer?.InGameMoneyServices;
                 if (moneyServices == null) return;
 
-                moneyServices.Account *= 2;
-                Utilities.SetStateChanged(attackerPlayer!, "CCSPlayerController", "m_pInGameMoneyServices");
+                AddMoney(attackerPlayer, moneyServices.Account);
             }
         }
 

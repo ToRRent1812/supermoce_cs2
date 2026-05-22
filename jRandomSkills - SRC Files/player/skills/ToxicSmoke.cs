@@ -15,7 +15,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Chemik", "Twoje smoke'i zadają wrogom obrażenia. Granat po wypaleniu wraca do ręki", "#507529");
+            SkillUtils.RegisterSkill(skillName, "Chemik", "Twoje granaty dymne zadają wrogom obrażenia.<br>Granat po wypaleniu wraca do ręki", "#507529");
         }
 
         public static void NewRound()
@@ -35,6 +35,7 @@ namespace jRandomSkills
             var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
             smokes.TryAdd(new Vector(@event.X, @event.Y, @event.Z), player.Team);
+
         }
 
         public static void SmokegrenadeExpired(EventSmokegrenadeExpired @event)
@@ -45,28 +46,15 @@ namespace jRandomSkills
             if (playerInfo?.Skill != skillName) return;
             foreach (var smoke in smokes.Keys.Where(v => v.X == @event.X && v.Y == @event.Y && v.Z == @event.Z))
                 smokes.TryRemove(smoke, out _);
-            Instance?.AddTimer(17.0f, () =>
-            {
-                SkillUtils.TryGiveWeapon(player, CsItem.SmokeGrenade);
-            });
-        }
-
-        private static void AddHealth(CCSPlayerPawn player, int health)
-        {
-            if (player.LifeState != (byte)LifeState_t.LIFE_ALIVE)
-                return;
-
-            player.Health += health;
-            Utilities.SetStateChanged(player, "CBaseEntity", "m_iHealth");
-
-            player.EmitSound("Player.DamageBody.Onlooker", volume: 0.2f);
-            if (player.Health <= 0)
-                player.CommitSuicide(false, true);
+            
+            SkillUtils.TryGiveWeapon(player, CsItem.SmokeGrenade);
         }
 
         public static void OnTick()
         {
             if (Server.TickCount % 32 != 0) return;
+
+            int rngDamage = Instance?.Random.Next(5, 11) ?? 5;
 
             foreach (var kv in smokes)
             {
@@ -83,7 +71,7 @@ namespace jRandomSkills
                     if (player.Team == ownerTeam) continue;
 
                     if (SkillUtils.GetDistance(smokePos, player.PlayerPawn.Value.AbsOrigin) <= 160)
-                        AddHealth(player.PlayerPawn.Value, -7);
+                        SkillUtils.TakeHealth(player.PlayerPawn.Value, rngDamage);
                 }
             }
         }

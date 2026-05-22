@@ -23,8 +23,6 @@ namespace jRandomSkills
 
         public static void NewRound()
         {
-            // Capture current players under lock and clear the tracking dictionary,
-            // then send the Fade-off message to each player outside the lock to avoid re-entrancy.
             List<CCSPlayerController> allPlayers;
             lock (setLock)
             {
@@ -35,7 +33,6 @@ namespace jRandomSkills
             foreach (var player in allPlayers)
             {
                 if (player == null || !player.IsValid) continue;
-                // Ensure any lingering darkness is cleared for every player
                 ApplyScreenColor(player, r: 0, g: 0, b: 0, a: 0, duration: 200, holdTime: 0);
                 SkillUtils.CloseMenu(player);
             }
@@ -87,8 +84,7 @@ namespace jRandomSkills
 
             SetUpPostProcessing(enemy);
             playerInfo.SkillChance = 1;
-            player.PrintToChat($" {ChatColors.Green}Ciemność opanowała {enemy.PlayerName}.");
-            enemy.PrintToChat($" {ChatColors.Red}Wróg zgasił Ci światło.");
+            SkillUtils.PrintToChat(enemy, $"Wróg zgasił Ci światło.");
         }
 
         public static void EnableSkill(CCSPlayerController player)

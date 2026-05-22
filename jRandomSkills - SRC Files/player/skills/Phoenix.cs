@@ -8,20 +8,31 @@ using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
-    public class SecondLife : ISkill
+    public class Phoenix : ISkill
     {
-        private const Skills skillName = Skills.SecondLife;
-        private static readonly ConcurrentDictionary<nint, byte> secondLifePlayers = [];
+        private const Skills skillName = Skills.Phoenix;
+        private static readonly ConcurrentDictionary<nint, byte> phoenixPlayers = [];
         private static readonly object setLock = new();
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Drugie życie", "Po śmierci odradzasz się 1 raz z losową ilością zdrowia", "#d41c1c");
+            SkillUtils.RegisterSkill(skillName, "Feniks", "% szans na odrodzenie się po śmierci z 50 HP", "#d4751c");
         }
 
         public static void NewRound()
         {
-            secondLifePlayers.Clear();
+            phoenixPlayers.Clear();
+        }
+
+        public static void EnableSkill(CCSPlayerController player)
+        {
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
+
+            int randomValue = Instance?.Random?.Next(5,9) * 5 ?? 25; //25-45%
+            playerInfo.SkillChance = randomValue / 100f;
+            playerInfo.RandomPercentage = $"{randomValue}%";
+            
         }
 
         public static void PlayerHurt(EventPlayerHurt @event)
@@ -34,13 +45,15 @@ namespace jRandomSkills
             if (victimInfo == null || victimInfo.Skill != skillName) return;
 
             var victimPawn = victim!.PlayerPawn.Value;
-            if (victimPawn!.Health > 0 || secondLifePlayers.ContainsKey(victim.Handle))
+            if (victimPawn!.Health > 0 || phoenixPlayers.ContainsKey(victim.Handle))
                 return;
+
+            if (Instance?.Random.NextDouble() > victimInfo.SkillChance) return;
 
             lock (setLock)
             {
-                secondLifePlayers.TryAdd(victim.Handle, 0);
-                SetHealth(victim, Instance?.Random.Next(10, 101) ?? 50);
+                phoenixPlayers.TryAdd(victim.Handle, 0);
+                SetHealth(victim, 50);
                 var spawn = GetSpawnVector(victim);
                 if (spawn != null)
                 {
@@ -51,7 +64,7 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            secondLifePlayers.TryRemove(player.Handle, out _);
+            phoenixPlayers.TryRemove(player.Handle, out _);
         }
 
         private static void SetHealth(CCSPlayerController player, int health)
@@ -62,7 +75,7 @@ namespace jRandomSkills
             pawn.Health = health;
             Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
 
-            pawn.ArmorValue = health/2;
+            pawn.ArmorValue = 100;
             SkillUtils.TryGiveWeapon(player, CsItem.AssaultSuit);
             Utilities.SetStateChanged(pawn, "CCSPlayerPawn", "m_ArmorValue");
         }

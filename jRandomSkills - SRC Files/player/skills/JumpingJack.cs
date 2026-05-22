@@ -19,7 +19,7 @@ namespace jRandomSkills
             if (player == null || !player.IsValid) return;
             var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
-            SkillUtils.AddHealth(player.PlayerPawn.Value, Instance?.Random.Next(6, 12) ?? 6);
+            SkillUtils.AddHealth(player.PlayerPawn.Value, Instance?.Random.Next(8, 16) ?? 8);
         }
     }
 }

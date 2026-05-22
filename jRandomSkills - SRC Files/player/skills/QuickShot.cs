@@ -21,7 +21,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Szybkostrzelność", "Bronie powtarzalne strzelają tak szybko jak potrafisz klikać.", "#8a42f5");
+            SkillUtils.RegisterSkill(skillName, "Szybkostrzelność", "Bronie nie-automatyczne strzelają tak szybko jak potrafisz klikać.", "#8a42f5");
         }
 
         public static void OnTick()

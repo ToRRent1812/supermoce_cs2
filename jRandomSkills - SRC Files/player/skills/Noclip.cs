@@ -16,7 +16,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Bez barier", "Możesz włączyć sobie noclip na 2 sek.", "#44ebd4");
+            SkillUtils.RegisterSkill(skillName, "Noclip", "Możesz włączyć sobie noclip na 2 sek.", "#44ebd4");
         }
 
         public static void NewRound()

@@ -6,7 +6,6 @@ using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using RayTraceAPI;
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Runtime.InteropServices;
@@ -22,14 +21,14 @@ namespace jRandomSkills
 
         public static void PrintToChat(CCSPlayerController player, string msg, bool isError = false)
         {
-            string checkIcon = isError ? $"{ChatColors.DarkRed}✖{ChatColors.LightRed}" : $"{ChatColors.Green}✔{ChatColors.Lime}";
-            player.PrintToChat($" {ChatColors.DarkRed}► {ChatColors.Green} {checkIcon} {msg}");
+            string checkIcon = isError ? $"{ChatColors.DarkRed}✖{ChatColors.LightRed}" : $"{ChatColors.Green}►{ChatColors.Lime}";
+            player.PrintToChat($"{checkIcon} {msg}");
         }
 
         public static void PrintToChatAll(string msg, bool isError = false)
         {
-            string checkIcon = isError ? $"{ChatColors.DarkRed}✖{ChatColors.LightRed}" : $"{ChatColors.Green}✔{ChatColors.Lime}";
-            Server.PrintToChatAll($" {ChatColors.DarkRed}► {ChatColors.Green} {checkIcon} {msg}");
+            string checkIcon = isError ? $"{ChatColors.DarkRed}✖{ChatColors.LightRed}" : $"{ChatColors.Green}►{ChatColors.Lime}";
+            Server.PrintToChatAll($"{checkIcon} {msg}");
         }
 
         public static void RegisterSkill(Skills skill, string name, string desc, string color, byte teamnum = 0)
@@ -100,22 +99,7 @@ namespace jRandomSkills
             HEGrenadeProjectile_CreateFunc.Invoke(pos.Handle, angle.Handle, vel.Handle, vel.Handle, IntPtr.Zero, 44, teamNum);
         }
 
-        public static CCSPlayerController? GetPlayerFromTraceResult(TraceResult trace)
-        {
-            if (trace.HitEntity == 0) return null;
-
-            foreach (var p in Utilities.GetPlayers())
-            {
-                if (p == null || !p.IsValid) continue;
-                if (p.Handle == (IntPtr)trace.HitEntity) return p;
-                var pawn = p.PlayerPawn?.Value;
-                if (pawn != null && pawn.Handle == (IntPtr)trace.HitEntity) return p;
-            }
-
-            return null;
-        }
-
-        public static void TakeHealth(CCSPlayerPawn? pawn, int damage)
+        public static void TakeHealth(CCSPlayerPawn? pawn, int damage, bool playSound = true)
         {
             if (pawn == null || !pawn.IsValid || pawn.LifeState != (byte)LifeState_t.LIFE_ALIVE)
                 return;
@@ -123,6 +107,8 @@ namespace jRandomSkills
             int newHealth = pawn.Health - damage;
             pawn.Health = newHealth;
             Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
+            if (playSound)
+                pawn.EmitSound("Player.DamageBody.Onlooker", volume: 0.1f);
 
             if (pawn.Health <= 0)
                 Server.NextFrame(() =>
@@ -135,11 +121,11 @@ namespace jRandomSkills
         {
             if (pawn?.IsValid != true || pawn.LifeState != (byte)LifeState_t.LIFE_ALIVE) return;
 
-            pawn.Health = Math.Min(pawn.Health + extraHealth, maxHealth);
-            Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
-
             pawn.MaxHealth = maxHealth;
             Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iMaxHealth");
+
+            pawn.Health = Math.Min(pawn.Health + extraHealth, maxHealth);
+            Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
         }
 
         public static string GetDesignerName(CBasePlayerWeapon? weapon)
@@ -218,8 +204,8 @@ namespace jRandomSkills
             if (manager == null) return;
 
             string itemTemplate = "<font class='fontSize-s' color='white'>{0}</font><br/>"; // non-selected item
-            string hoverTemplate = "<font class='fontSize-m' class='fontWeight-Bold' color='yellow'>=> {0}</font><br/>"; // selected item
-            string controlText = "<font class='fontSize-s' color='yellow'>W/S - Przewijanie | Rozbrajanie - wybór</font>"; // controls/help
+            string hoverTemplate = "<font class='fontSize-m' class='fontWeight-Bold' color='yellow'>=> {0} <=</font><br/>"; // selected item
+            string controlText = "<font class='fontSize-s' color='yellow'>W/S - Góra dół | USE - OK</font>"; // controls/help
 
             IWasdMenu menu = manager.CreateMenu(skillLine, itemTemplate, hoverTemplate, controlText);
             foreach (var enemy in enemies)

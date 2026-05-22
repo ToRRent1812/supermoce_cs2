@@ -15,7 +15,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Zamrażający Wabik", "Twój wabik zamraża wszystkich pobliskich graczy", "#00eaff");
+            SkillUtils.RegisterSkill(skillName, "Zimny Wabik", "Twój wabik zamraża wszystkich pobliskich graczy", "#00eaff");
         }
 
         public static void NewRound()
@@ -40,7 +40,7 @@ namespace jRandomSkills
             if (playerInfo?.Skill != skillName) return;
             foreach (var decoy in decoys.Keys.Where(v => v.X == @event.X && v.Y == @event.Y && v.Z == @event.Z))
                 decoys.TryRemove(decoy, out _);
-            Instance?.AddTimer(20.0f, () =>
+            Instance?.AddTimer(15.0f, () =>
             {
                 SkillUtils.TryGiveWeapon(player, CsItem.DecoyGrenade);
             });

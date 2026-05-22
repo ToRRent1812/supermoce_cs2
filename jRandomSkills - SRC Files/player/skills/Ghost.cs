@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using CounterStrikeSharp.API.Modules.UserMessages;
 using System.Drawing;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
@@ -28,7 +29,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Niewidka", "Twój agent jest niewidzialny ALE widać cię na radarze. STRZELANIE ZABRONIONE", "#FFFFFF", 1);
+            SkillUtils.RegisterSkill(skillName, "Niewidka", "Jesteś niewidzialny i niesłyszalny<br>ALE widać cię na radarze i nie możesz strzelać", "#FFFFFF", 1);
         }
 
         public static void NewRound()
@@ -98,6 +99,24 @@ namespace jRandomSkills
                     if (invisibleEntities.ContainsKey(player.SteamID))
                         invisibleEntities.TryRemove(player.SteamID, out _);
             }
+        }
+
+        public static void PlayerMakeSound(UserMessage um)
+        {
+            var soundevent = um.ReadUInt("soundevent_hash");
+            var userIndex = um.ReadUInt("source_entity_index");
+            if (userIndex == 0) return;
+
+            if (Instance?.footstepSoundEvents.Contains(soundevent) == false && Instance?.silentSoundEvents.Contains(soundevent) == false)
+                return;
+
+            var player = Utilities.GetPlayers().FirstOrDefault(p => p.Pawn?.Value != null && p.Pawn.Value.IsValid && p.Pawn.Value.Index == userIndex);
+            if (Instance?.IsPlayerValid(player) == false) return;
+
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            if (playerInfo?.Skill != skillName) return;
+
+            um.Recipients.Clear();
         }
 
         private static void SetPlayerVisibility(CCSPlayerController player, bool visible)

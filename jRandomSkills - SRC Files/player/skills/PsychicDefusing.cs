@@ -126,7 +126,7 @@ namespace jRandomSkills
                 ? $"<font class='fontSize-m' color='#b5ffee'>Rozbrajanie: <font color='#00ff00'>{percent:0}%</font></font><br>"
                 : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br>";
             string bombdistancetext = bombLocation != null 
-            ? $"<font class='fontSize-m' class='fontWeight-Bold' color='#ffff00'>Dystans do C4: {bombDistance}m | Zasięg: 30m</font>"
+            ? $"<font class='fontSize-m' class='fontWeight-Bold' color='#ffff00'>Dystans do C4: {bombDistance:1}m | Zasięg: 30m</font>"
             : "";
 
             var hudContent = skillLine + remainingLine + bombdistancetext;
