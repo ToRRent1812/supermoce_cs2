@@ -305,14 +305,16 @@ namespace jRandomSkills
                     (s?.Skill == Skills.ShortBomb) &&      
                     (s?.Skill == Skills.PsychicDefusing) && 
                     (s?.Skill == Skills.Planter) &&
-                    (s?.Skill == Skills.Saper)
+                    (s?.Skill == Skills.Saper) &&
+                    (s?.Skill == Skills.Watchmaker)
                     );
                 }
                 else
                 {
                     skillList.RemoveAll(s => 
                     (s?.Skill == Skills.FastEscape) &&      
-                    (s?.Skill == Skills.InstantEscape)
+                    (s?.Skill == Skills.InstantEscape) && 
+                    (s?.Skill == Skills.SlowHost)
                     );
                 }
 

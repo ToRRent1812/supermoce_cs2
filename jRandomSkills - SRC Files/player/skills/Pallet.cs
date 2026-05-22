@@ -8,24 +8,34 @@ using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
-    public class Fortnite : ISkill
+    public class Pallet : ISkill
     {
-        private const Skills skillName = Skills.Fortnite;
-        private static int cd = 12;
-        private static readonly string propModel = "models/props/de_aztec/hr_aztec/aztec_scaffolding/aztec_scaffold_wall_support_128.vmdl";
+        private const Skills skillName = Skills.Pallet;
+        private static int cd = 15;
+        private static string propModel1 = "models/props/cs_italy/italy_wine_pallet.vmdl";
+        private static string propModel2 = "models/props/de_dust/dust_aid_crate_74.vmdl";
+        private static string propModel3 = "models/props/de_vertigo/pallet_cinderblock01.vmdl";
+        private static string propModel4 = "models/props/de_vertigo/pallet_stack01.vmdl";
+        private static string propModel5 = "models/props/de_dust/pallet01.vmdl";
         private static readonly ConcurrentDictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
         private static readonly ConcurrentDictionary<ulong, int> barricades = [];
         private static readonly object setLock = new();
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Bambik", "Stawiasz barykadę na żądanie", "#1b04cc");
-            Instance?.RegisterListener<OnServerPrecacheResources>((ResourceManifest manifest) => manifest.AddResource(propModel));
+            SkillUtils.RegisterSkill(skillName, "Magazynier", "Stawiasz niezniszczalną paletę na żądanie", "#1b04cc");
+            Instance?.RegisterListener<OnServerPrecacheResources>((ResourceManifest manifest) => {
+                manifest.AddResource(propModel1);
+                manifest.AddResource(propModel2);
+                manifest.AddResource(propModel3);
+                manifest.AddResource(propModel4);
+                manifest.AddResource(propModel5);
+            });
         }
 
         public static void NewRound()
         {
-            cd = ((Instance?.Random.Next(2, 9)) ?? 2) * 5;
+            cd = ((Instance?.Random.Next(3, 9)) ?? 2) * 5;
             lock (setLock)
             {
                 SkillPlayerInfo.Clear();
@@ -106,51 +116,30 @@ namespace jRandomSkills
             var box = Utilities.CreateEntityByName<CDynamicProp>("prop_dynamic_override");
             if (box == null || playerPawn == null || !playerPawn.IsValid || playerPawn.AbsOrigin == null || playerPawn.AbsRotation == null) return;
 
-            float distance = 50;
+            float distance = 100;
             Vector pos = playerPawn.AbsOrigin + SkillUtils.GetForwardVector(playerPawn.AbsRotation) * distance;
             QAngle angle = new(playerPawn.AbsRotation.X, playerPawn.AbsRotation.Y + 90, playerPawn.AbsRotation.Z);
 
-            box.Entity!.Name = box.Globalname = $"FortniteWall_{Server.TickCount}";
+            box.Entity!.Name = box.Globalname = $"Pallet_{Server.TickCount}";
             box.Collision.SolidType = SolidType_t.SOLID_VPHYSICS;
             box.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags = (uint)(box.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags & ~(1 << 2));
             box.DispatchSpawn();
-            // randomize barricade health between 180 and 350
-            int hp = Instance?.Random.Next(180, 351) ?? 180;
-            barricades.TryAdd(box.Index, hp);
+            barricades.TryAdd(box.Index, 1);
+            int rngModel = Instance?.Random.Next(1, 6) ?? 1;
+            string selectedModel = rngModel switch
+            {
+                1 => propModel1,
+                2 => propModel2,
+                3 => propModel3,
+                4 => propModel4,
+                5 => propModel5,
+                _ => propModel1
+            };
             Server.NextFrame(() =>
             {
-                box.SetModel(propModel);
+                box.SetModel(selectedModel);
                 box.Teleport(pos, angle, null);
             });
-        }
-
-        public static HookResult OnTakeDamage(CEntityInstance entity, CTakeDamageInfo info)
-        {
-            if (entity == null || entity.Entity == null || info == null || info.Attacker == null || info.Attacker.Value == null)
-                return HookResult.Continue;
-
-            CCSPlayerPawn attackerPawn = new(info.Attacker.Value.Handle);
-            if (attackerPawn.DesignerName != "player")
-                return HookResult.Continue;
-
-            if (attackerPawn == null || attackerPawn.Controller?.Value == null)
-                return HookResult.Continue;
-            if (string.IsNullOrEmpty(entity.Entity?.Name)) return HookResult.Continue;
-            if (!entity.Entity.Name.StartsWith("FortniteWall")) return HookResult.Continue;
-
-            var box = entity.As<CDynamicProp>();
-            if (box == null || !box.IsValid) return HookResult.Continue;
-            box.EmitSound("Wood_Plank.BulletImpact", volume: 1f);
-
-            if (barricades.TryGetValue(box.Index, out int health))
-            {
-                health -= (int)info.Damage;
-                barricades.AddOrUpdate(box.Index, health, (k, v) => health);
-                if (health <= 0) box.AcceptInput("Kill");
-            }
-            else box.AcceptInput("Kill");
-
-            return HookResult.Continue;
         }
 
         public class PlayerSkillInfo

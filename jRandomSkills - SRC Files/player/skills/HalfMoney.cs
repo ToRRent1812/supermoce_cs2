@@ -1,0 +1,101 @@
+﻿using CounterStrikeSharp.API;
+using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Utils;
+using System.Collections.Concurrent;
+using jRandomSkills.src.player;
+using static jRandomSkills.jRandomSkills;
+
+namespace jRandomSkills
+{
+    public class HalfMoney : ISkill
+    {
+        private const Skills skillName = Skills.HalfMoney;
+
+        public static void LoadSkill()
+        {
+            SkillUtils.RegisterSkill(skillName, "Skarbówka", "Wybierasz gracza, któremu zabierzesz połowę kasy", "#21e65c");
+        }
+
+        public static void NewRound()
+        {
+            foreach (var player in Utilities.GetPlayers())
+                SkillUtils.CloseMenu(player);
+        }
+
+        public static void OnTick()
+        {
+            if (Server.TickCount % 32 != 0) return;
+            foreach (var player in Utilities.GetPlayers())
+            {
+                if (!SkillUtils.HasMenu(player)) continue;
+                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+
+                if (playerInfo == null || playerInfo.Skill != skillName) continue;
+                var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
+
+                ConcurrentBag<(string, string)> menuItems = [.. enemies.Select(e => (e.PlayerName, e.Index.ToString()))];
+                SkillUtils.UpdateMenu(player, menuItems);
+            }
+        }
+
+        public static void TypeSkill(CCSPlayerController player, string[] commands)
+        {
+            if (player == null || !player.IsValid || !player.PawnIsAlive) return;
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo?.Skill != skillName) return;
+
+            if (playerInfo.SkillChance == 1)
+            {
+                player.PrintToChat($" {ChatColors.Red}Nie posiadasz już tej supermocy");
+                return;
+            }
+
+            string enemyId = commands[0];
+            var enemy = Utilities.GetPlayers().FirstOrDefault(p => p.Team != player.Team && p.Index.ToString() == enemyId);
+
+            if (enemy == null || !enemy.IsValid || enemy.PlayerPawn.Value == null || !enemy.PlayerPawn.Value.IsValid)
+            {
+                player.PrintToChat($" {ChatColors.Red}Nie znaleziono gracza o takim ID.");
+                return;
+            }
+            int moneyStolen = (enemy.InGameMoneyServices?.Account ?? 0) / 2;
+            AddMoney(enemy, -moneyStolen);
+            AddMoney(player, moneyStolen);
+            playerInfo.SkillChance = 1;
+            enemy.PrintToChat($"Wróg zabrał Ci połowę kasy.");
+            player.PrintToChat($"Ukradłeś wrogowi {moneyStolen}$.");
+        }
+
+        public static void EnableSkill(CCSPlayerController player)
+        {
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
+            playerInfo.SkillChance = 0;
+
+            var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
+            if (enemies.Length > 0)
+            {
+                ConcurrentBag<(string, string)> menuItems = [.. enemies.Select(e => (e.PlayerName, e.Index.ToString()))];
+                SkillUtils.CreateMenu(player, menuItems);
+            }
+            else
+                player.PrintToChat($" {ChatColors.Red}Nie znaleziono gracza o takim ID.");
+        }
+
+        public static void DisableSkill(CCSPlayerController player)
+        {
+            if (player == null || !player.IsValid) return;
+            SkillUtils.CloseMenu(player);
+        }
+
+        private static void AddMoney(CCSPlayerController player, int money)
+        {
+            if (player == null || !player.IsValid) return;
+            var moneyServices = player.InGameMoneyServices;
+            if (moneyServices == null) return;
+
+            moneyServices.Account = Math.Max(moneyServices.Account + money, 0);
+            Utilities.SetStateChanged(player!, "CCSPlayerController", "m_pInGameMoneyServices");
+        }
+    }
+}

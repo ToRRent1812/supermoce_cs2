@@ -34,9 +34,11 @@ public interface ISkill
     public static void BombBeginplant(EventBombBeginplant _) { }
     public static void BombPlanted(EventBombPlanted _) { }
     public static void BombBegindefuse(EventBombBegindefuse _) { }
+    public static void HostageFollows(EventHostageFollows _) { }
 
     public static void DecoyStarted(EventDecoyStarted _) { }
     public static void DecoyDetonate(EventDecoyDetonate _) { }
+    public static void MolotovDetonate(EventMolotovDetonate _) { }
 
     public static void SmokegrenadeDetonate(EventSmokegrenadeDetonate _) { }
     public static void SmokegrenadeExpired(EventSmokegrenadeExpired _) { }
@@ -53,17 +55,20 @@ public enum Skills
     AntyHead,
     Armored,
     Assassin,
+    BrokenKnee,
     Astronaut,
     Enemyfire,
     LongFlame,
     MegaMoly,
     FastEscape,
     InstantEscape,
+    SlowHost,
     KFC,
     Baseball,
     Illusionist,
     Behind,
     Catapult,
+    Pallet,
     Chicken,
     Commando,
     Cutter,
@@ -74,6 +79,7 @@ public enum Skills
     Dopamine,
     Watchmaker,
     Dracula,
+    NanoKevlar,
     Duplicator,
     Dwarf,
     EnemySpawn,
@@ -85,7 +91,7 @@ public enum Skills
     Flash,
     Fortnite,
     Fov,
-    //FriendlyFire,
+    HalfMoney,
     FrozenDecoy,
     Ghost,
     Glaz,

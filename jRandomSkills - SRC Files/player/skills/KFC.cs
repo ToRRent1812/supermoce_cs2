@@ -4,6 +4,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using System.Collections.Concurrent;
+using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
@@ -53,28 +54,31 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
-            foreach (var enemy in enemies)
+            Instance?.AddTimer(6.0f, () =>
             {
-                if (enemy == null || !enemy.IsValid) continue;
-                var enemyPawn = enemy.PlayerPawn?.Value;
-                if(enemyPawn == null || !enemyPawn.IsValid) continue;
-                Event.EnableTransmit();
-                enemyPawn.Health = 50;
-                enemyPawn.VelocityModifier = 0.9f;
-                Utilities.SetStateChanged(enemyPawn, "CBaseEntity", "m_iHealth");
+                var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
+                foreach (var enemy in enemies)
+                {
+                    if (enemy == null || !enemy.IsValid) continue;
+                    var enemyPawn = enemy.PlayerPawn?.Value;
+                    if(enemyPawn == null || !enemyPawn.IsValid) continue;
+                    Event.EnableTransmit();
+                    enemyPawn.Health = 50;
+                    enemyPawn.VelocityModifier = 0.9f;
+                    Utilities.SetStateChanged(enemyPawn, "CBaseEntity", "m_iHealth");
 
-                enemyPawn.Render = Color.FromArgb(0, 255, 255, 255);
-                enemyPawn.ShadowStrength = 0.0f;
-                Utilities.SetStateChanged(enemyPawn, "CBaseModelEntity", "m_clrRender");
+                    enemyPawn.Render = Color.FromArgb(0, 255, 255, 255);
+                    enemyPawn.ShadowStrength = 0.0f;
+                    Utilities.SetStateChanged(enemyPawn, "CBaseModelEntity", "m_clrRender");
 
-                if (enemyPawn.CBodyComponent != null && enemyPawn.CBodyComponent.SceneNode != null)
-                    originalModels.TryAdd(enemy.SteamID, enemyPawn.CBodyComponent.SceneNode.GetSkeletonInstance().ModelState.ModelName);
+                    if (enemyPawn.CBodyComponent != null && enemyPawn.CBodyComponent.SceneNode != null)
+                        originalModels.TryAdd(enemy.SteamID, enemyPawn.CBodyComponent.SceneNode.GetSkeletonInstance().ModelState.ModelName);
 
-                SetWeaponAttack(enemy, true);
-                CreateChicken(enemy);
-                SkillUtils.PrintToChat(enemy, $"Wróg zamienił Cię w dużą kurę!");
-            }
+                    SetWeaponAttack(enemy, true);
+                    CreateChicken(enemy);
+                    SkillUtils.PrintToChat(enemy, $"Wróg zamienił Cię w dużą kurę!");
+                }
+            });
         }
 
         private static void ResetChicken(CCSPlayerController player)
