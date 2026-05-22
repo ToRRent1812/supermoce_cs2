@@ -13,7 +13,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Sędzia Kalosz", "Rzut granatem zmienia po cichu czas rundy", "#ff462e");
+            SkillUtils.RegisterSkill(skillName, "Sędzia Kalosz", "Rzut granatem zmienia po cichu czas rundy", "#ff462e", 0, 1);
         }
 
         public static void NewRound()

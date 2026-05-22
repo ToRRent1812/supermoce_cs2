@@ -74,7 +74,7 @@ namespace jRandomSkills
                     if (enemyPawn.CBodyComponent != null && enemyPawn.CBodyComponent.SceneNode != null)
                         originalModels.TryAdd(enemy.SteamID, enemyPawn.CBodyComponent.SceneNode.GetSkeletonInstance().ModelState.ModelName);
 
-                    SkillUtils.ChangePlayerScale(player, 2.0f);
+                    SkillUtils.ChangePlayerScale(enemy, 2.5f);
                     SetWeaponAttack(enemy, true);
                     CreateChicken(enemy);
                     SkillUtils.PrintToChat(enemy, $"Wróg zamienił Cię w dużą kurę!");
@@ -95,7 +95,6 @@ namespace jRandomSkills
                 playerPawn.ShadowStrength = 1.0f;
                 Utilities.SetStateChanged(playerPawn, "CBaseModelEntity", "m_clrRender");
                 SetWeaponAttack(player, false);
-                SkillUtils.ChangePlayerScale(player, 1f);
             }
 
             if (chickens.TryGetValue(player, out var chicken))

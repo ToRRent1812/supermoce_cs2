@@ -1,5 +1,7 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Entities.Constants;
+using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
@@ -12,7 +14,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Inflacja", "Każdy wystrzelony pocisk CT kosztuje pieniądze", "#4a944a", 1);
+            SkillUtils.RegisterSkill(skillName, "Inflacja", "Każdy wystrzelony pocisk CT kosztuje ich pieniądze", "#4a944a", 1);
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -38,7 +40,7 @@ namespace jRandomSkills
         {
             var player = @event.Userid;
             var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
-            if (player != null && playerInfo?.Skill != skillName)
+            if (player != null && playerInfo?.Skill != skillName && player.Team == CsTeam.CounterTerrorist)
                 AddMoney(player, -moneyLossPerBullet);
         }
 

@@ -10,7 +10,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Szybka pomoc", "Z hostem poruszasz się szybciej", "#1279ff", 2);
+            SkillUtils.RegisterSkill(skillName, "Szybka pomoc", "Z hostem poruszasz się szybciej", "#1279ff", 2, 2);
         }
 
         public static void DisableSkill(CCSPlayerController player)

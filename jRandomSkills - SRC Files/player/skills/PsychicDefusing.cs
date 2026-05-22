@@ -18,7 +18,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Medium", "Rozbrajasz bombę zdalnie w obszarze 30m", "#507529", 2);
+            SkillUtils.RegisterSkill(skillName, "Medium", "Rozbrajasz bombę zdalnie w obszarze 30m", "#507529", 2, 1);
         }
 
         public static void NewRound()

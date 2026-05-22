@@ -10,7 +10,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Mega-tov", "Wszystkie mołotowy na serwerze są 5 razy większe", "#ff0000");
+            SkillUtils.RegisterSkill(skillName, "Mega-tov", "Wszystkie mołotowy na serwerze są 5 razy większe", "#ff0000", 1);
         }
 
         public static void EnableSkill(CCSPlayerController _)

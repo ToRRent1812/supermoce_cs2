@@ -10,7 +10,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Ognisko", "Wszystkie mołotowy na serwerze palą się 60 sek.", "#ff5e00");
+            SkillUtils.RegisterSkill(skillName, "Ognisko", "Wszystkie palaki na serwerze trwają 60 sek. Nawet jak zgaśnie ogień", "#ff5e00", 2);
         }
 
         public static void EnableSkill(CCSPlayerController _)

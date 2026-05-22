@@ -11,7 +11,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Saper", "Niemal natychmiastowy plant i rozbrojenie z twoich rąk", "#8A2BE2", 2);
+            SkillUtils.RegisterSkill(skillName, "Saper", "Niemal natychmiastowy plant i rozbrojenie z twoich rąk", "#8A2BE2", 2, 1);
         }
 
         public static void BombBegindefuse(EventBombBegindefuse @event)

@@ -11,7 +11,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Pika paka", "Twoje C4 wybucha w 20 sekund.", "#4d4d4d", 1);
+            SkillUtils.RegisterSkill(skillName, "Pika paka", "Twoje C4 wybucha w 20 sekund.", "#4d4d4d", 1, 1);
         }
 
         public static void BombPlanted(EventBombPlanted @event)

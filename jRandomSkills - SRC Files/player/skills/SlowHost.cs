@@ -12,7 +12,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Ciężarne hosty", "Póki jesteś żywy, chodzenie z hostem jest znacznie wolniejsze.", "#fd4371", 1);
+            SkillUtils.RegisterSkill(skillName, "Ciężarne hosty", "Póki jesteś żywy, chodzenie z hostem jest znacznie wolniejsze.", "#fd4371", 1, 2);
         }
 
         public static void EnableSkill(CCSPlayerController player)

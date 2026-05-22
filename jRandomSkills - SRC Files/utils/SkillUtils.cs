@@ -31,7 +31,7 @@ namespace jRandomSkills
             Server.PrintToChatAll($"{checkIcon} {msg}");
         }
 
-        public static void RegisterSkill(Skills skill, string name, string desc, string color, byte teamnum = 0)
+        public static void RegisterSkill(Skills skill, string name, string desc, string color, byte teamnum = 0, byte objective = 0)
         {
             if (!SkillData.Skills.Any(s => s.Skill == skill))
                 SkillData.Skills.Add(new jSkill_SkillInfo(skill, name, desc, color, teamnum));

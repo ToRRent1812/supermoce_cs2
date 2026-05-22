@@ -11,7 +11,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Owsiak", "Wzięcie hosta wygrywa rundę", "#30fa7d", 2);
+            SkillUtils.RegisterSkill(skillName, "Owsiak", "Wzięcie hosta wygrywa rundę", "#30fa7d", 2, 2);
         }
 
         public static void HostageFollows(EventHostageFollows @event)

@@ -24,7 +24,7 @@ namespace jRandomSkills
         public override string ModuleName => "Supermoce";
         public override string ModuleAuthor => "D3X (dRandomSkills), Juzlus (jRandomSkills), Rabbit";
         public override string ModuleDescription => "Fork forka który dodaje graczom supermoce";
-        public override string ModuleVersion => "1.3.5";
+        public override string ModuleVersion => "1.3.7";
 
         public override void Load(bool hotReload)
         {
@@ -105,13 +105,14 @@ namespace jRandomSkills
         public string? RandomPercentage { get; set; }
     }
 
-    public class jSkill_SkillInfo(Skills skill, string name, string desc, string color, byte teamnum = 0)
+    public class jSkill_SkillInfo(Skills skill, string name, string desc, string color, byte teamnum = 0, byte objective = 0)
     {
         public Skills Skill { get; } = skill;
         public string Name { get; } = name;
         public string Description { get; } = desc;
         public string Color { get; } = color;
-        public byte TeamNumber { get; } = teamnum;
+        public byte TeamNumber { get; } = teamnum; //0 - all, 1 - T, 2 - CT
+        public byte Objective { get; } = objective; //0 - all, 1 - bomb, 2 - hostage
 
         public static implicit operator Skills(jSkill_SkillInfo v)
         {

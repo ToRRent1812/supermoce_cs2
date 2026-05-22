@@ -299,24 +299,10 @@ namespace jRandomSkills
 
                 // Disable C4 skills in hostage maps and vice versa
                 var isHostageMap = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("hostage_entity");
-                if(isHostageMap.Any())
-                {
-                    skillList.RemoveAll(s => 
-                    (s?.Skill == Skills.ShortBomb) &&      
-                    (s?.Skill == Skills.PsychicDefusing) && 
-                    (s?.Skill == Skills.Planter) &&
-                    (s?.Skill == Skills.Saper) &&
-                    (s?.Skill == Skills.Watchmaker)
-                    );
-                }
-                else
-                {
-                    skillList.RemoveAll(s => 
-                    (s?.Skill == Skills.FastEscape) &&      
-                    (s?.Skill == Skills.InstantEscape) && 
-                    (s?.Skill == Skills.SlowHost)
-                    );
-                }
+                skillList.RemoveAll(s => 
+                    (isHostageMap.Any() && s.Objective == 1) || 
+                    (!isHostageMap.Any() && s.Objective == 2)
+                );
 
                 return skillList.Count == 0 ? noneSkill : skillList[Instance.Random.Next(skillList.Count)];
             }
