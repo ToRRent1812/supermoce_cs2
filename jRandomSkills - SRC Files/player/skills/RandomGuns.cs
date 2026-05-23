@@ -109,7 +109,7 @@ namespace jRandomSkills
                         foreach (var alivePlayer in alivePlayers)
                         {
                             RemoveAndGiveWeapon(alivePlayer);
-                            SkillUtils.PrintToChat(alivePlayer, "Wróg zmienił Ci broń!", true);
+                            SkillUtils.PrintToChat(alivePlayer, "Gracz zmienił Ci broń!", true);
                         }
                 }
             }

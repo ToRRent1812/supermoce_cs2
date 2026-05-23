@@ -26,6 +26,7 @@ namespace jRandomSkills
                 var playerPawn = player.PlayerPawn.Value;
                 if (playerPawn == null || !playerPawn.IsValid) continue;
                 playerPawn.VelocityModifier = 1f;
+                playerPawn.ActualGravityScale = 1f;
             }
         }
 
@@ -70,7 +71,8 @@ namespace jRandomSkills
             if (EnemyPawn != null && EnemyPawn.IsValid)
             {
                 SkillUtils.ChangePlayerScale(enemy, 2f);
-                EnemyPawn.VelocityModifier = 0.75f;
+                EnemyPawn.VelocityModifier = 0.7f;
+                EnemyPawn.ActualGravityScale = 0.9f;
                 enemy.PrintToChat($"Wróg Cię powiększył.");
             }
             playerInfo.SkillChance = 1;

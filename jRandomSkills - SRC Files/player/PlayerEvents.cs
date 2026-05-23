@@ -297,11 +297,12 @@ namespace jRandomSkills
                     (player.Team == CsTeam.CounterTerrorist && s.TeamNumber == 1)  // Remove T skills for CT
                 );
 
-                // Disable C4 skills in hostage maps and vice versa
-                var isHostageMap = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("hostage_entity");
+                // Disable C4 skills in host maps and vice versa
+                bool isBombMap = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("func_bomb_target").Any();
+                Server.PrintToConsole($"Isbombmap: {isBombMap}");
                 skillList.RemoveAll(s => 
-                    (isHostageMap.Any() && s.Objective == 1) || 
-                    (!isHostageMap.Any() && s.Objective == 2)
+                    (isBombMap && s.Objective == 2) || 
+                    (!isBombMap && s.Objective == 1)
                 );
 
                 return skillList.Count == 0 ? noneSkill : skillList[Instance.Random.Next(skillList.Count)];

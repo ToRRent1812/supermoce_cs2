@@ -34,7 +34,7 @@ namespace jRandomSkills
         public static void RegisterSkill(Skills skill, string name, string desc, string color, byte teamnum = 0, byte objective = 0)
         {
             if (!SkillData.Skills.Any(s => s.Skill == skill))
-                SkillData.Skills.Add(new jSkill_SkillInfo(skill, name, desc, color, teamnum));
+                SkillData.Skills.Add(new jSkill_SkillInfo(skill, name, desc, color, teamnum, objective));
         }
 
         public static void TryGiveWeapon(CCSPlayerController player, CsItem item, int count = 1)
@@ -204,7 +204,7 @@ namespace jRandomSkills
             if (manager == null) return;
 
             string itemTemplate = "<font class='fontSize-s' color='white'>{0}</font><br/>"; // non-selected item
-            string hoverTemplate = "<font class='fontSize-m' class='fontWeight-Bold' color='yellow'>=> {0} <=</font><br/>"; // selected item
+            string hoverTemplate = "<font class='fontSize-s' class='fontWeight-Bold' color='yellow'>=> {0}</font><br/>"; // selected item
             string controlText = "<font class='fontSize-s' color='yellow'>W/S - Góra dół | USE - OK</font>"; // controls/help
 
             IWasdMenu menu = manager.CreateMenu(skillLine, itemTemplate, hoverTemplate, controlText);
