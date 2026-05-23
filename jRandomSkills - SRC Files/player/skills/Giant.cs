@@ -20,8 +20,12 @@ namespace jRandomSkills
         {
             foreach (var player in Utilities.GetPlayers())
             {
+                if (player == null || !player.IsValid) continue;
                 SkillUtils.CloseMenu(player);
                 SkillUtils.ChangePlayerScale(player, 1f);
+                var playerPawn = player.PlayerPawn.Value;
+                if (playerPawn == null || !playerPawn.IsValid) continue;
+                playerPawn.VelocityModifier = 1f;
             }
         }
 
@@ -61,10 +65,12 @@ namespace jRandomSkills
                 player.PrintToChat($" {ChatColors.Red}Nie znaleziono gracza o takim ID.");
                 return;
             }
-
-            if (enemy.PlayerPawn?.Value != null && enemy.PlayerPawn.Value.IsValid)
+            
+            var EnemyPawn = enemy.PlayerPawn.Value;
+            if (EnemyPawn != null && EnemyPawn.IsValid)
             {
                 SkillUtils.ChangePlayerScale(enemy, 2f);
+                EnemyPawn.VelocityModifier = 0.75f;
                 enemy.PrintToChat($"Wróg Cię powiększył.");
             }
             playerInfo.SkillChance = 1;

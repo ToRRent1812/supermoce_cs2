@@ -55,7 +55,7 @@ namespace jRandomSkills
                     if (targetPawn == null || targetPawn.AbsOrigin == null) continue;
 
                     if (SkillUtils.GetDistance(ownerPos, targetPawn.AbsOrigin) <= 1000f)
-                        SkillUtils.TakeHealth(targetPawn, -1);
+                        SkillUtils.TakeHealth(targetPawn, 1);
                 }
             }
         }
