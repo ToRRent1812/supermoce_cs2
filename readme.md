@@ -12,6 +12,6 @@ Co wyróżnia tą wersję od jrandomskills?
 - Usunięto niepotrzebny mi system językowy oraz configi
 - Niektóre supermoce mają zmienioną nazwę lub funkcję, np. bogacz może też podwoić swoje pieniądze za kill
 - Wszystkie supermoce na przycisk mają losowy cooldown
-- Dodałem nowe lub przywróciłem stare moce: Komandos, Dopaminka, CS2, Trujące naboje, Ciepłe piwo, Ćpun, Komornik, Rusznikarz, Krwiopijca, Matrix, Chachmęciarz, Bąk morderca, Podejrzane naboje, Zdrajca, Szybka pomoc, Half-Life, Owsiak, KFC, Ognisko, Mega-tov, Robin Hood, Chemik, Ciężarne hosty, Strzał w kolano, Skarbówka, Inflacja, NanoKevlar
+- Dodałem nowe lub przywróciłem stare moce: Komandos, Dopaminka, CS2, Trujące naboje, Ciepłe piwo, Ćpun, Komornik, Rusznikarz, Krwiopijca, Matrix, Chachmęciarz, Bąk morderca, Podejrzane naboje, Zdrajca, Szybka pomoc, Half-Life, Owsiak, KFC, Ognisko, Mega-tov, Robin Hood, Chemik, Ciężarne hosty, Strzał w kolano, Skarbówka, Inflacja, NanoKevlar, Olbrzym
 
 I wiele więcej, ale już zapomniałem, co się zmieniło.
