@@ -60,6 +60,7 @@ public enum Skills
     Enemyfire,
     LongFlame,
     MegaMoly,
+    Giant,
     FastEscape,
     InstantEscape,
     SlowHost,
