@@ -64,7 +64,7 @@ namespace jRandomSkills
                     if(enemyPawn == null || !enemyPawn.IsValid) continue;
                     Event.EnableTransmit();
                     enemyPawn.Health = 50;
-                    enemyPawn.VelocityModifier = 0.9f;
+                    enemyPawn.VelocityModifier = 0.8f;
                     Utilities.SetStateChanged(enemyPawn, "CBaseEntity", "m_iHealth");
 
                     enemyPawn.Render = Color.FromArgb(0, 255, 255, 255);
@@ -74,7 +74,7 @@ namespace jRandomSkills
                     if (enemyPawn.CBodyComponent != null && enemyPawn.CBodyComponent.SceneNode != null)
                         originalModels.TryAdd(enemy.SteamID, enemyPawn.CBodyComponent.SceneNode.GetSkeletonInstance().ModelState.ModelName);
 
-                    SkillUtils.ChangePlayerScale(enemy, 2.45f);
+                    SkillUtils.ChangePlayerScale(enemy, 1.8f);
                     SetWeaponAttack(enemy, true);
                     CreateChicken(enemy);
                     SkillUtils.PrintToChat(enemy, $"Wróg zamienił Cię w dużą kurę!");
@@ -164,9 +164,9 @@ namespace jRandomSkills
             chickenModel.AcceptInput("InitializeSpawnFromWorld", playerPawn, playerPawn, "");
             Utilities.SetStateChanged(chickenModel, "CBaseEntity", "m_CBodyComponent");
 
-            chickenModel.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = 10.0f;
+            chickenModel.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = 8.0f;
             Utilities.SetStateChanged(chickenModel, "CBaseEntity", "m_CBodyComponent");
-            Server.NextFrame(() => chickenModel.AcceptInput("SetScale", chickenModel, chickenModel, "10.0"));
+            Server.NextFrame(() => chickenModel.AcceptInput("SetScale", chickenModel, chickenModel, "8.0"));
 
             chickenModel.AcceptInput("SetParent", playerPawn, playerPawn, "!activator");
             chickens.TryAdd(player, chickenModel);

@@ -2,6 +2,8 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using jRandomSkills.src.player;
 using System.Collections.Concurrent;
+using static jRandomSkills.jRandomSkills;
+using System.ComponentModel;
 
 namespace jRandomSkills
 {
@@ -32,7 +34,7 @@ namespace jRandomSkills
 
         public static void OnTick()
         {
-            if (Server.TickCount % 64 != 0) return;
+            if (Server.TickCount % 128 != 0) return;
             if (SkillUtils.IsFreezetime()) return;
             if (activePlayers.IsEmpty) return;
 
@@ -53,9 +55,9 @@ namespace jRandomSkills
 
                     var targetPawn = target.PlayerPawn.Value;
                     if (targetPawn == null || targetPawn.AbsOrigin == null) continue;
-
-                    if (SkillUtils.GetDistance(ownerPos, targetPawn.AbsOrigin) <= 1000f)
-                        SkillUtils.TakeHealth(targetPawn, 1);
+                    int rngDamage = Instance?.Random.Next(1, 4) ?? 1;
+                    if (SkillUtils.GetDistance(ownerPos, targetPawn.AbsOrigin) <= 850f)
+                        SkillUtils.TakeHealth(targetPawn, rngDamage);
                 }
             }
         }
