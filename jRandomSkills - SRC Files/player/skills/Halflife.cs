@@ -64,7 +64,7 @@ namespace jRandomSkills
                 SkillUtils.TakeHealth(enemy.PlayerPawn.Value, enemy.PlayerPawn.Value.Health / 2);
             }
             playerInfo.SkillChance = 1;
-            enemy.PrintToChat($"Wróg usunął Ci połowę zdrowia.");
+            SkillUtils.PrintToChat(enemy, $"Wróg usunął Ci połowę zdrowia.");
         }
 
         public static void EnableSkill(CCSPlayerController player)

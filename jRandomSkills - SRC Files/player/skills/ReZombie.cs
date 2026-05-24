@@ -70,11 +70,11 @@ namespace jRandomSkills
                     player.Respawn();
                     zombies.TryAdd(player, 0);
                     SetPlayerColor(pawn, false);
-                    SkillUtils.AddHealth(player.PlayerPawn.Value, 800, 999);
                     pawn.Teleport(deadPosition, deadRotation);
                     player.ExecuteClientCommand("slot3");
                     Instance?.AddTimer(0.5f, () => player.ExecuteClientCommand("slot3"));
-                    player.PlayerPawn.Value.VelocityModifier = 1.2f;
+                    pawn.VelocityModifier = 1.2f;
+                    SkillUtils.AddHealth(pawn, 800, 999);
                 }
             });
         }

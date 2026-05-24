@@ -41,16 +41,16 @@ namespace jRandomSkills
             var player = @event.Userid;
             var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
             if (player != null && playerInfo?.Skill != skillName && player.Team == CsTeam.CounterTerrorist)
-                AddMoney(player, -moneyLossPerBullet);
+                TakeMoney(player, moneyLossPerBullet);
         }
 
-        private static void AddMoney(CCSPlayerController player, int money)
+        private static void TakeMoney(CCSPlayerController player, int money)
         {
             if (player?.IsValid != true) return;
             var moneyServices = player.InGameMoneyServices;
             if (moneyServices == null) return;
 
-            moneyServices.Account = Math.Max(moneyServices.Account + money, 0);
+            moneyServices.Account = Math.Max(moneyServices.Account - money, 0);
             Utilities.SetStateChanged(player, "CCSPlayerController", "m_pInGameMoneyServices");
         }
     }

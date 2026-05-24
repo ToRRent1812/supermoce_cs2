@@ -73,7 +73,7 @@ namespace jRandomSkills
                 SkillUtils.ChangePlayerScale(enemy, 2f);
                 EnemyPawn.VelocityModifier = 0.7f;
                 EnemyPawn.ActualGravityScale = 0.9f;
-                enemy.PrintToChat($"Wróg Cię powiększył.");
+                SkillUtils.PrintToChat(enemy, $"Wróg Cię powiększył.");
             }
             playerInfo.SkillChance = 1;
             

@@ -67,10 +67,10 @@ namespace jRandomSkills
 
             if (enemy.PlayerPawn?.Value != null && enemy.PlayerPawn.Value.IsValid)
             {
-                enemy.PlayerPawn.Value.VelocityModifier *= 0.7f;
+                enemy.PlayerPawn.Value.VelocityModifier *= 0.6f;
             }
             playerInfo.SkillChance = 1;
-            enemy.PrintToChat($"Wróg spowodował, że poruszasz się wolniej.");
+            SkillUtils.PrintToChat(enemy, $"Wróg spowodował, że poruszasz się wolniej.");
         }
 
         public static void EnableSkill(CCSPlayerController player)

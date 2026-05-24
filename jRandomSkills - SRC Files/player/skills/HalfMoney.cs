@@ -62,8 +62,8 @@ namespace jRandomSkills
             AddMoney(enemy, -moneyStolen);
             AddMoney(player, moneyStolen);
             playerInfo.SkillChance = 1;
-            enemy.PrintToChat($"Wróg zabrał Ci połowę kasy.");
-            player.PrintToChat($"Ukradłeś wrogowi {moneyStolen}$.");
+            SkillUtils.PrintToChat(enemy, $"Wróg zabrał Ci połowę kasy ({moneyStolen}$).");
+            SkillUtils.PrintToChat(player, $"Ukradłeś przeciwnikowi {moneyStolen}$.", false);
         }
 
         public static void EnableSkill(CCSPlayerController player)

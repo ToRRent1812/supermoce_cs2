@@ -79,21 +79,12 @@ namespace jRandomSkills
                     if (Server.TickCount % 64 == 0)
                         if (player.PlayerPawn.Value != null && player.PlayerPawn.Value.IsValid && player.PlayerPawn.Value.AbsOrigin != null)
                             if (SkillUtils.GetDistance(smokePos, player.PlayerPawn.Value.AbsOrigin) <= 180)
-                                AddHealth(player.PlayerPawn.Value, Instance?.Random.Next(5, 16) ?? 5);
+                                SkillUtils.AddHealth(player.PlayerPawn.Value, Instance?.Random.Next(5, 16) ?? 5);
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
             SkillUtils.TryGiveWeapon(player, CsItem.SmokeGrenade);
-        }
-
-        private static void AddHealth(CCSPlayerPawn player, int health)
-        {
-            if (player.LifeState != (byte)LifeState_t.LIFE_ALIVE)
-                return;
-
-            player.Health = Math.Min(player.Health + health, player.MaxHealth);
-            Utilities.SetStateChanged(player, "CBaseEntity", "m_iHealth");
         }
     }
 }

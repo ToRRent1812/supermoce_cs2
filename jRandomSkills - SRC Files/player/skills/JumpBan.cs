@@ -93,14 +93,13 @@ namespace jRandomSkills
                 return;
             }
 
-            // mark steamID as banned (value unused) and apply immediate high gravity
             bannedPlayers[enemy.SteamID] = 1;
             if (enemy.PlayerPawn?.Value != null && enemy.PlayerPawn.Value.IsValid)
             {
                 enemy.PlayerPawn.Value.ActualGravityScale = 5f;
             }
             playerInfo.SkillChance = 1;
-            enemy.PrintToChat($"Wróg odciął ci nogi.");
+            SkillUtils.PrintToChat(enemy, $"Wróg zabronił Ci skakania.");
         }
 
         public static void EnableSkill(CCSPlayerController player)
