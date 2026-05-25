@@ -12,7 +12,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Długa paka", "C4 wybuchnie po 90 sekundach o ile byłeś żywy podczas plantu.", "#c22727", 2, 1);
+            SkillUtils.RegisterSkill(skillName, "Długa paka", "Czas detonacji C4 wroga wyniesie 90 sek. o ile będziesz żywy podczas plantu.", "#c22727", 2, 1);
         }
 
         public static void BombPlanted(EventBombPlanted @event)
@@ -34,7 +34,7 @@ namespace jRandomSkills
                                 plantedBomb.C4Blow = Server.CurrentTime + 90;
                         });
                         foreach (var p in Utilities.GetPlayers().Where(p => p.IsValid))
-                            p.PrintToCenterAlert($"Bomba została podłożona!<br>90 s do detonacji");
+                            p.PrintToCenterAlert($"Bomba została podłożona!\n90 s do detonacji");
                     }
                 }
             }

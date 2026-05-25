@@ -12,11 +12,14 @@ namespace jRandomSkills
     {
         private const Skills skillName = Skills.Pallet;
         private static int cd = 15;
-        private static string propModel1 = "models/props/cs_italy/italy_wine_pallet.vmdl";
-        private static string propModel2 = "models/props/de_dust/dust_aid_crate_74.vmdl";
-        private static string propModel3 = "models/props/de_vertigo/pallet_cinderblock01.vmdl";
-        private static string propModel4 = "models/props/de_vertigo/pallet_stack01.vmdl";
-        private static string propModel5 = "models/props/de_dust/pallet01.vmdl";
+        private static readonly string[] PropModels =
+        [
+            "models/props/cs_italy/italy_wine_pallet.vmdl",
+            "models/props/de_dust/dust_aid_crate_74.vmdl",
+            "models/props/de_vertigo/pallet_cinderblock01.vmdl",
+            "models/props/de_vertigo/pallet_stack01.vmdl",
+            "models/props/de_dust/pallet01.vmdl",
+        ];
         private static readonly ConcurrentDictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
         private static readonly ConcurrentDictionary<ulong, int> barricades = [];
         private static readonly object setLock = new();
@@ -24,12 +27,10 @@ namespace jRandomSkills
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, "Magazynier", "Stawiasz niezniszczalną paletę na żądanie", "#1b04cc");
-            Instance?.RegisterListener<OnServerPrecacheResources>((ResourceManifest manifest) => {
-                manifest.AddResource(propModel1);
-                manifest.AddResource(propModel2);
-                manifest.AddResource(propModel3);
-                manifest.AddResource(propModel4);
-                manifest.AddResource(propModel5);
+            Instance?.RegisterListener<OnServerPrecacheResources>(manifest =>
+            {
+                foreach (var model in PropModels)
+                    manifest.AddResource(model);
             });
         }
 
@@ -125,16 +126,7 @@ namespace jRandomSkills
             box.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags = (uint)(box.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags & ~(1 << 2));
             box.DispatchSpawn();
             barricades.TryAdd(box.Index, 1);
-            int rngModel = Instance?.Random.Next(1, 6) ?? 1;
-            string selectedModel = rngModel switch
-            {
-                1 => propModel1,
-                2 => propModel2,
-                3 => propModel3,
-                4 => propModel4,
-                5 => propModel5,
-                _ => propModel1
-            };
+            string selectedModel = PropModels[Instance!.Random.Next(PropModels.Length)];
             Server.NextFrame(() =>
             {
                 box.SetModel(selectedModel);
