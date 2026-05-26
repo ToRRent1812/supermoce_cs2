@@ -1,5 +1,7 @@
-﻿using CounterStrikeSharp.API.Core;
+﻿using CounterStrikeSharp.API;
+using CounterStrikeSharp.API.Core;
 using jRandomSkills.src.player;
+using System.Collections.Concurrent;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
@@ -7,10 +9,16 @@ namespace jRandomSkills
     public class FastEscape : ISkill
     {
         private const Skills skillName = Skills.FastEscape;
+        private static readonly ConcurrentDictionary<ulong, int> affectedPlayers = [];
 
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, "Szybka pomoc", "Z hostem poruszasz się szybciej", "#1279ff", 2, 2);
+        }
+
+        public static void NewRound()
+        {
+            affectedPlayers.Clear();
         }
 
         public static void DisableSkill(CCSPlayerController player)
@@ -18,6 +26,22 @@ namespace jRandomSkills
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn == null || !playerPawn.IsValid) return;
             playerPawn.VelocityModifier = 1f;
+            affectedPlayers.TryRemove(player.SteamID, out _);
+        }
+
+        public static void OnTick()
+        {
+            foreach (var player in Utilities.GetPlayers())
+            {
+                if (!affectedPlayers.ContainsKey(player.SteamID)) continue;
+
+                var playerPawn = player.PlayerPawn?.Value;
+                if (playerPawn == null || playerPawn.VelocityModifier == 0) continue;
+
+                var buttons = player.Buttons;
+                if (buttons.HasFlag(PlayerButtons.Moveleft) || buttons.HasFlag(PlayerButtons.Moveright) || buttons.HasFlag(PlayerButtons.Forward) || buttons.HasFlag(PlayerButtons.Back))
+                    playerPawn.VelocityModifier = 2.5f;
+            }
         }
 
         public static void HostageFollows(EventHostageFollows @event)
@@ -29,7 +53,8 @@ namespace jRandomSkills
             if (playerInfo == null || playerInfo.Skill != skillName) return;
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn == null || !playerPawn.IsValid) return;
-            playerPawn.VelocityModifier *= 3f;
+            affectedPlayers.TryAdd(player.SteamID, 0);
+            playerPawn.VelocityModifier = 2.5f;
         }
     }
 }

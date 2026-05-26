@@ -13,7 +13,7 @@ namespace jRandomSkills
         private static readonly ConcurrentDictionary<CCSPlayerPawn, PlayerSkillInfo> SkillPlayerInfo = [];
         private static Vector? bombLocation = null;
         private static readonly float tickRate = 64f;
-        private static float bombDistance = 0;
+        private static nint bombDistance = 0;
         private static readonly object setLock = new();
 
         public static void LoadSkill()
@@ -64,9 +64,9 @@ namespace jRandomSkills
                 var player = playerController.As<CCSPlayerController>();
                 if (player == null || !player.IsValid) return;
 
-                if(pawn.AbsOrigin != null && Server.TickCount % 8 == 0) bombDistance = (float)SkillUtils.GetDistance(pawn.AbsOrigin, bombLocation) * 0.025f;
+                if(pawn.AbsOrigin != null) bombDistance = (nint)SkillUtils.GetDistance(pawn.AbsOrigin, bombLocation);
 
-                if (pawn.AbsOrigin == null || bombDistance > 30f)
+                if (pawn.AbsOrigin == null || bombDistance > 1200)
                 {
                     info.Defusing = false;
                     info.DefusingTime = 13f;
@@ -116,20 +116,18 @@ namespace jRandomSkills
         private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo)
         {
             if (!skillInfo.Defusing) return;
-            float percent = Math.Clamp((1f - (skillInfo.DefusingTime / 13f)) * 100f, 0f, 100f);
+            float DefusingPercent = Math.Clamp((1f - (skillInfo.DefusingTime / 13f)) * 100f, 0f, 100f);
+            float DistPercent = Math.Clamp((1f - (bombDistance / 1200f)) * 100f, 0f, 100f);
 
             var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
             if (skillData == null) return;
 
             string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font><br>";
-            string remainingLine = percent < 100f
-                ? $"<font class='fontSize-m' color='#b5ffee'>Rozbrajanie: <font color='#00ff00'>{percent:0}%</font></font><br>"
+            string remainingLine = DefusingPercent < 100f
+                ? $"<font class='fontSize-m' color='#b5ffee'>Postęp: <font color='#00ff00'>{DefusingPercent:0}%  |  Zasięg: {DistPercent:0}%</font></font><br>"
                 : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font>";
-            string bombdistancetext = bombLocation != null 
-            ? $"<br><font class='fontSize-m' class='fontWeight-Bold' color='#ffff00'>Dystans do C4: {bombDistance:1}m | Zasięg: 30m</font>"
-            : "";
 
-            var hudContent = skillLine + remainingLine + bombdistancetext;
+            var hudContent = skillLine + remainingLine;
             player.PrintToCenterHtml(hudContent);
         }
         public class PlayerSkillInfo

@@ -11,6 +11,8 @@ namespace jRandomSkills
     {
         private const Skills skillName = Skills.BrokenKnee;
 
+        private static readonly ConcurrentDictionary<ulong, int> affectedPlayers = [];
+
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, "Strzał w kolano", "Wybierasz gracza, który będzie chodzić wolniej", "#e68a21");
@@ -18,6 +20,7 @@ namespace jRandomSkills
 
         public static void NewRound()
         {
+            affectedPlayers.Clear();
             foreach (var player in Utilities.GetPlayers())
             {
                 SkillUtils.CloseMenu(player);
@@ -30,6 +33,18 @@ namespace jRandomSkills
 
         public static void OnTick()
         {
+            foreach (var player in Utilities.GetPlayers())
+            {
+                if(!affectedPlayers.ContainsKey(player.SteamID)) continue;
+
+                var playerPawn = player.PlayerPawn?.Value;
+                if (playerPawn == null || playerPawn.VelocityModifier == 0) continue;
+
+                var buttons = player.Buttons;
+                if (buttons.HasFlag(PlayerButtons.Moveleft) || buttons.HasFlag(PlayerButtons.Moveright) || buttons.HasFlag(PlayerButtons.Forward) || buttons.HasFlag(PlayerButtons.Back))
+                    playerPawn.VelocityModifier = 0.75f;
+            }
+
             if (Server.TickCount % 32 != 0) return;
             foreach (var player in Utilities.GetPlayers())
             {
@@ -66,10 +81,10 @@ namespace jRandomSkills
             }
 
             if (enemy.PlayerPawn?.Value != null && enemy.PlayerPawn.Value.IsValid)
-            {
-                enemy.PlayerPawn.Value.VelocityModifier *= 0.6f;
-            }
+                enemy.PlayerPawn.Value.VelocityModifier = 0.75f;
+            
             playerInfo.SkillChance = 1;
+            affectedPlayers.TryAdd(enemy.SteamID, 0);
             SkillUtils.PrintToChat(enemy, $"Wróg spowodował, że poruszasz się wolniej.");
         }
 

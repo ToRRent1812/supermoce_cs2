@@ -11,7 +11,7 @@ namespace jRandomSkills
     public class Flash : ISkill
     {
         private const Skills skillName = Skills.Flash;
-        public static readonly ConcurrentDictionary<ulong, int> jumpedPlayers = [];
+        private static readonly ConcurrentDictionary<ulong, int> jumpedPlayers = [];
 
         public static void LoadSkill()
         {

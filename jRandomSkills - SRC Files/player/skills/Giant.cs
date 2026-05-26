@@ -10,6 +10,7 @@ namespace jRandomSkills
     public class Giant : ISkill
     {
         private const Skills skillName = Skills.Giant;
+        private static readonly ConcurrentDictionary<ulong, int> giants = [];
 
         public static void LoadSkill()
         {
@@ -18,6 +19,7 @@ namespace jRandomSkills
 
         public static void NewRound()
         {
+            giants.Clear();
             foreach (var player in Utilities.GetPlayers())
             {
                 if (player == null || !player.IsValid) continue;
@@ -32,6 +34,17 @@ namespace jRandomSkills
 
         public static void OnTick()
         {
+            foreach (var player in Utilities.GetPlayers())
+            {
+                if (!giants.ContainsKey(player.SteamID)) continue;
+
+                var playerPawn = player.PlayerPawn?.Value;
+                if (playerPawn == null || playerPawn.VelocityModifier == 0) continue;
+
+                var buttons = player.Buttons;
+                if (buttons.HasFlag(PlayerButtons.Moveleft) || buttons.HasFlag(PlayerButtons.Moveright) || buttons.HasFlag(PlayerButtons.Forward) || buttons.HasFlag(PlayerButtons.Back))
+                    playerPawn.VelocityModifier = 0.7f;
+            }
             if (Server.TickCount % 32 != 0) return;
             foreach (var player in Utilities.GetPlayers())
             {
@@ -74,6 +87,7 @@ namespace jRandomSkills
                 EnemyPawn.VelocityModifier = 0.7f;
                 EnemyPawn.ActualGravityScale = 0.9f;
                 SkillUtils.PrintToChat(enemy, $"Wróg Cię powiększył.");
+                giants.TryAdd(enemy.SteamID, 0);
             }
             playerInfo.SkillChance = 1;
             
@@ -100,6 +114,7 @@ namespace jRandomSkills
             if (player == null || !player.IsValid) return;
             SkillUtils.CloseMenu(player);
             SkillUtils.ChangePlayerScale(player, 1f);
+            giants.TryRemove(player.SteamID, out _);
         }
     }
 }

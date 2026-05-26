@@ -74,7 +74,10 @@ namespace jRandomSkills
                     player.ExecuteClientCommand("slot3");
                     Instance?.AddTimer(0.5f, () => player.ExecuteClientCommand("slot3"));
                     pawn.VelocityModifier = 1.2f;
-                    SkillUtils.AddHealth(pawn, 800, 999);
+                    pawn.MaxHealth = 750;
+                    Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iMaxHealth");
+                    pawn.Health = 750;
+                    Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
                 }
             });
         }

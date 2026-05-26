@@ -65,6 +65,7 @@ public enum Skills
     FastEscape,
     InstantEscape,
     SlowHost,
+    SpawnSwap,
     Baseball,
     Illusionist,
     Behind,

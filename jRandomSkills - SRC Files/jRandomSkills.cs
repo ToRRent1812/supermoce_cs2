@@ -24,7 +24,7 @@ namespace jRandomSkills
         public override string ModuleName => "Supermoce";
         public override string ModuleAuthor => "D3X (dRandomSkills), Juzlus (jRandomSkills), Rabbit";
         public override string ModuleDescription => "Fork forka który dodaje graczom supermoce";
-        public override string ModuleVersion => "1.4.3";
+        public override string ModuleVersion => "1.4.4";
 
         public override void Load(bool hotReload)
         {
