@@ -146,7 +146,7 @@ namespace jRandomSkills
                         break;
                 }
                 Utilities.SetStateChanged(player, "CBasePlayerController", "m_iDesiredFOV");
-                player.PrintToCenterAlert("Przeciwnik Cię upił!\nZaraz wytrzeźwiejesz");
+                SkillUtils.PrintToChat(player, $" Przeciwnik Cię upił! Zaraz wytrzeźwiejesz");
                 Instance?.AddTimer(10.0f, () =>
                 {
                     player.DesiredFOV = 0;

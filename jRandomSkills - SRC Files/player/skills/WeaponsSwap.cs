@@ -144,14 +144,14 @@ namespace jRandomSkills
                             if (enemyWeapon.Contains("weapon_c4")) SkillUtils.TryGiveWeapon(enemy, CsItem.C4);
                             if (enemy.Team == CsTeam.Terrorist) SkillUtils.TryGiveWeapon(enemy, CsItem.Glock);
                             else SkillUtils.TryGiveWeapon(enemy, CsItem.USPS);
+                            playerPawn.ArmorValue = 100;
+                            SkillUtils.TryGiveWeapon(player, CsItem.AssaultSuit);
+                            Utilities.SetStateChanged(playerPawn, "CCSPlayerPawn", "m_ArmorValue");
                             Instance?.AddTimer(1f, () => enemy.ExecuteClientCommand("slot2"));
                         });
                         //GiveWeapons(enemy, playerWeapon, enemyWeapon.Contains("weapon_c4"), true);
                     }
-                    enemy.PrintToCenterAlert("Wróg ukradł Ci sprzęt.");
-                    playerPawn.ArmorValue = 100;
-                    SkillUtils.TryGiveWeapon(player, CsItem.AssaultSuit);
-                    Utilities.SetStateChanged(playerPawn, "CCSPlayerPawn", "m_ArmorValue");
+                    SkillUtils.PrintToChat(enemy, $"Wróg ukradł Ci sprzęt.");
                 }
                 else
                     skillInfo.LastClick = DateTime.Now;

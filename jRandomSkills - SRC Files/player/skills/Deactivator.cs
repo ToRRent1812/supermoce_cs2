@@ -109,7 +109,7 @@ namespace jRandomSkills
                 enemyInfo.SpecialSkill = enemyInfo.Skill;
                 enemyInfo.Skill = Skills.None;
                 enemyInfo.RandomPercentage = "";
-                enemy.PrintToCenterAlert("Dostałeś antidotum\nStraciłeś supermoc");
+                SkillUtils.PrintToChat(enemy, $"Dostałeś antidotum. Straciłeś supermoc");
             }
         }
     }
