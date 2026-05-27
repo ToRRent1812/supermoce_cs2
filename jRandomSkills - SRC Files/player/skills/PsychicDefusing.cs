@@ -85,6 +85,7 @@ namespace jRandomSkills
                     {
                         plantedBomb.AcceptInput("Kill");
                         SkillUtils.TerminateRound(CsTeam.CounterTerrorist);
+                        // Dodać nagrody za wygranie rundy
                         SkillUtils.PrintToChatAll($" {ChatColors.LightBlue}{player.PlayerName} rozbroił zdalnie bombę.", false);
                     }
                     SkillPlayerInfo.Clear();

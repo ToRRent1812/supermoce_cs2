@@ -60,6 +60,7 @@ namespace jRandomSkills
             Server.NextFrame(() =>
             {
                 if (!inferno.IsValid) return;
+                Server.PrintToConsole($"MaxFlames: {inferno.MaxFlames} | FireCount: {inferno.FireCount} | SpreadCount: {inferno.SpreadCount}");
                 inferno.MaxFlames = 40;
                 inferno.FireCount = 40;
                 inferno.SpreadCount = 40;

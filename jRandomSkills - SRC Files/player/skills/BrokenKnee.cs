@@ -85,7 +85,7 @@ namespace jRandomSkills
             
             playerInfo.SkillChance = 1;
             affectedPlayers.TryAdd(enemy.SteamID, 0);
-            SkillUtils.PrintToChat(enemy, $"Wróg spowodował, że poruszasz się wolniej.");
+            enemy.PrintToCenterAlert("Wróg spowodował\nże poruszasz się wolniej");
         }
 
         public static void EnableSkill(CCSPlayerController player)

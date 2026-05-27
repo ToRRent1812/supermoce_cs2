@@ -108,6 +108,7 @@ public enum Skills
     HolyHandGrenade,
     //ImpactGrenade,
     Impostor,
+    Psycho,
     InfiniteAmmo,
     //Jackal,
     Jammer,

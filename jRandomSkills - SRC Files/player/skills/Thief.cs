@@ -129,7 +129,7 @@ namespace jRandomSkills
                 enemyInfo.SpecialSkill = enemySkill;
                 enemyInfo.Skill = Skills.None;
                 enemyInfo.RandomPercentage = "";
-                SkillUtils.PrintToChat(enemy, $"Twoja supermoc została skradziona.", true);
+                enemy.PrintToCenterAlert("Wróg ukradł Twoją supermoc");
             });
         }
     }

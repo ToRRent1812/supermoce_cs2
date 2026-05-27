@@ -56,7 +56,7 @@ namespace jRandomSkills
                     var targetPawn = target.PlayerPawn.Value;
                     if (targetPawn == null || targetPawn.AbsOrigin == null) continue;
                     int rngDamage = Instance?.Random.Next(1, 4) ?? 1;
-                    if (SkillUtils.GetDistance(ownerPos, targetPawn.AbsOrigin) <= 1000f)
+                    if (SkillUtils.GetDistance(ownerPos, targetPawn.AbsOrigin) <= 950f)
                         SkillUtils.TakeHealth(targetPawn, rngDamage);
                 }
             }

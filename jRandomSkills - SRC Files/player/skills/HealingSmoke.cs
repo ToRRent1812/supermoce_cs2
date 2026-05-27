@@ -11,7 +11,7 @@ namespace jRandomSkills
     public class HealingSmoke : ISkill
     {
         private const Skills skillName = Skills.HealingSmoke;
-       private static readonly ConcurrentDictionary<Vector, byte> smokes = [];
+        private static readonly ConcurrentDictionary<Vector, byte> smokes = [];
 
         public static void LoadSkill()
         {

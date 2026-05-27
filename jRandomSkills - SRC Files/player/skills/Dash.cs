@@ -71,7 +71,7 @@ namespace jRandomSkills
                 QAngle dashAngles = new(0, playerPawn.EyeAngles.Y + moveAngle, 0);
 
                 Vector newVelocity = SkillUtils.GetForwardVector(dashAngles) * 500f;
-                newVelocity.Z = playerPawn.AbsVelocity.Z + 120f;
+                newVelocity.Z = playerPawn.AbsVelocity.Z + 130f;
 
                 playerPawn.AbsVelocity.X = newVelocity.X;
                 playerPawn.AbsVelocity.Y = newVelocity.Y;

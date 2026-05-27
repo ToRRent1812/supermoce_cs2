@@ -107,10 +107,7 @@ namespace jRandomSkills
                     var alivePlayers = Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.PawnIsAlive && p.PawnHealth > 0).ToArray();
                     if (alivePlayers.Length > 0)
                         foreach (var alivePlayer in alivePlayers)
-                        {
                             RemoveAndGiveWeapon(alivePlayer);
-                            SkillUtils.PrintToChat(alivePlayer, "Gracz zmienił Ci broń!", true);
-                        }
                 }
             }
         }

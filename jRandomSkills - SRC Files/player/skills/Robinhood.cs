@@ -66,7 +66,7 @@ namespace jRandomSkills
                 SkillUtils.TryGiveWeapon(enemy, CsItem.Knife);
             }
             playerInfo.SkillChance = 1;
-            SkillUtils.PrintToChat(enemy, $"Wróg skasował Ci ekwipunek.");
+            enemy.PrintToCenterAlert("Wróg skasował Ci ekwipunek");
         }
 
         public static void EnableSkill(CCSPlayerController player)

@@ -148,8 +148,7 @@ namespace jRandomSkills
                         });
                         //GiveWeapons(enemy, playerWeapon, enemyWeapon.Contains("weapon_c4"), true);
                     }
-
-                    SkillUtils.PrintToChat(enemy, $"Wróg ukradł Ci sprzęt.", true);
+                    enemy.PrintToCenterAlert("Wróg ukradł Ci sprzęt.");
                     playerPawn.ArmorValue = 100;
                     SkillUtils.TryGiveWeapon(player, CsItem.AssaultSuit);
                     Utilities.SetStateChanged(playerPawn, "CCSPlayerPawn", "m_ArmorValue");

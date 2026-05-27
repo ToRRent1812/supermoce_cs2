@@ -60,6 +60,7 @@ namespace jRandomSkills
             Server.NextFrame(() =>
             {
                 if (!inferno.IsValid) return;
+                Server.PrintToConsole($"FireLifetime: {inferno.FireLifetime}");
                 inferno.FireLifetime = 60f;
             });
         }

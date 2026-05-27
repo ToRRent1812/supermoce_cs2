@@ -16,7 +16,14 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            ApplyGravityModifier(player);
+            if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (playerInfo == null) return;
+
+            int randomValue = Instance?.Random?.Next(5,13) * 5 ?? 25; //25-60%
+            playerInfo.SkillChance = randomValue / 100f;
+            player.PlayerPawn.Value.ActualGravityScale = (float)(playerInfo.SkillChance ?? 1f);
+            playerInfo.RandomPercentage = (100-randomValue).ToString() + "% mniejsza";
         }
 
         public static void NewRound()
@@ -32,18 +39,6 @@ namespace jRandomSkills
             if (playerInfo == null) return;
             player.PlayerPawn.Value.ActualGravityScale = 1f;
             playerInfo.SkillChance = 1f;
-        }
-
-        private static void ApplyGravityModifier(CCSPlayerController player)
-        {
-            if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (playerInfo == null) return;
-
-            int randomValue = Instance?.Random?.Next(5,13) * 5 ?? 25; //25-60%
-            playerInfo.SkillChance = randomValue / 100f;
-            player.PlayerPawn.Value.ActualGravityScale = (float)(playerInfo.SkillChance ?? 1f);
-            playerInfo.RandomPercentage = (100-randomValue).ToString() + "% mniejsza";
         }
     }
 }

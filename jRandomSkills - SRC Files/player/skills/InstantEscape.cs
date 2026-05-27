@@ -24,6 +24,7 @@ namespace jRandomSkills
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn == null || !playerPawn.IsValid) return;
             SkillUtils.TerminateRound(CsTeam.CounterTerrorist);
+            // Dodać nagrodę finanowsą za rundę
             SkillUtils.PrintToChatAll($" {ChatColors.LightBlue}{player.PlayerName} {ChatColors.Lime}wygrał rundę mając moc {ChatColors.DarkRed}Owsiak", false);
         }
     }

@@ -133,7 +133,7 @@ namespace jRandomSkills
                 }
             }
 
-            Instance?.AddTimer(.1f, () =>
+            Instance?.AddTimer(.2f, () =>
             {
                 player.GiveNamedItem(weapon);
             });

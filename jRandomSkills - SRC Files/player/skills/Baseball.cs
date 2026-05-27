@@ -93,7 +93,7 @@ namespace jRandomSkills
                 
                 var vel = decoy.AbsVelocity;
                 float speed = vel.Length();
-                float targetSpeed = Math.Min(speed * 2f, 1000f);
+                float targetSpeed = Math.Min(speed * 3f, 900f);
 
                 if (speed > .01f)
                 {

@@ -29,7 +29,7 @@ namespace jRandomSkills
                     if (plantedBomb != null && plantedBomb.IsValid)
                         plantedBomb.C4Blow = Server.CurrentTime + 20;
                 });
-                foreach (var p in Utilities.GetPlayers().Where(p => p.IsValid))
+                foreach (var p in Utilities.GetPlayers().Where(p => p.IsValid && p.Health > 0))
                     p.PrintToCenterAlert($"Bomba została podłożona!\n20 s do detonacji");
             }
         }

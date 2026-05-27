@@ -62,7 +62,7 @@ namespace jRandomSkills
             AddMoney(enemy, -moneyStolen);
             AddMoney(player, moneyStolen);
             playerInfo.SkillChance = 1;
-            SkillUtils.PrintToChat(enemy, $"Wróg zabrał Ci połowę kasy ({moneyStolen}$).");
+            enemy.PrintToCenterAlert($"Wróg ukradł Ci\npołowę kasy ({moneyStolen}$)");
             SkillUtils.PrintToChat(player, $"Ukradłeś przeciwnikowi {moneyStolen}$.", false);
         }
 

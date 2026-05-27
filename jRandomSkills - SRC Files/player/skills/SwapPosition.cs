@@ -133,7 +133,6 @@ namespace jRandomSkills
 
             victimPawn.Teleport(attackerPosition, attackerAngles, attackerVelocity);
             attackerPawn.Teleport(victimPosition, victimAngles, victimVelocity);
-            SkillUtils.PrintToChat(victim, $"Magik zamienił się z tobą miejscem!", true);
         }
 
         public class ZamianaMiejsc_PlayerInfo

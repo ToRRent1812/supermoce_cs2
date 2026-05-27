@@ -25,7 +25,7 @@ namespace jRandomSkills
 
         public static void OnTick()
         {
-            if (Server.TickCount % 8 != 0) return;
+            if (Server.TickCount % 16 != 0) return;
             
             foreach (var index in nades.Keys.ToList())
             {
@@ -104,9 +104,9 @@ namespace jRandomSkills
             {
                 float strength = 110f;
                 return new Vector(
-                    (direction.X / length) * strength,
-                    (direction.Y / length) * strength,
-                    (direction.Z / length) * strength
+                    direction.X / length * strength,
+                    direction.Y / length * strength,
+                    direction.Z / length * strength
                 );
             }
 

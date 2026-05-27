@@ -8,9 +8,11 @@ using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
-    public class Chicken : ISkill
+    public class KFC : ISkill
     {
-        private const Skills skillName = Skills.Chicken;
+        private const Skills skillName = Skills.KFC;
+
+        private static readonly ConcurrentDictionary<CCSPlayerController, CBaseModelEntity> chickens = [];
         private static readonly string[] disabledWeapons =
         [
             "weapon_ak47", "weapon_m4a4", "weapon_m4a1", "weapon_m4a1_silencer",
@@ -21,23 +23,23 @@ namespace jRandomSkills
             "weapon_xm1014", "weapon_mag7", "weapon_sawedoff", "weapon_m249",
             "weapon_negev"
         ];
-        private static readonly ConcurrentDictionary<CCSPlayerController, CBaseModelEntity> chickens = [];
         private static readonly string defaultCTModel = "characters/models/ctm_sas/ctm_sas.vmdl";
         private static readonly string defaultTModel = "characters/models/tm_phoenix/tm_phoenix.vmdl";
         private static readonly ConcurrentDictionary<ulong, string> originalModels = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Kurczak", "Zamieniasz się w kurczaka. NIE możesz używać broni głównej.", "#FF8B42", 1);
+            SkillUtils.RegisterSkill(skillName, "KFC", "Zamieniasz wrogów w wielkie kury", "#FF8B42");
         }
 
         public static void NewRound()
         {
             foreach (var player in Utilities.GetPlayers())
-                SetWeaponAttack(player, false);
+                ResetChicken(player);
             foreach (var valuePair in chickens)
                 if (valuePair.Value != null && valuePair.Value.IsValid)
                     valuePair.Value.AcceptInput("Kill");
+            
             chickens.Clear();
             originalModels.Clear();
         }
@@ -46,37 +48,41 @@ namespace jRandomSkills
         {
             var player = @event.Userid;
             if (player == null || !player.IsValid) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (playerInfo?.Skill != skillName) return;
+            if(!chickens.ContainsKey(player)) return;
             SetWeaponAttack(player, true);
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerPawn = player.PlayerPawn?.Value;
-            if (playerPawn != null && playerPawn.IsValid)
+            Instance?.AddTimer(6.0f, () =>
             {
-                Event.EnableTransmit();
+                var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
+                foreach (var enemy in enemies)
+                {
+                    if (enemy == null || !enemy.IsValid) continue;
+                    var enemyPawn = enemy.PlayerPawn?.Value;
+                    if(enemyPawn == null || !enemyPawn.IsValid) continue;
+                    Event.EnableTransmit();
+                    enemyPawn.Health = 50;
+                    enemyPawn.VelocityModifier = 0.8f;
+                    Utilities.SetStateChanged(enemyPawn, "CBaseEntity", "m_iHealth");
 
-                playerPawn.Health = 50;
-                playerPawn.VelocityModifier = 0.9f;
-                Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_iHealth");
+                    enemyPawn.Render = Color.FromArgb(0, 255, 255, 255);
+                    enemyPawn.ShadowStrength = 0.0f;
+                    Utilities.SetStateChanged(enemyPawn, "CBaseModelEntity", "m_clrRender");
 
-                SkillUtils.ChangePlayerScale(player, 0.3f);
+                    if (enemyPawn.CBodyComponent != null && enemyPawn.CBodyComponent.SceneNode != null)
+                        originalModels.TryAdd(enemy.SteamID, enemyPawn.CBodyComponent.SceneNode.GetSkeletonInstance().ModelState.ModelName);
 
-                playerPawn.Render = Color.FromArgb(0, 255, 255, 255);
-                playerPawn.ShadowStrength = 0.0f;
-                Utilities.SetStateChanged(playerPawn, "CBaseModelEntity", "m_clrRender");
-
-                if (playerPawn.CBodyComponent != null && playerPawn.CBodyComponent.SceneNode != null)
-                    originalModels.TryAdd(player.SteamID, playerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().ModelState.ModelName);
-
-                SetWeaponAttack(player, true);
-                CreateChicken(player);
-            }
+                    SkillUtils.ChangePlayerScale(enemy, 2.0f);
+                    SetWeaponAttack(enemy, true);
+                    CreateChicken(enemy);
+                    SkillUtils.PrintToChat(enemy, $"Wróg zamienił Cię w dużą kurę!");
+                }
+            });
         }
 
-        public static void DisableSkill(CCSPlayerController player)
+        private static void ResetChicken(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn?.Value;
             if (playerPawn != null)
@@ -84,13 +90,10 @@ namespace jRandomSkills
                 playerPawn.Health = Math.Min(playerPawn.Health + 50, 100);
                 playerPawn.VelocityModifier = 1.0f;
                 Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_iHealth");
-
                 SkillUtils.ChangePlayerScale(player, 1f);
-
                 playerPawn.Render = Color.FromArgb(255, 255, 255, 255);
                 playerPawn.ShadowStrength = 1.0f;
                 Utilities.SetStateChanged(playerPawn, "CBaseModelEntity", "m_clrRender");
-
                 SetWeaponAttack(player, false);
             }
 
@@ -103,19 +106,27 @@ namespace jRandomSkills
 
             if (originalModels.TryGetValue(player.SteamID, out var model))
             {
-                var pawn = player.PlayerPawn?.Value;
-                if (pawn == null) return;
+                if (playerPawn == null) return;
 
                 Server.NextFrame(() =>
                 {
                     if (string.IsNullOrEmpty(model))
                         model = player.Team == CsTeam.Terrorist ? defaultTModel : defaultCTModel;
                     
-                    pawn.SetModel(model);
-                    var originalRender = pawn.Render;
-                    pawn.Render = Color.FromArgb(255, originalRender.R, originalRender.G, originalRender.B);
+                    playerPawn.SetModel(model);
+                    var originalRender = playerPawn.Render;
+                    playerPawn.Render = Color.FromArgb(255, originalRender.R, originalRender.G, originalRender.B);
                     originalModels.TryRemove(player.SteamID, out _);
                 });
+            }
+        }
+
+        public static void DisableSkill(CCSPlayerController player)
+        {
+            var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
+            foreach (var enemy in enemies)
+            {
+                ResetChicken(enemy);
             }
         }
 
@@ -153,9 +164,9 @@ namespace jRandomSkills
             chickenModel.AcceptInput("InitializeSpawnFromWorld", playerPawn, playerPawn, "");
             Utilities.SetStateChanged(chickenModel, "CBaseEntity", "m_CBodyComponent");
 
-            chickenModel.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = 1.25f;
+            chickenModel.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = 8.0f;
             Utilities.SetStateChanged(chickenModel, "CBaseEntity", "m_CBodyComponent");
-            Server.NextFrame(() => chickenModel.AcceptInput("SetScale", chickenModel, chickenModel, "1.25"));
+            Server.NextFrame(() => chickenModel.AcceptInput("SetScale", chickenModel, chickenModel, "8.0"));
 
             chickenModel.AcceptInput("SetParent", playerPawn, playerPawn, "!activator");
             chickens.TryAdd(player, chickenModel);

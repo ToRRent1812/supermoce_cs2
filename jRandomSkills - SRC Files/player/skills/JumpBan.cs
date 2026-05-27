@@ -10,7 +10,7 @@ namespace jRandomSkills
     public class JumpBan : ISkill
     {
         private const Skills skillName = Skills.JumpBan;
-        public static readonly ConcurrentDictionary<ulong, int> bannedPlayers = [];
+        private static readonly ConcurrentDictionary<ulong, int> bannedPlayers = [];
 
         public static void LoadSkill()
         {

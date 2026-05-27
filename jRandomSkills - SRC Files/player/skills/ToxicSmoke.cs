@@ -15,7 +15,7 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Chemik", "Twoje granaty dymne zadają wrogom obrażenia.<br>Granat po wypaleniu wraca do ręki", "#507529");
+            SkillUtils.RegisterSkill(skillName, "Chemik", "Twoje granaty dymne zadają wrogom obrażenia. Granat po wypaleniu wraca do ręki", "#507529");
         }
 
         public static void NewRound()
@@ -70,7 +70,7 @@ namespace jRandomSkills
                     // only hurt opposing team
                     if (player.Team == ownerTeam) continue;
 
-                    if (SkillUtils.GetDistance(smokePos, player.PlayerPawn.Value.AbsOrigin) <= 160)
+                    if (SkillUtils.GetDistance(smokePos, player.PlayerPawn.Value.AbsOrigin) <= 170)
                         SkillUtils.TakeHealth(player.PlayerPawn.Value, rngDamage);
                 }
             }
