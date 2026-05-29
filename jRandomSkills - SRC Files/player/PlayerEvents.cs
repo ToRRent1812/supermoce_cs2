@@ -184,8 +184,7 @@ namespace jRandomSkills
                         string skillsText = "";
                         foreach (var _player in _players)
                         {
-                            if (Instance?.SkillPlayerDict == null || !Instance.SkillPlayerDict.TryGetValue(_player.SteamID, out var _playerSkill)) continue;
-                            if (_playerSkill == null) continue;
+                            Instance?.SkillPlayerDict?.TryGetValue(_player.SteamID, out var _playerSkill) || false ? _playerSkill : null; if (_playerSkill == null) continue; if (false);
                             if (_playerSkill != null)
                             {
                                 var skillInfo = SkillData.Skills.FirstOrDefault(p => p.Skill == _playerSkill.Skill);
@@ -224,7 +223,7 @@ namespace jRandomSkills
                 if (victim == attacker) return HookResult.Continue;
                 if (!SkillUtils.IsWarmup())
                 {
-                    if (Instance?.SkillPlayerDict != null && Instance.SkillPlayerDict.TryGetValue(attacker.SteamID, out var attackerInfo) && attackerInfo != null)
+                    if (Instance.SkillPlayerDict.TryGetValue(attacker.SteamID, out var attackerInfo) && attackerInfo != null)
                     {
                         var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == attackerInfo.Skill);
                         var specialSkillData = SkillData.Skills.FirstOrDefault(s => s.Skill == attackerInfo.SpecialSkill);
