@@ -15,8 +15,7 @@ namespace jRandomSkills
         public static jRandomSkills? Instance { get; private set; }
         internal static PluginCapability<RayTraceAPI.CRayTraceInterface> RayTraceInterface { get; } = new("raytrace:craytraceinterface");
 
-        public ConcurrentDictionary<ulong, jSkill_PlayerInfo> SkillPlayerDict { get; set; } = [];
-        public CCSPlayerController[] CachedValidPlayers { get; set; } = [];
+        public ConcurrentBag<jSkill_PlayerInfo> SkillPlayer { get; set; } = [];
         public Random Random { get; } = new();
         public CCSGameRules? GameRules { get; set; }
         private ConcurrentBag<string> ManifestResources { get; set; } = [ "models/sprays/spray_plane.vmdl" ];

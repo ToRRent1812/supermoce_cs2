@@ -23,7 +23,7 @@ namespace jRandomSkills
             foreach (var player in Utilities.GetPlayers())
             {
                 if (Instance?.IsPlayerValid(player) == false) return;
-                var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
+                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                 if (playerInfo?.Skill == skillName)
                     HandleDash(player);
             }
@@ -37,7 +37,7 @@ namespace jRandomSkills
             var flags = (PlayerFlags)playerPawn.Flags;
             var buttons = player.Buttons;
 
-            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerPawn == null || playerInfo == null) return;
 
             if ((LF[player.Slot] & PlayerFlags.FL_ONGROUND) != 0 && (flags & PlayerFlags.FL_ONGROUND) == 0 && (LB[player.Slot] & PlayerButtons.Jump) == 0 && (buttons & PlayerButtons.Jump) != 0)

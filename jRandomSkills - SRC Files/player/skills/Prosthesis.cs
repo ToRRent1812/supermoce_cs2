@@ -22,7 +22,7 @@ namespace jRandomSkills
             var hitgroup = (HitGroup_t)@event.Hitgroup;
 
             if (Instance?.IsPlayerValid(attacker) == false || Instance?.IsPlayerValid(victim) == false) return;
-            var victimInfo = Instance?.SkillPlayerDict?.TryGetValue(victim?.SteamID, out var skillPlayer) ? skillPlayer : null;
+            var victimInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
             if (victimInfo == null || victimInfo.Skill != skillName) return;
 
             HitGroup_t[] disabledHitbox = [HitGroup_t.HITGROUP_LEFTARM, HitGroup_t.HITGROUP_RIGHTARM, HitGroup_t.HITGROUP_LEFTLEG, HitGroup_t.HITGROUP_RIGHTLEG];

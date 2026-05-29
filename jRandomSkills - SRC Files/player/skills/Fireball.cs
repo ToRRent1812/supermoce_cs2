@@ -35,7 +35,7 @@ namespace jRandomSkills
 
             if (!(weapon == "inferno" || weapon == "molotov" || weapon == "incgrenade")) return;
 
-            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(attacker.SteamID, out var skillPlayer) ? skillPlayer : null;
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
             if (playerInfo?.Skill != skillName) return;
 
             if (lastExplosionTick.TryGetValue(attacker.SteamID, out var last) && Server.TickCount - last < 64) return;
@@ -81,7 +81,7 @@ namespace jRandomSkills
         {
             var player = @event.Userid;
             if (player == null || !player.IsValid) return;
-            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
 
             Vector pos = new(@event.X, @event.Y, @event.Z+10);

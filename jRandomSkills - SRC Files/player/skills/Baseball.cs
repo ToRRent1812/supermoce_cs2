@@ -26,7 +26,7 @@ namespace jRandomSkills
             if (weapon != "decoy") return;
             if (Instance == null || !Instance.IsPlayerValid(victim) || !Instance.IsPlayerValid(attacker)) return;
 
-            var attackerInfo = Instance?.SkillPlayerDict?.TryGetValue(attacker?.SteamID, out var skillPlayer) ? skillPlayer : null;
+            var attackerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
             if (attackerInfo?.Skill != skillName) return;
 
             SkillUtils.TakeHealth(victim!.PlayerPawn.Value, 999);
@@ -47,7 +47,7 @@ namespace jRandomSkills
             var player = pawn.Controller.Value.As<CCSPlayerController>();
             if (player == null || !player.IsValid) return;
 
-            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
             decoys.TryAdd(decoy.Index, 0);
 
@@ -60,7 +60,7 @@ namespace jRandomSkills
             var player = @event.Userid;
             if (player == null || !player.IsValid) return;
             
-            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
 
             uint key = (uint)@event.Entityid;

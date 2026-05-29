@@ -25,7 +25,7 @@ namespace jRandomSkills
             if (Instance?.IsPlayerValid(attacker) == false || Instance?.IsPlayerValid(victim) == false || attacker == victim) return;
             if (nades.Contains(weapon)) return;
 
-            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(attacker?.SteamID, out var skillPlayer) ? skillPlayer : null;
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
             if (playerInfo?.Skill != skillName) return;
 
             if (IsBehind(attacker!, victim!))

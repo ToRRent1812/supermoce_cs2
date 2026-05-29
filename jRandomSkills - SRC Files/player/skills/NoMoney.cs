@@ -24,7 +24,7 @@ namespace jRandomSkills
             if (attackerPlayer == null || !attackerPlayer.IsValid || victimPlayer == null || !victimPlayer.IsValid || attackerPlayer.TeamNum == victimPlayer.TeamNum) return;
             if (attackerPlayer == victimPlayer) return;
 
-            var attackerInfo = Instance?.SkillPlayerDict?.TryGetValue(attackerPlayer.SteamID, out var skillPlayer) ? skillPlayer : null;
+            var attackerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attackerPlayer.SteamID);
             if (attackerInfo?.Skill == skillName)
             {
                 var vmoneyServices = victimPlayer?.InGameMoneyServices;

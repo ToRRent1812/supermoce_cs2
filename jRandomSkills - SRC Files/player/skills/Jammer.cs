@@ -45,7 +45,7 @@ namespace jRandomSkills
             {
                 if (player != null && player.IsValid)
                 {
-                    var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
+                    var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
                     if (player.PawnIsAlive && playerInfo?.Skill == skillName) return;
                     // Jeżeli ktoś nadal ma knura, to nie przywracamy celownika
 

@@ -29,7 +29,7 @@ namespace jRandomSkills
             foreach (var player in Utilities.GetPlayers())
             {
                 if (Instance?.IsPlayerValid(player) == false) continue;
-                var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
+                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
 
                 if (playerInfo?.Skill == skillName)
                 {

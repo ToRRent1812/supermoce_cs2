@@ -23,7 +23,7 @@ namespace jRandomSkills
             if (aliveCTPlayers.Length <= 0) return;
             foreach (var alivePlayer in aliveCTPlayers)
             {
-                var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(alivePlayer.SteamID, out var skillPlayer) ? skillPlayer : null;
+                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == alivePlayer.SteamID);
                 if (playerInfo?.Skill == skillName)
                 {
                     var plantedBomb = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").FirstOrDefault();

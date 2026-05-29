@@ -25,10 +25,10 @@ namespace jRandomSkills
             foreach (var (info, player) in infoList)
             {
                 if (player == null) continue;
-                var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
+                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
 
                 var observedPlayer = Utilities.GetPlayers().FirstOrDefault(p => p?.Pawn?.Value?.Handle == player?.Pawn?.Value?.ObserverServices?.ObserverTarget?.Value?.Handle);
-                var observerInfo = Instance?.SkillPlayerDict?.TryGetValue(observedPlayer?.SteamID, out var observerSkillPlayer) ? observerSkillPlayer : null;
+                var observerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == observedPlayer?.SteamID);
 
                 foreach (var glow in glows)
                 {
@@ -73,7 +73,7 @@ namespace jRandomSkills
         {
             foreach (var enemy in Utilities.GetPlayers().FindAll(p => p.PawnIsAlive && p.Team is CsTeam.Terrorist or CsTeam.CounterTerrorist))
             {
-                var enemyInfo = Instance?.SkillPlayerDict?.TryGetValue(enemy.SteamID, out var skillPlayer) ? skillPlayer : null;
+                var enemyInfo = Instance?.SkillPlayer.FirstOrDefault(e => e.SteamID == enemy.SteamID);
                 if (enemyInfo?.Skill == Skills.Ghost)
                     return;
 

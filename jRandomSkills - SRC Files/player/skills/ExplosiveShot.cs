@@ -21,7 +21,7 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo == null) return;
             int randomValue = Instance?.Random?.Next(5,11) * 3 ?? 15; //15-30%
             playerInfo.SkillChance = randomValue / 100f;
@@ -73,7 +73,7 @@ namespace jRandomSkills
                 return HookResult.Continue;
 
             CCSPlayerController attacker = attackerPawn.Controller.Value.As<CCSPlayerController>();
-            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(attacker.SteamID, out var skillPlayer) ? skillPlayer : null;
+            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
             if (playerInfo == null || playerInfo.Skill != skillName) return HookResult.Continue;
             var activeWeapon = attackerPawn.WeaponServices?.ActiveWeapon.Value;
             if (activeWeapon != null && activeWeapon.IsValid)
