@@ -22,12 +22,9 @@ namespace jRandomSkills
         public static void WeaponFire(EventWeaponFire @event)
         {
             var player = @event.Userid;
-            if (player == null) return;
-            if (Instance == null || !Instance.IsPlayerValid(player)) return;
+            if (Instance?.IsPlayerValid(player) == false) return;
 
-            var dict = Instance.SkillPlayerDict;
-            if (dict == null) return;
-            if (!dict.TryGetValue(player.SteamID, out var playerInfo) || playerInfo == null) return;
+            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player?.SteamID, out var skillPlayer) ? skillPlayer : null;
 
             if (playerInfo?.Skill == skillName)
             {
