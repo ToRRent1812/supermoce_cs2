@@ -26,7 +26,7 @@ namespace jRandomSkills
             var player = Utilities.GetPlayers().FirstOrDefault(p => p.Pawn?.Value != null && p.Pawn.Value.IsValid && p.Pawn.Value.Index == userIndex);
             if (Instance?.IsPlayerValid(player) == false) return;
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player?.SteamID, out var skillPlayer) ? skillPlayer : null;
             if (playerInfo?.Skill != skillName) return;
 
             um.Recipients.Clear();

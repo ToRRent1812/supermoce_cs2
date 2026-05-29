@@ -29,7 +29,7 @@ namespace jRandomSkills
 
             if (attackingPawn == null || !attackingPawn.IsValid || victimPawn == null || !victimPawn.IsValid || victimPawn.AbsOrigin == null) return;
 
-            var attackerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attackerPlayer.SteamID);
+            var attackerInfo = Instance?.SkillPlayerDict?.TryGetValue(attackerPlayer.SteamID, out var skillPlayer) ? skillPlayer : null;
             if (attackerInfo?.Skill == skillName)
             {
                 TeleportPlayer(attackerPlayer, victimPawn.AbsOrigin);

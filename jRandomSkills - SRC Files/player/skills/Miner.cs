@@ -88,7 +88,7 @@ namespace jRandomSkills
             if (pawn.Controller.Value == null || !pawn.Controller.Value.IsValid) return;
             var player = pawn.Controller.Value.As<CCSPlayerController>();
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
             if (playerInfo?.Skill != skillName) return;
 
             nades.TryAdd(grenade.Index, 0);

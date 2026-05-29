@@ -17,7 +17,7 @@ namespace jRandomSkills
         public static void EnableSkill(CCSPlayerController player)
         {
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
             if (playerInfo == null) return;
 
             int randomValue = Instance?.Random?.Next(5,13) * 5 ?? 25; //25-60%
@@ -35,7 +35,7 @@ namespace jRandomSkills
         public static void DisableSkill(CCSPlayerController player)
         {
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
             if (playerInfo == null) return;
             player.PlayerPawn.Value.ActualGravityScale = 1f;
             playerInfo.SkillChance = 1f;

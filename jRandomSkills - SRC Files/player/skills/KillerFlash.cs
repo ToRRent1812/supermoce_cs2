@@ -20,8 +20,8 @@ namespace jRandomSkills
             var attacker = @event.Attacker;
             if (Instance?.IsPlayerValid(player) == false || Instance?.IsPlayerValid(attacker) == false) return;
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
-            var attackerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
+            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player?.SteamID, out var skillPlayer) ? skillPlayer : null;
+            var attackerInfo = Instance?.SkillPlayerDict?.TryGetValue(attacker?.SteamID, out var skillPlayer) ? skillPlayer : null;
 
             if (attackerInfo?.Skill == skillName && playerInfo?.Skill != Skills.AntyFlash && player!.PlayerPawn.Value!.FlashDuration >= 0.5f)
                 player?.PlayerPawn?.Value?.CommitSuicide(false, true);

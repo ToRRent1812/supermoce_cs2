@@ -17,7 +17,7 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
             if (playerInfo == null) return;
             int moneyBonus = (Instance?.Random.Next(5, 11)) * 1000 ?? 5000;
             playerInfo.SkillChance = moneyBonus;
@@ -26,7 +26,7 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
             if (playerInfo == null) return;
             playerInfo.SkillChance = 0;
         }
@@ -39,7 +39,7 @@ namespace jRandomSkills
             if (attackerPlayer == null || !attackerPlayer.IsValid || victimPlayer == null || !victimPlayer.IsValid || attackerPlayer.TeamNum == victimPlayer.TeamNum) return;
             if (attackerPlayer == victimPlayer) return;
 
-            var attackerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attackerPlayer.SteamID);
+            var attackerInfo = Instance?.SkillPlayerDict?.TryGetValue(attackerPlayer.SteamID, out var skillPlayer) ? skillPlayer : null;
 
             if (attackerInfo?.Skill == skillName)
             {

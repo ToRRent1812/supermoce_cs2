@@ -21,7 +21,7 @@ namespace jRandomSkills
             var player = @event.Userid;
             if (!IsDeadPlayerValid(player)) return;
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player?.SteamID, out var skillPlayer) ? skillPlayer : null;
             if (playerInfo?.Skill == skillName)
                 SpawnExplosion(player!);
         }

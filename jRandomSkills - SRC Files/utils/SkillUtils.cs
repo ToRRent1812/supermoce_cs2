@@ -174,7 +174,7 @@ namespace jRandomSkills
             var manager = GetMenuManager();
             if (manager == null) return;
 
-            var playerInfo = jRandomSkills.Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = jRandomSkills.Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var playerInfo) ? playerInfo : null;
             if (playerInfo == null) return;
 
             Dictionary<string, Action<CCSPlayerController, IWasdMenuOption>> list = [];
@@ -192,7 +192,7 @@ namespace jRandomSkills
         {
             if (player?.IsValid != true) return;
 
-            var playerInfo = jRandomSkills.Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = jRandomSkills.Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var playerInfo) ? playerInfo : null;
             if (playerInfo == null) return;
 
             var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == playerInfo.Skill);

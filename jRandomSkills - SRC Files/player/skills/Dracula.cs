@@ -20,7 +20,7 @@ namespace jRandomSkills
             var victim = @event.Userid;
 
             if (Instance?.IsPlayerValid(attacker) == false || Instance?.IsPlayerValid(victim) == false || attacker == victim) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
+            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(attacker?.SteamID, out var skillPlayer) ? skillPlayer : null;
 
             if (playerInfo?.Skill == skillName && victim!.PawnIsAlive)
                 HealAttacker(attacker!, @event.DmgHealth);

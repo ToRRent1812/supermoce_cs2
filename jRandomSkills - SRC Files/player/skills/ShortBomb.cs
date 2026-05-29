@@ -19,7 +19,7 @@ namespace jRandomSkills
             var player = @event.Userid;
             if (Instance?.IsPlayerValid(player) == false) return;
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player?.SteamID, out var skillPlayer) ? skillPlayer : null;
             if (playerInfo?.Skill != skillName) return;
 
             var plantedBomb = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").FirstOrDefault();

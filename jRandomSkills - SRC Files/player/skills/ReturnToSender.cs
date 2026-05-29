@@ -29,7 +29,7 @@ namespace jRandomSkills
             int damage = @event.DmgHealth;
 
             if (Instance?.IsPlayerValid(attacker) == false || Instance?.IsPlayerValid(victim) == false || attacker == victim) return;
-            var attackerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
+            var attackerInfo = Instance?.SkillPlayerDict?.TryGetValue(attacker?.SteamID, out var skillPlayer) ? skillPlayer : null;
             if (attackerInfo == null || attackerInfo.Skill != skillName) return;
 
             if (playersToSender.TryGetValue(victim!.Handle, out _))

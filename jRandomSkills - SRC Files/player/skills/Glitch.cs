@@ -38,7 +38,7 @@ namespace jRandomSkills
             {
                 if (oplayer != null && oplayer.IsValid)
                 {
-                    var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == oplayer.SteamID);
+                    var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(oplayer.SteamID, out var skillPlayer) ? skillPlayer : null;
                     if (oplayer.PawnIsAlive && playerInfo?.Skill == skillName) return;
                     // Jeżeli ktoś nadal ma Glitch, to nie przywracamy radaru
 

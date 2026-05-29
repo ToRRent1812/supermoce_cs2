@@ -19,7 +19,7 @@ namespace jRandomSkills
             var victim = @event.Userid;
 
             if (Instance?.IsPlayerValid(attacker) == false || Instance?.IsPlayerValid(victim) == false || attacker == victim) return;
-            var attackerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
+            var attackerInfo = Instance?.SkillPlayerDict?.TryGetValue(attacker?.SteamID, out var skillPlayer) ? skillPlayer : null;
 
             if (attackerInfo?.Skill == skillName && victim!.PawnIsAlive)
                 if (Instance?.Random.NextDouble() <= attackerInfo.SkillChance)
@@ -32,7 +32,7 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
             if (playerInfo == null) return;
 
             int randomValue = Instance?.Random?.Next(2,6) * 5 ?? 10; //10-25%

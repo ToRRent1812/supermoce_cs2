@@ -17,7 +17,7 @@ namespace jRandomSkills
         {
             var player = @event.Userid;
             if (player == null || !player.IsValid) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
             if (playerInfo?.Skill != skillName) return;
             SkillUtils.AddHealth(player.PlayerPawn.Value, Instance?.Random.Next(8, 16) ?? 8);
         }

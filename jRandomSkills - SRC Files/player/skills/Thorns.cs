@@ -19,7 +19,7 @@ namespace jRandomSkills
             var victim = @event.Userid;
 
             if (Instance?.IsPlayerValid(attacker) == false || Instance?.IsPlayerValid(victim) == false || attacker == victim) return;
-            var victimInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
+            var victimInfo = Instance?.SkillPlayerDict?.TryGetValue(victim?.SteamID, out var skillPlayer) ? skillPlayer : null;
             if (victimInfo?.Skill == skillName && victim!.PawnIsAlive && attacker!.PawnIsAlive)
             {
                 SkillUtils.TakeHealth(attacker.PlayerPawn.Value, (int)(@event.DmgHealth * .15f), false);

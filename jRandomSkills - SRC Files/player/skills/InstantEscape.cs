@@ -19,7 +19,7 @@ namespace jRandomSkills
             var player = @event.Userid;
             if (player == null || !player.IsValid) return;
             if (Instance?.IsPlayerValid(player) == false) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
             if (playerInfo == null || playerInfo.Skill != skillName) return;
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn == null || !playerPawn.IsValid) return;

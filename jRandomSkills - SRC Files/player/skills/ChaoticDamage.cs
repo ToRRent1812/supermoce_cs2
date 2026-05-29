@@ -31,7 +31,7 @@ namespace jRandomSkills
             if (SkillUtils.IsFreezetime()) return;
             foreach (var player in Utilities.GetPlayers())
             {
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
                 if (playerInfo?.Skill == skillName && SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
                     UpdateHUD(player, skillInfo);
             }
@@ -119,7 +119,7 @@ namespace jRandomSkills
             CCSPlayerController attacker = attackerPawn.Controller.Value.As<CCSPlayerController>();
             CCSPlayerController victim = victimPawn.Controller.Value.As<CCSPlayerController>();
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(attacker.SteamID, out var skillPlayer) ? skillPlayer : null;
             if (playerInfo == null) return HookResult.Continue;
 
             var activeWeapon = attackerPawn.WeaponServices?.ActiveWeapon.Value;

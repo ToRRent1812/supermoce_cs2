@@ -15,7 +15,7 @@ namespace jRandomSkills
         private static void Command_UseTypeSkill(CCSPlayerController? player, CommandInfo _)
         {
             if (player == null || Instance?.GameRules?.FreezePeriod == true) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (Instance?.SkillPlayerDict == null || !Instance.SkillPlayerDict.TryGetValue(player.SteamID, out var playerInfo)) return;
             if (playerInfo == null || playerInfo.IsDrawing) return;
 
             var playerPawn = player.PlayerPawn.Value;

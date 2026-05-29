@@ -19,7 +19,7 @@ namespace jRandomSkills
             var victim = @event.Userid;
             if (killer == null || killer == victim || Instance?.IsPlayerValid(killer) == false || !killer.PawnIsAlive) return;
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == killer.SteamID);
+            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(killer.SteamID, out var skillPlayer) ? skillPlayer : null;
             if (playerInfo?.Skill == skillName)
             {
                 var killerPawn = killer.PlayerPawn.Value;

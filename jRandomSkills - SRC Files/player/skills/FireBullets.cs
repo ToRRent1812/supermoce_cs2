@@ -28,7 +28,7 @@ namespace jRandomSkills
             var player = @event.Userid;
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null) return;
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
             if (playerInfo?.Skill == skillName)
                 InfectedPlayers.TryRemove(player.PlayerPawn.Value, out _);
         }
@@ -43,7 +43,7 @@ namespace jRandomSkills
             if (attacker == victim || attacker.TeamNum == victim.TeamNum)
                 return;
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(attacker.SteamID, out var skillPlayer) ? skillPlayer : null;
             if (playerInfo?.Skill != skillName) return;
 
             InfectedPlayers.AddOrUpdate(victim.PlayerPawn.Value, Server.TickCount, (k, v) => Server.TickCount);

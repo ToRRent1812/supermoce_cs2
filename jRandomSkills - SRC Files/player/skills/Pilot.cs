@@ -27,7 +27,7 @@ namespace jRandomSkills
             if (SkillUtils.IsFreezetime()) return;
             foreach (var player in Utilities.GetPlayers())
             {
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
                 if (playerInfo?.Skill == skillName)
                     HandlePilot(player);
             }

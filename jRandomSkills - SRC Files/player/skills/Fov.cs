@@ -31,7 +31,7 @@ namespace jRandomSkills
             var player = @event.Userid;
             if (player == null) return;
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
             if (playerInfo?.Skill == skillName)
                 SkillPlayerInfo.TryRemove(player.SteamID, out _);
         }
@@ -41,7 +41,7 @@ namespace jRandomSkills
             if (SkillUtils.IsFreezetime()) return;
             foreach (var player in Utilities.GetPlayers())
             {
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
                 if (playerInfo != null && playerInfo?.Skill == skillName)
                     if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
                         if (skillInfo.LastClick.AddSeconds(4) >= DateTime.Now)

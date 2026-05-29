@@ -13,8 +13,8 @@ namespace jRandomSkills
             Instance?.RegisterListener<OnTick>(() =>
             {
                 UpdateGameRules();
-                var validPlayers = Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV).ToArray();
-                foreach (var validPlayer in validPlayers)
+                CacheValidPlayers();
+                foreach (var validPlayer in Instance?.CachedValidPlayers ?? [])
                     UpdatePlayerHud(validPlayer);
             });
 
@@ -41,10 +41,16 @@ namespace jRandomSkills
                 InitializeGameRules();
         }
 
+        private static void CacheValidPlayers()
+        {
+            if (Instance != null)
+                Instance.CachedValidPlayers = Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV).ToArray();
+        }
+
         private static void UpdatePlayerHud(CCSPlayerController player)
         {
             if (player == null) return;
-            var skillPlayer = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (Instance?.SkillPlayerDict == null || !Instance.SkillPlayerDict.TryGetValue(player.SteamID, out var skillPlayer)) return;
             if (skillPlayer == null) return;
 
             string infoLine = "";
@@ -92,10 +98,10 @@ namespace jRandomSkills
             var pawn = player.Pawn?.Value;
             if (pawn == null) return null;
 
-            var observedPlayer = Utilities.GetPlayers().FirstOrDefault(p => p?.Pawn?.Value?.Handle == pawn.ObserverServices?.ObserverTarget?.Value?.Handle);
+            var observedPlayer = Instance?.CachedValidPlayers?.FirstOrDefault(p => p?.Pawn?.Value?.Handle == pawn.ObserverServices?.ObserverTarget?.Value?.Handle);
             if (observedPlayer == null) return null;
 
-            var observeredPlayerSkill = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == observedPlayer.SteamID);
+            if (Instance?.SkillPlayerDict == null || !Instance.SkillPlayerDict.TryGetValue(observedPlayer.SteamID, out var observeredPlayerSkill)) return null;
             if (observeredPlayerSkill == null) return null;
 
             var skillInfo = SkillData.Skills.FirstOrDefault(s => s.Skill == observeredPlayerSkill.Skill);

@@ -40,7 +40,7 @@ namespace jRandomSkills
             if (pawn == null || !pawn.IsValid || pawn.Controller == null || !pawn.Controller.IsValid || pawn.Controller.Value == null || !pawn.Controller.Value.IsValid) return;
             var player = pawn.Controller.Value.As<CCSPlayerController>();
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
             if (playerInfo?.Skill != skillName || Instance?.GameRules == null) return;
 
             if (Instance != null && Instance.GameRules != null)
@@ -55,7 +55,7 @@ namespace jRandomSkills
             if (bombPlanted) return;
             foreach (var player in Utilities.GetPlayers())
             {
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
                 if (playerInfo?.Skill == skillName)
                     UpdateHUD(player);
             }

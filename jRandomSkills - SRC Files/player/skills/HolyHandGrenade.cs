@@ -30,7 +30,7 @@ namespace jRandomSkills
                 if (playerPawn == null || !playerPawn.IsValid) return;
 
                 var player = Utilities.GetPlayers().FirstOrDefault(p => p.PlayerPawn.Index == playerPawn.Index);
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+                var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player?.SteamID, out var skillPlayer) ? skillPlayer : null;
                 if (playerInfo?.Skill != skillName) return;
 
                 hegrenade.Damage *= 3f;

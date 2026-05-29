@@ -26,7 +26,7 @@ namespace jRandomSkills
         public static void EnableSkill(CCSPlayerController player)
         {
             if(player == null || !player.IsValid) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
             if (playerInfo == null || playerInfo?.Skill != skillName) return;
             skillExists = true;
         }
@@ -38,7 +38,7 @@ namespace jRandomSkills
             {
                 if (p != null && p.IsValid)
                 {
-                    var playerInfo = Instance?.SkillPlayer.FirstOrDefault(a => a.SteamID == p.SteamID);
+                    var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(p.SteamID, out var skillPlayer) ? skillPlayer : null;
                     if (p.PawnIsAlive && playerInfo?.Skill == skillName) return;
                 }
             }
@@ -50,7 +50,7 @@ namespace jRandomSkills
             var player = @event.Userid;
             if (player == null || !player.IsValid) return;
             if (Instance?.IsPlayerValid(player) == false) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
             if (playerInfo == null) return;
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn == null || !playerPawn.IsValid) return;

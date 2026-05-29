@@ -18,7 +18,7 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
             if (playerInfo != null)
             {
                 playerInfo.SkillChance = Instance?.Random.Next(10, 41) ?? 10;
@@ -30,7 +30,7 @@ namespace jRandomSkills
         public static void DisableSkill(CCSPlayerController player)
         {
             moneyLossPerBullet = 0;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
             if (playerInfo == null) return;
             playerInfo.SkillChance = 0;
         }
@@ -38,7 +38,7 @@ namespace jRandomSkills
         public static void WeaponFire(EventWeaponFire @event)
         {
             var player = @event.Userid;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player?.SteamID, out var skillPlayer) ? skillPlayer : null;
             if (player != null && playerInfo?.Skill != skillName && player.Team == CsTeam.CounterTerrorist)
                 TakeMoney(player, moneyLossPerBullet);
         }

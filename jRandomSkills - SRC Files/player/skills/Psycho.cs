@@ -32,7 +32,7 @@ namespace jRandomSkills
             {
                 if (p != null && p.IsValid && p.Team == CsTeam.CounterTerrorist)
                 {
-                    var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                    var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
                     if (player.PawnIsAlive && playerInfo?.Skill == skillName) return;
                     // Jeżeli ktoś nadal ma psycho, to nie usuwamy mocy
                     skillEnabled = true;

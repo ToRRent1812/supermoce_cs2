@@ -28,7 +28,7 @@ namespace jRandomSkills
             var victim = @event.Userid;
 
             if (Instance?.IsPlayerValid(attacker) == false || Instance?.IsPlayerValid(victim) == false || attacker == victim) return;
-            var attackerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
+            var attackerInfo = Instance?.SkillPlayerDict?.TryGetValue(attacker?.SteamID, out var skillPlayer) ? skillPlayer : null;
 
             var victimPawn = victim!.PlayerPawn.Value;
             if (victimPawn == null || !victimPawn.IsValid) return;

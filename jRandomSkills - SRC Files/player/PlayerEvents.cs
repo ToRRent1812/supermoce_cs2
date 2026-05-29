@@ -53,9 +53,9 @@ namespace jRandomSkills
         {
             lock (setLock)
             {
-                if (Instance?.SkillPlayer != null)
+                if (Instance?.SkillPlayerDict != null)
                 {
-                    foreach (var playerSkill in Instance.SkillPlayer)
+                    foreach (var playerSkill in Instance.SkillPlayerDict.Values)
                         if (!playerSkill.IsDrawing)
                             Instance.SkillAction(playerSkill.Skill.ToString(), eventName, args);
                 }
@@ -87,9 +87,9 @@ namespace jRandomSkills
         {
             lock (setLock)
             {
-                if (Instance?.SkillPlayer != null)
+                if (Instance?.SkillPlayerDict != null)
                 {
-                    foreach (var playerSkill in Instance.SkillPlayer)
+                    foreach (var playerSkill in Instance.SkillPlayerDict.Values)
                         if (!playerSkill.IsDrawing)
                             Instance.SkillAction(playerSkill.Skill.ToString(), "OnTick");
                 }
@@ -103,7 +103,7 @@ namespace jRandomSkills
                 var player = @event.Userid;
                 if (player == null || !player.IsValid) return HookResult.Continue;
 
-                Instance?.SkillPlayer.Add(new jSkill_PlayerInfo
+                Instance?.SkillPlayerDict?.TryAdd(player.SteamID, new jSkill_PlayerInfo
                 {
                     SteamID = player.SteamID,
                     PlayerName = player.PlayerName,
@@ -127,14 +127,7 @@ namespace jRandomSkills
                 var player = @event.Userid;
                 if (player == null || !player.IsValid) return HookResult.Continue;
 
-                var skillPlayer = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (skillPlayer == null) return HookResult.Continue;
-
-                var items = Instance?.SkillPlayer.ToList();
-                if (Instance != null && items != null)
-                {
-                    Instance.SkillPlayer = [.. items.Where(p => p.SteamID != skillPlayer.SteamID)];
-                }
+                Instance?.SkillPlayerDict?.TryRemove(player.SteamID, out _);
 
                 return HookResult.Continue;
             }
@@ -148,7 +141,7 @@ namespace jRandomSkills
                 Instance?.AddTimer(.1f, DisableAll);
                 foreach (var player in Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.Team is CsTeam.CounterTerrorist or CsTeam.Terrorist))
                 {
-                    var skillPlayer = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                    if (Instance?.SkillPlayerDict == null || !Instance.SkillPlayerDict.TryGetValue(player.SteamID, out var skillPlayer)) continue;
                     if (skillPlayer == null) continue;
                     skillPlayer.IsDrawing = true;
                 }
@@ -169,8 +162,8 @@ namespace jRandomSkills
             {
                 foreach (var player in Utilities.GetPlayers().Where(p => !p.IsBot))
                 {
-                    var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                    if (playerInfo == null) return;
+                    if (Instance?.SkillPlayerDict == null || !Instance.SkillPlayerDict.TryGetValue(player.SteamID, out var playerInfo)) continue;
+                    if (playerInfo == null) continue;
                     Instance?.SkillAction(playerInfo.Skill.ToString(), "DisableSkill", [player]);
                     Instance?.SkillAction(playerInfo.Skill.ToString(), "NewRound");
                 }
@@ -191,7 +184,7 @@ namespace jRandomSkills
                         string skillsText = "";
                         foreach (var _player in _players)
                         {
-                            var _playerSkill = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == _player.SteamID);
+                            Instance?.SkillPlayerDict?.TryGetValue(_player.SteamID, out var _playerSkill) || false ? _playerSkill : null; if (_playerSkill == null) continue; if (false);
                             if (_playerSkill != null)
                             {
                                 var skillInfo = SkillData.Skills.FirstOrDefault(p => p.Skill == _playerSkill.Skill);
@@ -210,9 +203,9 @@ namespace jRandomSkills
         {
             lock (setLock)
             {
-                if (Instance?.SkillPlayer != null)
+                if (Instance?.SkillPlayerDict != null)
                 {
-                    foreach (var playerSkill in Instance.SkillPlayer)
+                    foreach (var playerSkill in Instance.SkillPlayerDict.Values)
                         if (!playerSkill.IsDrawing)
                             Instance.SkillAction(playerSkill.Skill.ToString(), "PlayerDeath", [@event]);
 
@@ -222,7 +215,7 @@ namespace jRandomSkills
                 var attacker = @event.Attacker;
                 if (victim == null || attacker == null) return HookResult.Continue;
 
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == victim.SteamID);
+                if (Instance?.SkillPlayerDict == null || !Instance.SkillPlayerDict.TryGetValue(victim.SteamID, out var playerInfo)) return HookResult.Continue;
                 if (playerInfo == null || playerInfo.IsDrawing) return HookResult.Continue;
                 playerInfo.RandomPercentage = "";
                 Instance?.SkillAction(playerInfo.Skill.ToString(), "DisableSkill", [victim]);
@@ -230,8 +223,7 @@ namespace jRandomSkills
                 if (victim == attacker) return HookResult.Continue;
                 if (!SkillUtils.IsWarmup())
                 {
-                    var attackerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
-                    if (attackerInfo != null)
+                    if (Instance.SkillPlayerDict.TryGetValue(attacker.SteamID, out var attackerInfo) && attackerInfo != null)
                     {
                         var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == attackerInfo.Skill);
                         var specialSkillData = SkillData.Skills.FirstOrDefault(s => s.Skill == attackerInfo.SpecialSkill);
@@ -261,7 +253,7 @@ namespace jRandomSkills
                 else return;
 
                 if (player == null) return;
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (Instance?.SkillPlayerDict == null || !Instance.SkillPlayerDict.TryGetValue(player.SteamID, out var playerInfo)) return;
                 if (playerInfo == null || playerInfo.IsDrawing) return;
 
                 var playerPawn = player.PlayerPawn.Value;
@@ -276,9 +268,9 @@ namespace jRandomSkills
         {
             lock (setLock)
             {
-                if (Instance?.SkillPlayer != null)
+                if (Instance?.SkillPlayerDict != null)
                 {
-                    foreach (var playerSkill in Instance.SkillPlayer)
+                    foreach (var playerSkill in Instance.SkillPlayerDict.Values)
                         if (!playerSkill.IsDrawing)
                             Instance.SkillAction(playerSkill.Skill.ToString(), "OnEntitySpawned", [entity]);
                 }
@@ -323,7 +315,7 @@ namespace jRandomSkills
                     var teammates = validPlayers.Where(p => p.Team == player.Team && p != player);
                     string teammateSkills = "";
 
-                    var skillPlayer = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                    if (Instance?.SkillPlayerDict == null || !Instance.SkillPlayerDict.TryGetValue(player.SteamID, out var skillPlayer)) continue;
                     if (skillPlayer == null) continue;
                     skillPlayer.RandomPercentage = "";
 
@@ -345,11 +337,11 @@ namespace jRandomSkills
                     {
                         foreach (var teammate in teammates)
                         {
-                            var teammateSkill = Instance.SkillPlayer.FirstOrDefault(p => p.SteamID == teammate.SteamID)?.Skill;
-                            if (teammateSkill != null)
+                            if (Instance?.SkillPlayerDict == null || !Instance.SkillPlayerDict.TryGetValue(teammate.SteamID, out var teammateSkill) || teammateSkill == null) continue;
+                            var skillInfo = SkillData.Skills.FirstOrDefault(p => p.Skill == teammateSkill.Skill);
+                            if (skillInfo != null)
                             {
-                                var skillInfo = SkillData.Skills.FirstOrDefault(p => p.Skill == teammateSkill);
-                                teammateSkills += $"{ChatColors.Lime}{(skillInfo == null ? Skills.None : skillInfo.Name)} {ChatColors.White}| ";
+                                teammateSkills += $"{ChatColors.Lime}{skillInfo.Name} {ChatColors.White}| ";
                             }
                         }
 
@@ -367,7 +359,7 @@ namespace jRandomSkills
             lock (setLock)
             {
                 if (player == null) return;
-                var skillPlayer = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (Instance?.SkillPlayerDict == null || !Instance.SkillPlayerDict.TryGetValue(player.SteamID, out var skillPlayer)) return;
                 if (skillPlayer == null) return;
                 skillPlayer.RandomPercentage = "";
 
@@ -389,9 +381,9 @@ namespace jRandomSkills
         {
             lock (setLock)
             {
-                if (Instance?.SkillPlayer != null)
+                if (Instance?.SkillPlayerDict != null)
                 {
-                    foreach (var playerSkill in Instance.SkillPlayer)
+                    foreach (var playerSkill in Instance.SkillPlayerDict.Values)
                         if (!playerSkill.IsDrawing)
                             Instance.SkillAction(playerSkill.Skill.ToString(), "CheckTransmit", [infoList]);
                 }
