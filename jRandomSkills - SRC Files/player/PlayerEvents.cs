@@ -291,7 +291,6 @@ namespace jRandomSkills
 
                 // Disable C4 skills in host maps and vice versa
                 bool isBombMap = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("func_bomb_target").Any();
-                Server.PrintToConsole($"Isbombmap: {isBombMap}");
                 skillList.RemoveAll(s => 
                     (isBombMap && s.Objective == 2) || 
                     (!isBombMap && s.Objective == 1)

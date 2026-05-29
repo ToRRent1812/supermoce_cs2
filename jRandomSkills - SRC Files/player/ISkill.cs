@@ -59,7 +59,7 @@ public enum Skills
     Astronaut,
     Enemyfire,
     //LongFlame,
-    MegaMoly,
+    //MegaMoly,
     Giant,
     LongBomb,
     FastEscape,

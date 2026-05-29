@@ -57,30 +57,17 @@ namespace jRandomSkills
             if (SkillUtils.IsFreezetime()) return;
             foreach (var player in Utilities.GetPlayers())
             {
-                if (player == null) continue;
-
-                // Get global skill assignment for this player
-                jSkill_PlayerInfo? assignedSkill = null;
-                var dict = Instance?.SkillPlayerDict;
-                if (dict != null)
-                    dict.TryGetValue(player.SteamID, out assignedSkill);
-
-                // Get this skill's per-player info
-                SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo);
-
-                if (assignedSkill?.Skill == skillName)
-                {
-                    bool recentClick = skillInfo != null && skillInfo.LastClick.AddSeconds(4) >= DateTime.Now;
-                    UpdateHUD(player, skillInfo, recentClick);
-                }
+                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                if (playerInfo?.Skill == skillName)
+                    if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
+                        if (skillInfo.LastClick.AddSeconds(4) >= DateTime.Now)
+                            UpdateHUD(player, skillInfo, true);
                 else
-                {
                     UpdateHUD(player, skillInfo, false);
-                }
             }
         }
 
-        private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo? skillInfo, bool showInfo)
+        private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo, bool showInfo)
         {
             float cooldown = 0;
             if (skillInfo != null)

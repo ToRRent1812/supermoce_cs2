@@ -38,31 +38,59 @@ namespace jRandomSkills
 
         public static void OnEntitySpawned(CEntityInstance entity)
         {
-            if (entity.DesignerName != "inferno") return;
+            if (entity.DesignerName != "inferno")
+            {
+                Server.PrintToConsole($"[LongFlame] Entity name doesn't match: {entity.DesignerName}");
+                return;
+            }
 
             var inferno = new CInferno(entity.Handle);
-            if (inferno == null || !inferno.IsValid) return;
+            if (inferno == null || !inferno.IsValid)
+            {
+                Server.PrintToConsole("[LongFlame] Inferno is null or invalid");
+                return;
+            }
 
-            if (inferno.OwnerEntity == null || !inferno.OwnerEntity.IsValid || inferno.OwnerEntity.Value == null || !inferno.OwnerEntity.Value.IsValid) return;
+            if (inferno.OwnerEntity == null || !inferno.OwnerEntity.IsValid || inferno.OwnerEntity.Value == null || !inferno.OwnerEntity.Value.IsValid)
+            {
+                Server.PrintToConsole("[LongFlame] Inferno OwnerEntity is invalid");
+                return;
+            }
 
             var projectile = inferno.OwnerEntity.Value.As<CBaseCSGrenadeProjectile>();
-            if (projectile == null || !projectile.IsValid || projectile.OwnerEntity == null || !projectile.OwnerEntity.IsValid || projectile.OwnerEntity.Value == null || !projectile.OwnerEntity.Value.IsValid) return;
+            if (projectile == null || !projectile.IsValid || projectile.OwnerEntity == null || !projectile.OwnerEntity.IsValid || projectile.OwnerEntity.Value == null || !projectile.OwnerEntity.Value.IsValid)
+            {
+                Server.PrintToConsole("[LongFlame] Projectile is invalid");
+                return;
+            }
 
             var pawn = projectile.OwnerEntity.Value.As<CCSPlayerPawn>();
-            if (pawn == null || !pawn.IsValid || pawn.Controller == null || !pawn.Controller.IsValid || pawn.Controller.Value == null || !pawn.Controller.Value.IsValid) return;
+            if (pawn == null || !pawn.IsValid || pawn.Controller == null || !pawn.Controller.IsValid || pawn.Controller.Value == null || !pawn.Controller.Value.IsValid)
+            {
+                Server.PrintToConsole("[LongFlame] Pawn or Controller is invalid");
+                return;
+            }
 
             var player = pawn.Controller.Value.As<CCSPlayerController>();
-            if (player == null || !player.IsValid) return;
+            if (player == null || !player.IsValid)
+            {
+                Server.PrintToConsole("[LongFlame] Player is invalid");
+                return;
+            }
 
             var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (playerInfo?.Skill != skillName) return;
-
-            Server.NextFrame(() =>
+            if (playerInfo?.Skill != skillName)
             {
-                if (!inferno.IsValid) return;
-                Server.PrintToConsole($"FireLifetime: {inferno.FireLifetime}");
+                Server.PrintToConsole($"[LongFlame] Player skill doesn't match. Expected: {skillName}, Got: {playerInfo?.Skill}");
+                return;
+            }
+
+            if (inferno.IsValid)
+            {
+                Server.PrintToConsole($"[LongFlame] Default values - FireLifetime: {inferno.FireLifetime}");
                 inferno.FireLifetime = 60f;
-            });
+                Server.PrintToConsole($"[LongFlame] Updated values - FireLifetime: {inferno.FireLifetime}");
+            }
         }
 
         public static void EnableSkill(CCSPlayerController player)
