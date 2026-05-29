@@ -31,7 +31,7 @@ namespace jRandomSkills
         {
             cd = ((Instance?.Random.Next(4, 11)) ?? 4) * 5;
             lock (setLock)
-                SkillPlayerInfo.Clear();
+            SkillPlayerInfo.Clear();
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -57,17 +57,30 @@ namespace jRandomSkills
             if (SkillUtils.IsFreezetime()) return;
             foreach (var player in Utilities.GetPlayers())
             {
-                var playerInfo = Instance?.SkillPlayerDict?.TryGetValue(player.SteamID, out var skillPlayer) ? skillPlayer : null;
-                if (playerInfo?.Skill == skillName)
-                    if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
-                        if (skillInfo.LastClick.AddSeconds(4) >= DateTime.Now)
-                            UpdateHUD(player, skillInfo, true);
-                        else
-                            UpdateHUD(player, skillInfo, false);
+                if (player == null) continue;
+
+                // Get global skill assignment for this player
+                jSkill_PlayerInfo? assignedSkill = null;
+                var dict = Instance?.SkillPlayerDict;
+                if (dict != null)
+                    dict.TryGetValue(player.SteamID, out assignedSkill);
+
+                // Get this skill's per-player info
+                SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo);
+
+                if (assignedSkill?.Skill == skillName)
+                {
+                    bool recentClick = skillInfo != null && skillInfo.LastClick.AddSeconds(4) >= DateTime.Now;
+                    UpdateHUD(player, skillInfo, recentClick);
+                }
+                else
+                {
+                    UpdateHUD(player, skillInfo, false);
+                }
             }
         }
 
-        private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo, bool showInfo)
+        private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo? skillInfo, bool showInfo)
         {
             float cooldown = 0;
             if (skillInfo != null)
@@ -87,9 +100,9 @@ namespace jRandomSkills
 
             if (showInfo)
                 remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>Poczekaj <font color='#FF0000'>{cooldown}</font> sek.</font>"
-                                : skillInfo != null && !skillInfo.FindedEnemy ? $"<font class='fontSize-m' color='#FF0000'>Nie znaleziono odpowiedniego wroga</font>"
-                                : skillInfo != null && !skillInfo.HaveWeapon ? $"<font class='fontSize-m' color='#FF0000'>Wróg nie ma broni głównej</font>"
-                                : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>Wciśnij INSPEKT by użyć</font>";
+                : skillInfo != null && !skillInfo.FindedEnemy ? $"<font class='fontSize-m' color='#FF0000'>Nie znaleziono odpowiedniego wroga</font>"
+                : skillInfo != null && !skillInfo.HaveWeapon ? $"<font class='fontSize-m' color='#FF0000'>Wróg nie ma broni głównej</font>"
+                : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>Wciśnij INSPEKT by użyć</font>";
             else
                 remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>Poczekaj <font color='#FF0000'>{cooldown}</font> sek.</font> <br>" : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>Wciśnij INSPEKT by użyć</font>";
 
@@ -157,7 +170,7 @@ namespace jRandomSkills
                     skillInfo.LastClick = DateTime.Now;
             }
         }
-        
+
         private static void RemoveC4(CCSPlayerController player)
         {
             var pawn = player.PlayerPawn.Value;
