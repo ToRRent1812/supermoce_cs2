@@ -173,30 +173,29 @@ namespace jRandomSkills
             });
         }
 
-        public static void OnTakeDamage(DynamicHook h)
+        public static HookResult OnTakeDamage(CEntityInstance entity, CTakeDamageInfo info)
         {
-            CEntityInstance param = h.GetParam<CEntityInstance>(0);
-            CTakeDamageInfo param2 = h.GetParam<CTakeDamageInfo>(1);
+            if (entity == null || entity.Entity == null || info == null || info.Attacker == null || info.Attacker.Value == null)
+                return HookResult.Continue;
 
-            if (param == null || param.Entity == null || param2 == null || param2.Attacker == null || param2.Attacker.Value == null)
-                return;
+            if (string.IsNullOrEmpty(entity.Entity?.Name)) return HookResult.Continue;
+            if (!entity.Entity.Name.StartsWith("Illusionist_")) return HookResult.Continue;
 
-            if (string.IsNullOrEmpty(param.Entity.Name)) return;
-            if (!param.Entity.Name.StartsWith("Illusionist_")) return;
-
-            var replica = param.As<CDynamicProp>();
-            if (replica == null || !replica.IsValid) return;
-
+            var replica = entity.As<CPhysicsPropMultiplayer>();
+            if (replica == null || !replica.IsValid) return HookResult.Continue;
             replica.EmitSound("GlassBottle.BulletImpact", volume: 1f);
             if (ActiveTimers.TryRemove((int)replica.Index, out var timer)) timer?.Kill();
             replica.AcceptInput("Kill");
 
-            CCSPlayerPawn attackerPawn = new(param2.Attacker.Value.Handle);
-            if (attackerPawn.DesignerName != "player") return;
+            CCSPlayerPawn attackerPawn = new(info.Attacker.Value.Handle);
+            if (attackerPawn.DesignerName != "player")
+                return HookResult.Continue;
 
             var attackerTeam = attackerPawn.TeamNum;
             var replicaTeam = replica.Globalname.EndsWith("CT") ? 3 : 2;
             SkillUtils.TakeHealth(attackerPawn, attackerTeam != replicaTeam ? 20 : 10);
+
+            return HookResult.Continue;
         }
 
         public class PlayerSkillInfo

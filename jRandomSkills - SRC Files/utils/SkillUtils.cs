@@ -205,9 +205,8 @@ namespace jRandomSkills
 
             string itemTemplate = "<font class='fontSize-s' color='white'>{0}</font><br/>"; // non-selected item
             string hoverTemplate = "<font class='fontSize-s' class='fontWeight-Bold' color='yellow'>=> {0}</font><br/>"; // selected item
-            string controlText = "<font class='fontSize-s' color='yellow'>W/S - Góra dół | USE - OK</font>"; // controls/help
 
-            IWasdMenu menu = manager.CreateMenu(skillLine, itemTemplate, hoverTemplate, controlText);
+            IWasdMenu menu = manager.CreateMenu(skillLine, itemTemplate, hoverTemplate, "");
             foreach (var enemy in enemies)
                 menu.Add(enemy.Item1, (p, option) =>
                 {
