@@ -68,8 +68,11 @@ namespace jRandomSkills
             {
                 if (inferno.IsValid)
                 {
-                    inferno.MaxFlames = 48;
-                    inferno.FireLifetime = 15f;
+                    Server.PrintToConsole($"[BEFORE] FireCount: {inferno.MaxFlames}, FireEffectTickBegin: {inferno.FireEffectTickBegin}, FireLifetime: {inferno.FireLifetime}, FireSpawnOffset: {inferno.FireSpawnOffset}, InPostEffectTime: {inferno.InPostEffectTime}, InfernoType: {inferno.InfernoType}, MaxFlames: {inferno.MaxFlames}, SpreadCount: {inferno.SpreadCount}");
+                    inferno.MaxFlames = 80;
+                    inferno.FireLifetime = 22f;
+                    inferno.SpreadCount = 80;
+                    Server.PrintToConsole($"[AFTER] FireCount: {inferno.MaxFlames}, FireEffectTickBegin: {inferno.FireEffectTickBegin}, FireLifetime: {inferno.FireLifetime}, FireSpawnOffset: {inferno.FireSpawnOffset}, InPostEffectTime: {inferno.InPostEffectTime}, InfernoType: {inferno.InfernoType}, MaxFlames: {inferno.MaxFlames}, SpreadCount: {inferno.SpreadCount}");
                 }
             });
         }

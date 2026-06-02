@@ -190,4 +190,5 @@ public enum Skills
     Wallhack,
     WeaponsSwap,
     Zeus,
+    AmmoStrip,
 }
