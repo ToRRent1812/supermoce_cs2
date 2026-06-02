@@ -54,7 +54,10 @@ namespace jRandomSkills
                 return;
 
             if (!((PlayerFlags)playerPawn.Flags).HasFlag(PlayerFlags.FL_ONGROUND))
+            {
+                SkillUtils.PrintToChat(player, "Musisz stać na ziemi!", true);
                 return;
+            }
 
             CreateReplica(player);
             ActiveSkillFramework.MarkSkillUsed(skillName, player);

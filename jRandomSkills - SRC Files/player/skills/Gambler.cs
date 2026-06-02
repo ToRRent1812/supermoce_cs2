@@ -54,8 +54,6 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            MenuSkillFramework.OnSkillEnabled(skillName, player);
-            
             var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo == null) return;
             playerInfo.SkillChance = 0;

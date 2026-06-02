@@ -22,7 +22,7 @@ namespace jRandomSkills
             int randomRoll = GenerateRandomRoll(config);
             _randomRolls.AddOrUpdate(key, randomRoll, (k, existing) => randomRoll);
 
-            if (config?.ShowRandomValue == true && config.MaxValue >= config.MinValue)
+            if (config != null && config.MaxValue >= config.MinValue)
             {
                 var formattedValue = config.FormatValue(randomRoll);
                 var playerInfo = SkillUtils.GetPlayerInfo(player);

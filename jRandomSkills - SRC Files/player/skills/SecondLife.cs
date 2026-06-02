@@ -36,25 +36,42 @@ namespace jRandomSkills
         {
             var victim = @event.Userid;
 
-            if (Instance?.IsPlayerValid(victim) == false) return;
+            if (victim == null || !victim.IsValid) return;
             var victimInfo = SkillUtils.GetPlayerInfo(victim);
             if (victimInfo == null || victimInfo.Skill != skillName) return;
 
             var victimPawn = victim!.PlayerPawn.Value;
-            if (victimPawn!.Health > 0 || secondLifePlayers.ContainsKey(victim.Handle))
+            if (victimPawn == null || !victimPawn.IsValid) return;
+            if (victimPawn.Health > 0 || secondLifePlayers.ContainsKey(victim.Handle))
                 return;
 
             lock (setLock)
             {
-                secondLifePlayers.TryAdd(victim.Handle, 0);
-                var config = SkillUtils.GetPassiveSkillConfig(skillName);
-                int revivalHealth = PassiveSkillFramework.GetRandomRoll(skillName, victim, config);
-                SetHealth(victim, revivalHealth);
-                var spawn = GetSpawnVector(victim);
-                if (spawn != null)
+                if (!secondLifePlayers.TryAdd(victim.Handle, 0))
+                    return;
+
+                // Set health to 1 to prevent the engine from processing death,
+                // otherwise death will trigger and PlayerDeath will call DisableSkill,
+                // removing the player from the tracking dictionary
+                victimPawn.Health = 1;
+                Utilities.SetStateChanged(victimPawn, "CBaseEntity", "m_iHealth");
+
+                // Schedule the actual revive on next frame
+                Instance?.AddTimer(0.1f, () =>
                 {
-                    victimPawn.Teleport(spawn, victimPawn.AbsRotation, null);
-                }
+                    if (victim == null || !victim.IsValid) return;
+                    var pawn = victim.PlayerPawn.Value;
+                    if (pawn == null || !pawn.IsValid) return;
+
+                    var config = SkillUtils.GetPassiveSkillConfig(skillName);
+                    int revivalHealth = PassiveSkillFramework.GetRandomRoll(skillName, victim, config);
+                    SetHealth(victim, revivalHealth);
+                    var spawn = GetSpawnVector(victim);
+                    if (spawn != null)
+                    {
+                        pawn.Teleport(spawn, pawn.AbsRotation, null);
+                    }
+                });
             }
         }
 
