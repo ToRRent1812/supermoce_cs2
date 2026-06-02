@@ -1,6 +1,6 @@
 Jest to fork jrandomskills, który jest forkiem drandomskills.
 
-Ta wersja jest używana na serwerze Nostalgia
+Ta wersja jest używana na serwerze Nostalgia i została mocno przebudowana pod moje widzimisię
 
 Co wyróżnia tą wersję od jrandomskills?
 - Odchudzenie skryptu z niepotrzebnych funkcji
@@ -11,8 +11,9 @@ Co wyróżnia tą wersję od jrandomskills?
 - Usunąłem supermoce, które nie podobają się graczom z serwera
 - Opis supermocy dostępny na środku ekranu, zamiast na czacie
 - Usunięto niepotrzebny mi system językowy oraz configi
-- Niektóre supermoce mają zmienioną nazwę lub funkcję, np. bogacz może też podwoić swoje pieniądze za kill
+- Niektóre supermoce mają zmienioną nazwę lub funkcję
 - Wszystkie supermoce na przycisk mają losowy cooldown
-- Dodałem nowe lub przywróciłem stare moce: Komandos, Dopaminka, CS2, Trujące naboje, Ciepłe piwo, Ćpun, Komornik, Rusznikarz, Krwiopijca, Matrix, Chachmęciarz, Bąk morderca, Podejrzane naboje, Zdrajca, Szybka pomoc, Half-Life, Owsiak, Ognisko, Mega-tov, Robin Hood, Chemik, Ciężarne hosty, Strzał w kolano, Skarbówka, Inflacja, NanoKevlar, Olbrzym, Zamiana respów, Psychopata, Burza piaskowa, Nalot powietrzny
+- Dodałem nowe moce: Komandos, Dopaminka, CS2, Trujące naboje, Ciepłe piwo, Ćpun, Komornik, Rusznikarz, Krwiopijca, Matrix, Chachmęciarz, Bąk morderca, Podejrzane naboje, Zdrajca, Szybka pomoc, Half-Life, Owsiak, Ognisko, Mega-tov, Robin Hood, Chemik, Ciężarne hosty, Strzał w kolano, Skarbówka, Inflacja, NanoKevlar, Olbrzym, Zamiana respów, Psychopata, Burza piaskowa, Nalot powietrzny, Konfiskata
 
 I wiele więcej, ale już zapomniałem, co się zmieniło.
+Mój fork instalujemy, na już zainstalowany jrandomskills
