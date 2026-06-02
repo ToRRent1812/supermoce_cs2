@@ -1,5 +1,7 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Entities.Constants;
+using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using System.Collections.Concurrent;
 using static jRandomSkills.jRandomSkills;
@@ -29,8 +31,7 @@ namespace jRandomSkills
                 "#c7e03a",
                 minCooldown: 20,
                 maxCooldown: 50,
-                cooldownStep: 5,
-                useCustomHud: true);
+                cooldownStep: 5);
         }
 
         public static void NewRound()
@@ -38,23 +39,6 @@ namespace jRandomSkills
             ActiveSkillFramework.OnNewRound();
             lock (setLock)
                 SkillPlayerInfo.Clear();
-        }
-
-        public static void OnTick()
-        {
-            if (SkillUtils.IsFreezetime()) return;
-            foreach (var player in Utilities.GetPlayers())
-            {
-                if (Instance?.IsPlayerValid(player) == false) continue;
-                var playerInfo = SkillUtils.GetPlayerInfo(player);
-                if (playerInfo?.Skill != skillName) continue;
-
-                if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
-                {
-                    bool showInfo = skillInfo.LastClick.AddSeconds(4) >= DateTime.Now;
-                    UpdateHUD(player, skillInfo, showInfo);
-                }
-            }
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -81,31 +65,6 @@ namespace jRandomSkills
             SkillPlayerInfo.TryRemove(player.SteamID, out _);
         }
 
-        private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo, bool showInfo)
-        {
-            if (Instance?.IsPlayerValid(player) == false) return;
-            if (!ActiveSkillFramework.TryGetSkillState(skillName, player, out var state) || state == null) return;
-
-            float cooldown = Math.Max(state.CooldownSeconds - (int)(DateTime.Now - state.LastUseTime).TotalSeconds, 0);
-
-            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
-            if (skillData == null) return;
-
-            string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font>";
-            string remainingLine;
-
-            if (showInfo)
-                remainingLine = cooldown != 0 ? $"<br><font class='fontSize-m' color='#ffe3d6'>Poczekaj <font color='#FFa600'>{cooldown}</font> sek.</font>"
-                    : !skillInfo.FindedEnemy ? $"<br><font class='fontSize-m' color='#FF0000'>Nie znaleziono odpowiedniego wroga</font>"
-                    : !skillInfo.HaveWeapon ? $"<br><font class='fontSize-m' color='#FF0000'>Wróg nie ma broni głównej</font>"
-                    : $"<br><font class='fontSize-s' class='fontWeight-Bold' color='#deff24'>Wciśnij INSPEKT by użyć</font>";
-            else
-                remainingLine = cooldown != 0 ? $"<br><font class='fontSize-m' color='#ffe3d6'>Poczekaj <font color='#FFa600'>{cooldown}</font> sek.</font>" : $"<br><font class='fontSize-s' class='fontWeight-Bold' color='#deff24'>Wciśnij INSPEKT by użyć</font>";
-
-            var hudContent = skillLine + remainingLine;
-            ActiveSkillFramework.PrintCachedHud(player, hudContent);
-        }
-
         public static void UseSkill(CCSPlayerController player)
         {
             if (player == null || !player.IsValid || !player.PawnIsAlive) return;
@@ -125,6 +84,7 @@ namespace jRandomSkills
             CCSPlayerController? enemy = GetRandomEnemy(player);
             if (enemy == null)
             {
+                SkillUtils.PrintToChat(player, $"Nie znaleziono odpowiedniego wroga", true);
                 skillInfo.FindedEnemy = false;
                 skillInfo.LastClick = DateTime.Now;
                 return;
@@ -133,6 +93,7 @@ namespace jRandomSkills
             string[]? enemyWeapons = GetWeapons(enemy);
             if (enemyWeapons == null)
             {
+                SkillUtils.PrintToChat(player, $"Wylosowany wróg nie ma broni", true);
                 skillInfo.FindedEnemy = true;
                 skillInfo.HaveWeapon = false;
                 skillInfo.LastClick = DateTime.Now;
@@ -142,6 +103,7 @@ namespace jRandomSkills
             string[] stolenWeapons = [.. enemyWeapons.Where(IsStealableWeapon)];
             if (stolenWeapons.Length == 0)
             {
+                SkillUtils.PrintToChat(player, $"Wylosowany wróg nie ma broni", true);
                 skillInfo.FindedEnemy = true;
                 skillInfo.HaveWeapon = false;
                 skillInfo.LastClick = DateTime.Now;
@@ -154,13 +116,14 @@ namespace jRandomSkills
 
             ActiveSkillFramework.MarkSkillUsed(skillName, player);
             RemoveStolenWeapons(enemy, stolenWeapons);
+            SkillUtils.TryGiveWeapon(enemy, enemy.Team == CsTeam.Terrorist ? CsItem.Glock : CsItem.USPS);
             Server.NextFrame(() =>
             {
                 GiveWeapons(player, stolenWeapons);
                 Instance?.AddTimer(1f, () => enemy.ExecuteClientCommand("slot2"));
             });
 
-            SkillUtils.PrintToChat(enemy, $"Wróg ukradł Ci sprzęt.");
+            SkillUtils.PrintToChat(enemy, $"Wróg ukradł Ci sprzęt.", true);
         }
 
         private static string[]? GetWeapons(CCSPlayerController player)

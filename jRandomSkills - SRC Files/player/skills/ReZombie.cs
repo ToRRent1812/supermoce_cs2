@@ -72,6 +72,7 @@ namespace jRandomSkills
                 SetPlayerColor(pawn, false);
                 player.ExecuteClientCommand("slot3");
                 SkillUtils.AddHealth(pawn, 750, 750);
+                SkillUtils.PrintToChat(player, $"Jesteś zombie! Możesz używać tylko noża");
             }
         }
 

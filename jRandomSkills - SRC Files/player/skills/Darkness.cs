@@ -54,7 +54,7 @@ namespace jRandomSkills
 
             SetUpPostProcessing(enemy!);
             if (playerInfo != null) playerInfo.SkillChance = 1;
-            SkillUtils.PrintToChat(enemy!, $" Wróg zgasił Ci światło");
+            SkillUtils.PrintToChat(enemy!, $" Wróg zgasił Ci światło", true);
         }
 
         public static void EnableSkill(CCSPlayerController player)

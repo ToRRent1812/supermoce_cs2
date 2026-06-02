@@ -53,7 +53,7 @@ namespace jRandomSkills
                 return;
             
             if(enemy == null || !enemy.IsValid || !enemy.PawnIsAlive) return;
-            SkillUtils.PrintToChat(enemy, $" Wróg spowodował że poruszasz się wolniej");
+            SkillUtils.PrintToChat(enemy, $" Wróg spowodował że poruszasz się wolniej", true);
             affectedPlayers.TryAdd(enemy.SteamID, 0);
             if (playerInfo != null) playerInfo.SkillChance = 1;
         }

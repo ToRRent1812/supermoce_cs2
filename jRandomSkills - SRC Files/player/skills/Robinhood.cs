@@ -33,7 +33,7 @@ namespace jRandomSkills
                 enemy.RemoveWeapons();
                 SkillUtils.TryGiveWeapon(enemy, CsItem.Knife);
             }
-            SkillUtils.PrintToChat(enemy, $" Wróg skasował Ci ekwipunek");
+            SkillUtils.PrintToChat(enemy, $" Wróg skasował Ci ekwipunek", true);
             if (playerInfo != null) playerInfo.SkillChance = 1;
         }
 

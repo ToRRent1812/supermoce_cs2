@@ -71,6 +71,7 @@ namespace jRandomSkills
                 if (spawn != null)
                 {
                     victimPawn.Teleport(spawn, victimPawn.AbsRotation, null);
+                    SkillUtils.PrintToChat(victim, $"Odrodziłeś się z popiołów");
                 }
             }
         }

@@ -69,7 +69,7 @@ namespace jRandomSkills
             if (enemyPawn != null && enemyPawn.IsValid)
                 enemyPawn.ActualGravityScale = 4f;
 
-            SkillUtils.PrintToChat(enemy, $"Wróg zabronił Ci skakania.");
+            SkillUtils.PrintToChat(enemy, $"Wróg zabronił Ci skakania.", true);
             if (playerInfo != null) playerInfo.SkillChance = 1;
         }
 

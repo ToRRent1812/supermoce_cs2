@@ -60,7 +60,7 @@ namespace jRandomSkills
 
             ApplyFogToEnemy(enemy);
             ActiveSkillFramework.MarkSkillUsed(skillName, player);
-            SkillUtils.PrintToChat(enemy, $" Wróg wyczarował tobie burzę piaskową!");
+            SkillUtils.PrintToChat(enemy, $" Wróg wyczarował tobie burzę piaskową!", true);
         }
 
         private static void ApplyFogToEnemy(CCSPlayerController enemy)

@@ -55,7 +55,7 @@ namespace jRandomSkills
             var enemyPawn = enemy!.PlayerPawn.Value;
             if (enemyPawn != null && enemyPawn.IsValid)
                 enemyPawn.ActualGravityScale = 0.9f;
-            SkillUtils.PrintToChat(enemy, $" Wróg Cię powiększył");
+            SkillUtils.PrintToChat(enemy, $" Wróg Cię powiększył", true);
             giants.TryAdd(enemy.SteamID, 0);
             if (playerInfo != null) playerInfo.SkillChance = 1;
         }

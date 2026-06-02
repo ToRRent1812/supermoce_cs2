@@ -50,13 +50,9 @@ namespace jRandomSkills
                 if (!secondLifePlayers.TryAdd(victim.Handle, 0))
                     return;
 
-                // Set health to 1 to prevent the engine from processing death,
-                // otherwise death will trigger and PlayerDeath will call DisableSkill,
-                // removing the player from the tracking dictionary
                 victimPawn.Health = 1;
                 Utilities.SetStateChanged(victimPawn, "CBaseEntity", "m_iHealth");
 
-                // Schedule the actual revive on next frame
                 Instance?.AddTimer(0.1f, () =>
                 {
                     if (victim == null || !victim.IsValid) return;
@@ -70,6 +66,7 @@ namespace jRandomSkills
                     if (spawn != null)
                     {
                         pawn.Teleport(spawn, pawn.AbsRotation, null);
+                        SkillUtils.PrintToChat(victim, $"Drugie życie");
                     }
                 });
             }

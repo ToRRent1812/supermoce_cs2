@@ -29,7 +29,7 @@ namespace jRandomSkills
             if (enemyPawn != null && enemyPawn.IsValid)
                 SkillUtils.TakeHealth(enemyPawn, enemyPawn.Health / 2);
 
-            SkillUtils.PrintToChat(enemy, $"Wróg usunął Ci połowę zdrowia");
+            SkillUtils.PrintToChat(enemy, $"Wróg usunął Ci połowę zdrowia", true);
             if (playerInfo != null) playerInfo.SkillChance = 1;
         }
 
