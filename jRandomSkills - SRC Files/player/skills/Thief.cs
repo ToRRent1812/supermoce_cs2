@@ -7,59 +7,30 @@ using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
-    public class Thief : ISkill
+    public class Thief : ISkill, IMenuSkill
     {
         private const Skills skillName = Skills.Thief;
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Złodziej", "Możesz ukraść supermoc wybranemu graczowi", "#adaec7");
-        }
-
-        public static void OnTick()
-        {
-            if (Server.TickCount % 32 != 0) return;
-            foreach (var player in Utilities.GetPlayers())
-            {
-                if (!SkillUtils.HasMenu(player)) continue;
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-
-                if (playerInfo == null || playerInfo.Skill != skillName) continue;
-                var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
-                ConcurrentBag<(string, string)> menuItems = [];
-                foreach (var enemy in enemies)
-                {
-                    var enemyInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == enemy.SteamID);
-                    if (enemyInfo == null) continue;
-                    var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == enemyInfo.Skill);
-                    if (skillData == null) continue;
-                    if (skillData.TeamNumber != 0) continue;
-                    menuItems.Add(($"{enemy.PlayerName}", enemy.Index.ToString()));
-                }
-                    SkillUtils.UpdateMenu(player, menuItems);
-            }
+            SkillUtils.RegisterMenuSkill(skillName, 
+            "Złodziej", 
+            "Możesz ukraść supermoc 1 wroga", 
+            "#adaec7");
         }
 
         public static void NewRound()
         {
-            foreach (var player in Utilities.GetPlayers())
-                SkillUtils.CloseMenu(player);
+            MenuSkillFramework.OnNewRound();
         }
 
         public static void TypeSkill(CCSPlayerController player, string[] commands)
         {
-            if (player == null) return;
-
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (playerInfo?.Skill != skillName) return;
-
-            var playerPawn = player.PlayerPawn.Value;
-            if (playerPawn?.CBodyComponent == null) return;
-            if (!player.IsValid || !player.PawnIsAlive) return;
+            if (!SkillUtils.ValidateSkillUse(player, skillName, out var playerInfo))
+                return;
 
             string enemyId = commands[0];
             var enemy = Utilities.GetPlayers().FirstOrDefault(p => p.Index.ToString() == enemyId);
-
             if (enemy == null)
             {
                 player.PrintToChat($" {ChatColors.Red}Nie znaleziono gracza o takim ID.");
@@ -71,46 +42,32 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
-            if (enemies.Length > 0)
-            {
-                ConcurrentBag<string> skills = [];
-                ConcurrentBag<(string, string)> menuItems = [];
-                foreach (var enemy in enemies)
+            MenuSkillFramework.OnSkillEnabled(skillName, player);
+
+            SkillUtils.CreateTargetingMenu(
+                player,
+                enemy =>
                 {
-                    var enemyInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == enemy.SteamID);
-                    if (enemyInfo == null) continue;
-                    var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == enemyInfo.Skill);
-                    if (skillData == null) continue;
-                    if (skillData.TeamNumber != 0) continue;
-                    skills.Add(skillData.Skill.ToString());
-                    menuItems.Add(($"{enemy.PlayerName}", enemy.Index.ToString()));
-                }
-                int ctSkills = SkillData.Skills.Count(s => skills.Contains(s.Name) && s.TeamNumber == 2);
-                int ttSkills = SkillData.Skills.Count(s => skills.Contains(s.Name) && s.TeamNumber == 1);
-                if ((player.Team == CsTeam.Terrorist && ctSkills == skills.Count) || (player.Team == CsTeam.CounterTerrorist && ttSkills == skills.Count))
-                {
-                    Event.SetRandomSkill(player);
-                    return;
-                }
-                SkillUtils.CreateMenu(player, menuItems);
-            }
-            else
-                player.PrintToChat($" {ChatColors.Red}Nie znaleziono gracza o takim ID.");
+                    var enemyInfo = SkillUtils.GetPlayerInfo(enemy);
+                    var skillData = enemyInfo == null ? null : SkillData.Skills.FirstOrDefault(s => s.Skill == enemyInfo.Skill);
+                    return skillData != null && skillData.TeamNumber == 0;
+                },
+                null,
+                () => Event.SetRandomSkill(player));
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            MenuSkillFramework.OnSkillDisabled(player);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo == null) return;
             playerInfo.SpecialSkill = Skills.None;
-            SkillUtils.CloseMenu(player);
         }
 
         private static void StealSkill(CCSPlayerController player, CCSPlayerController enemy)
         {
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            var enemyInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == enemy.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
+            var enemyInfo = SkillUtils.GetPlayerInfo(enemy);
             if (playerInfo == null || enemyInfo == null) return;
             var enemySkill = enemyInfo.Skill;
 

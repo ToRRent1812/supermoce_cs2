@@ -1,6 +1,5 @@
 using CounterStrikeSharp.API.Core;
 using jRandomSkills.src.player;
-using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
@@ -13,6 +12,7 @@ namespace jRandomSkills
             "weapon_deagle",
             "weapon_taser",
             "weapon_knife",
+            "weapon_bayonet",
             "weapon_revolver",
             "weapon_glock",
             "weapon_usp_silencer",
@@ -26,7 +26,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Komandos", "Potrójne obrażenia z pistoletów i noża", "#c57f30");
+            SkillUtils.RegisterSkill(skillName, 
+            "Komandos", 
+            "Potrójne obrażenia z pistoletów i noża", 
+            "#c57f30");
         }
         
         public static HookResult OnTakeDamage(CEntityInstance entity, CTakeDamageInfo info)
@@ -45,7 +48,7 @@ namespace jRandomSkills
 
             CCSPlayerController attacker = attackerPawn.Controller.Value.As<CCSPlayerController>();
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(attacker);
             if (playerInfo == null) return HookResult.Continue;
 
             var activeWeapon = attackerPawn.WeaponServices?.ActiveWeapon.Value;

@@ -15,7 +15,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Paweł Jumper", "Nieskończone skoki na spacji", "#FFA500");
+            SkillUtils.RegisterSkill(skillName, 
+            "Paweł Jumper", 
+            "Nieskończone skoki na spacji", 
+            "#FFA500");
         }
 
         public static void OnTick()
@@ -23,7 +26,7 @@ namespace jRandomSkills
             foreach (var player in Utilities.GetPlayers())
             {
                 if (Instance?.IsPlayerValid(player) == false) return;
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = SkillUtils.GetPlayerInfo(player);
                 if (playerInfo?.Skill == skillName)
                     GiveAdditionalJump(player);
             }
@@ -37,7 +40,7 @@ namespace jRandomSkills
             var flags = (PlayerFlags)playerPawn.Flags;
             var buttons = player.Buttons;
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerPawn == null || playerInfo == null) return;
 
             if ((LB[player.Slot] & PlayerButtons.Jump) == 0 && (buttons & PlayerButtons.Jump) != 0)

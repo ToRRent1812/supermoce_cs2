@@ -12,7 +12,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Ślepy knur", "Przeciwnicy całą rundę grają bez celownika", "#42f5a7");
+            SkillUtils.RegisterSkill(skillName, 
+            "Ślepy knur", 
+            "Przeciwnicy całą rundę grają bez celownika", 
+            "#42f5a7");
         }
 
         public static void NewRound()
@@ -26,7 +29,7 @@ namespace jRandomSkills
         public static void EnableSkill(CCSPlayerController player)
         {
             if (player == null || !player.IsValid || !player.PawnIsAlive) return;
-            var enemies = Utilities.GetPlayers().Where(p => p.Team != player.Team && p.IsValid && p.PawnIsAlive && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator).ToArray();
+            var enemies = SkillUtils.GetAliveEnemies(player);
             if (enemies.Length > 0)
             {
                 foreach (var enemy in enemies)
@@ -36,25 +39,20 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            BringBackCrosshair();
-        }
+            if (Instance?.IsPlayerValid(player) == false) return;
 
-        private static void BringBackCrosshair()
-        {
-            foreach (var player in Utilities.GetPlayers())
-            {
-                if (player != null && player.IsValid)
-                {
-                    var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                    if (player.PawnIsAlive && playerInfo?.Skill == skillName) return;
-                    // Jeżeli ktoś nadal ma knura, to nie przywracamy celownika
+            bool stillHasJammer = SkillUtils.CachedPlayers
+                .Where(p => p.Team == player.Team && p.SteamID != player.SteamID && p.PawnIsAlive)
+                .Any(p => SkillUtils.GetPlayerInfo(p)?.Skill == skillName);
 
-                    var enemies = Utilities.GetPlayers().Where(p => p.IsValid && p.PawnIsAlive && p.TeamNum != player.TeamNum && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator).ToArray();
-                    if (enemies.Length <= 0) continue;
-                    foreach (var enemy in enemies)
-                        SetCrosshair(enemy, true);
-                }
-            }
+            if (stillHasJammer)
+                return;
+
+            var enemies = SkillUtils.GetAliveEnemies(player);
+            if (enemies.Length == 0) return;
+
+            foreach (var enemy in enemies)
+                SetCrosshair(enemy, true);
         }
 
         private static void SetCrosshair(CCSPlayerController player, bool enabled)

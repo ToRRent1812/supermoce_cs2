@@ -7,7 +7,7 @@ using Vector = CounterStrikeSharp.API.Modules.Utils.Vector;
 
 namespace jRandomSkills
 {
-    public class ExplosiveShot : ISkill
+    public class ExplosiveShot : ISkill, IPassiveSkill
     {
         private const Skills skillName = Skills.ExplosiveShot;
 
@@ -16,16 +16,48 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Wybuchowy strzał", "Szansa na zamianę trafionego pocisku w wybuch", "#9c0000");
+            SkillUtils.RegisterPassiveSkill(
+                skillName,
+                "Wybuchowy strzał",
+                "Szansa na zamianę trafionego pocisku w wybuch",
+                "#9c0000",
+                minValue: 10,
+                maxValue: 40,
+                step: 3,
+                customValueFormatter: (value) => $"{value}%");
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (Instance?.IsPlayerValid(player) == false) return;
+
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo == null) return;
-            int randomValue = Instance?.Random?.Next(5,11) * 3 ?? 15; //15-30%
-            playerInfo.SkillChance = randomValue / 100f;
-            playerInfo.RandomPercentage = randomValue.ToString() + "%";
+
+            var config = SkillUtils.GetPassiveSkillConfig(skillName);
+            if (config != null)
+            {
+                PassiveSkillFramework.OnSkillEnabled(skillName, player, config);
+
+                int randomRoll = PassiveSkillFramework.GetRandomRoll(skillName, player, config);
+                playerInfo.SkillChance = randomRoll / 100f;
+            }
+        }
+
+        public static void NewRound()
+        {
+            foreach (var player in SkillUtils.CachedPlayers)
+                DisableSkill(player);
+        }
+
+        public static void DisableSkill(CCSPlayerController player)
+        {
+            if (Instance?.IsPlayerValid(player) == false) return;
+            PassiveSkillFramework.OnSkillDisabled(skillName, player);
+
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
+            if (playerInfo == null) return;
+            playerInfo.SkillChance = 1f;
         }
 
         private static void SpawnExplosion(Vector vector)
@@ -49,13 +81,13 @@ namespace jRandomSkills
 
                 heProjectile.TicksAtZeroVelocity = 100;
                 heProjectile.TeamNum = (byte)CsTeam.None;
-                heProjectile.Damage = 125f;
-                heProjectile.DmgRadius = 450f;
+                heProjectile.Damage = 150f;
+                heProjectile.DmgRadius = 500f;
                 heProjectile.DetonateTime = 0;
             });
         }
 
-        private static bool NearlyEquals(float a, float b, float epsilon = 0.001f) => Math.Abs(a -b) < epsilon;
+        private static bool NearlyEquals(float a, float b, float epsilon = 0.001f) => Math.Abs(a - b) < epsilon;
 
         public static HookResult OnTakeDamage(CEntityInstance entity, CTakeDamageInfo info)
         {
@@ -73,14 +105,14 @@ namespace jRandomSkills
                 return HookResult.Continue;
 
             CCSPlayerController attacker = attackerPawn.Controller.Value.As<CCSPlayerController>();
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(attacker);
             if (playerInfo == null || playerInfo.Skill != skillName) return HookResult.Continue;
             var activeWeapon = attackerPawn.WeaponServices?.ActiveWeapon.Value;
             if (activeWeapon != null && activeWeapon.IsValid)
             {
                 string wname = SkillUtils.GetDesignerName(activeWeapon);
                 if (string.IsNullOrEmpty(wname)) wname = activeWeapon.DesignerName ?? string.Empty;
-                if (wname.Contains("knife")) return HookResult.Continue;
+                if (wname.Contains("weapon_knife")) return HookResult.Continue;
             }
             if (Instance?.Random.NextDouble() <= playerInfo.SkillChance)
                 SpawnExplosion(info.DamagePosition);

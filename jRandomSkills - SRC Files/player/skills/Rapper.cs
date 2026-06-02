@@ -12,12 +12,15 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "50 Cent", "Zarabiasz dla siebie, i drużyny 50$ za każdy wystrzelony pocisk", "#3de61c");
+            SkillUtils.RegisterSkill(skillName, 
+            "50 Cent", 
+            "Zarabiasz dla siebie, i drużyny 50$ za każdy wystrzelony pocisk", 
+            "#3de61c");
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo != null)
                 playerInfo.SkillChance = 0;
         }
@@ -26,7 +29,7 @@ namespace jRandomSkills
         {
             foreach (var player in Utilities.GetPlayers())
             {
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = SkillUtils.GetPlayerInfo(player);
                 if (playerInfo?.Skill == skillName && playerInfo.SkillChance > 0)
                     UpdateHUD(player, playerInfo.SkillChance);
             }
@@ -45,9 +48,8 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo == null) return;
-            AddMoney(player, (int)(playerInfo.SkillChance ?? 0));
             var teammates = Utilities.GetPlayers().Where(p =>
                 p.Team == player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team is CsTeam.Terrorist or CsTeam.CounterTerrorist).ToArray();
             foreach (var teammate in teammates)
@@ -58,7 +60,7 @@ namespace jRandomSkills
         public static void WeaponFire(EventWeaponFire @event)
         {
             var player = @event.Userid;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo?.Skill == skillName)
                 playerInfo.SkillChance += 50;
         }

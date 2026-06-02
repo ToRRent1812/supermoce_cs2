@@ -207,10 +207,14 @@ public class WasdMenuPlayer
             return;
         }
 
-        if (MainMenu == null || MainMenu.Options == null)
+        if (MainMenu == null)
             return;
 
-        MainMenu.Options.Clear();
+        var options = MainMenu.Options;
+        if (options == null)
+            return;
+
+        options.Clear();
         bool choiceExists = false;
 
         foreach (var item in list)
@@ -219,19 +223,19 @@ public class WasdMenuPlayer
             {
                 OptionDisplay = item.Key,
                 OnChoose = item.Value,
-                Index = MainMenu.Options.Count,
+                Index = options.Count,
                 Parent = MainMenu
             };
-            MainMenu.Options.AddLast(newOption);
+            options.AddLast(newOption);
 
             if (CurrentChoice?.Value?.OptionDisplay == item.Key)
             {
-                CurrentChoice = MainMenu.Options?.Last;
+                CurrentChoice = options.Last;
                 choiceExists = true;
             }
         }
         if (!choiceExists)
-            CurrentChoice = MainMenu.Options?.First;
+            CurrentChoice = options.First;
 
         if (CurrentChoice != null)
         {

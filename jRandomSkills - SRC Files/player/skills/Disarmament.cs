@@ -4,13 +4,54 @@ using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
-    public class Disarmament : ISkill
+    public class Disarmament : ISkill, IPassiveSkill
     {
         private const Skills skillName = Skills.Disarmament;
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Rozbrojenie", "Szansa na wyrzucenie broni wroga po trafieniu", "#FF4500");
+            SkillUtils.RegisterPassiveSkill(
+                skillName,
+                "Rozbrojenie",
+                "Szansa na wyrzucenie broni wroga po trafieniu",
+                "#FF4500",
+                minValue: 10,
+                maxValue: 30,
+                step: 1,
+                customValueFormatter: (value) => $"{value}% szans");
+        }
+
+        public static void EnableSkill(CCSPlayerController player)
+        {
+            if (Instance?.IsPlayerValid(player) == false) return;
+
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
+            if (playerInfo == null) return;
+
+            var config = SkillUtils.GetPassiveSkillConfig(skillName);
+            if (config != null)
+            {
+                PassiveSkillFramework.OnSkillEnabled(skillName, player, config);
+
+                int randomRoll = PassiveSkillFramework.GetRandomRoll(skillName, player, config);
+                playerInfo.SkillChance = randomRoll / 100f;
+            }
+        }
+
+        public static void NewRound()
+        {
+            foreach (var player in SkillUtils.CachedPlayers)
+                DisableSkill(player);
+        }
+
+        public static void DisableSkill(CCSPlayerController player)
+        {
+            if (Instance?.IsPlayerValid(player) == false) return;
+            PassiveSkillFramework.OnSkillDisabled(skillName, player);
+
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
+            if (playerInfo == null) return;
+            playerInfo.SkillChance = 1f;
         }
 
         public static void PlayerHurt(EventPlayerHurt @event)
@@ -19,7 +60,7 @@ namespace jRandomSkills
             var victim = @event.Userid;
 
             if (Instance?.IsPlayerValid(attacker) == false || Instance?.IsPlayerValid(victim) == false || attacker == victim) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(attacker);
 
             if (playerInfo?.Skill == skillName && victim!.PawnIsAlive)
             {
@@ -33,15 +74,6 @@ namespace jRandomSkills
                         victim.DropActiveWeapon();
                 }
             }
-        }
-
-        public static void EnableSkill(CCSPlayerController player)
-        {
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (playerInfo == null) return;
-            int randomValue = Instance?.Random?.Next(2,7) * 5 ?? 10; //10-30%
-            playerInfo.SkillChance = randomValue / 100f;
-            playerInfo.RandomPercentage = randomValue.ToString() + "%";
         }
     }
 }

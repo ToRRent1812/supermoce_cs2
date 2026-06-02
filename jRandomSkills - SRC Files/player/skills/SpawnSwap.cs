@@ -14,7 +14,12 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Zamiana respów", "Drużyny zamieniają się respami", "#ffe600", 1, 1);
+            SkillUtils.RegisterSkill(skillName, 
+            "Zamiana respów", 
+            "Drużyny zamieniają się respami", 
+            "#ffe600", 
+            teamnum:1, 
+            objective:1);
         }
 
         public static void NewRound()
@@ -33,7 +38,7 @@ namespace jRandomSkills
                 isSwapped = true;
             }
             Server.ExecuteCommand("mp_solid_teammates 0");
-            Instance?.AddTimer(5.0f, () =>
+            Instance?.AddTimer(4.5f, () =>
             {
                 foreach(var p in Utilities.GetPlayers())
                 {

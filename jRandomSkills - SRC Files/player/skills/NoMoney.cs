@@ -13,7 +13,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Komornik", "Zabij wroga, by ukraść mu pieniądze", "#4c56e4");
+            SkillUtils.RegisterSkill(skillName, 
+            "Komornik", 
+            "Zabij wroga, by ukraść mu pieniądze", 
+            "#4c56e4");
         }
 
         public static void PlayerDeath(EventPlayerDeath @event)
@@ -24,7 +27,7 @@ namespace jRandomSkills
             if (attackerPlayer == null || !attackerPlayer.IsValid || victimPlayer == null || !victimPlayer.IsValid || attackerPlayer.TeamNum == victimPlayer.TeamNum) return;
             if (attackerPlayer == victimPlayer) return;
 
-            var attackerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attackerPlayer.SteamID);
+            var attackerInfo = SkillUtils.GetPlayerInfo(attackerPlayer);
             if (attackerInfo?.Skill == skillName)
             {
                 var vmoneyServices = victimPlayer?.InGameMoneyServices;
@@ -53,7 +56,8 @@ namespace jRandomSkills
             {
                 ulong steamID = kv.Key;
                 var player = Utilities.GetPlayers().FirstOrDefault(p => p?.SteamID == steamID);
-                if (player == null || !player.IsValid) continue;
+                if(player == null) return;
+                if (Instance?.IsPlayerValid(player) == false) continue;
                 var moneyServices = player.InGameMoneyServices;
                 if (moneyServices == null) continue;
 

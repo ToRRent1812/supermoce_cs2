@@ -3,7 +3,6 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using static jRandomSkills.jRandomSkills;
 using Vector = CounterStrikeSharp.API.Modules.Utils.Vector;
 
 namespace jRandomSkills
@@ -14,7 +13,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Krwiopijca", "Zabijając wroga, odnawiasz w pełni zdrowie i przemieszczasz się na jego zwłoki", "#646464");
+            SkillUtils.RegisterSkill(skillName, 
+            "Krwiopijca", 
+            "Zabijając wroga, odnawiasz w pełni zdrowie i przemieszczasz się na jego zwłoki", 
+            "#ad9b9b");
         }
 
         public static void PlayerDeath(EventPlayerDeath @event)
@@ -29,7 +31,7 @@ namespace jRandomSkills
 
             if (attackingPawn == null || !attackingPawn.IsValid || victimPawn == null || !victimPawn.IsValid || victimPawn.AbsOrigin == null) return;
 
-            var attackerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attackerPlayer.SteamID);
+            var attackerInfo = SkillUtils.GetPlayerInfo(attackerPlayer);
             if (attackerInfo?.Skill == skillName)
             {
                 TeleportPlayer(attackerPlayer, victimPawn.AbsOrigin);

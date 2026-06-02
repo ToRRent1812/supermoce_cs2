@@ -4,7 +4,6 @@ using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using jRandomSkills.src.player;
 using System.Collections.Concurrent;
-using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
@@ -16,7 +15,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Oczy kobry", "Nie widzisz granatów dymnych", "#5d00ff");
+            SkillUtils.RegisterSkill(skillName, 
+            "Oczy kobry", 
+            "Nie widzisz granatów dymnych", 
+            "#5d00ff");
         }
 
         public static void NewRound()
@@ -40,10 +42,10 @@ namespace jRandomSkills
             foreach (var (info, player) in infoList)
             {
                 if (player == null) continue;
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = SkillUtils.GetPlayerInfo(player);
 
                 var observedPlayer = Utilities.GetPlayers().FirstOrDefault(p => p?.Pawn?.Value?.Handle == player?.Pawn?.Value?.ObserverServices?.ObserverTarget?.Value?.Handle);
-                var observerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == observedPlayer?.SteamID);
+                var observerInfo = SkillUtils.GetPlayerInfo(observedPlayer);
 
                 if (playerInfo?.Skill != skillName && observerInfo?.Skill != skillName) continue;
                 foreach (var smoke in smokes.Keys)

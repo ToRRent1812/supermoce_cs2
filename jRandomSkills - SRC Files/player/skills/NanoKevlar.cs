@@ -10,15 +10,18 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "NanoKevlar", "Pasywnie odnawiasz pancerz", "#5bf4ff");
+            SkillUtils.RegisterSkill(skillName, 
+            "NanoKevlar", 
+            "Pasywnie odnawiasz pancerz", 
+            "#5bf4ff");
         }
 
         public static void OnTick()
         {
-            if (Server.TickCount % 64 != 0) return;
+            if (Server.TickCount % 32 != 0) return;
             foreach (var player in Utilities.GetPlayers())
             {
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = SkillUtils.GetPlayerInfo(player);
                 if (playerInfo?.Skill != skillName) continue;
 
                 var pawn = player.PlayerPawn.Value;

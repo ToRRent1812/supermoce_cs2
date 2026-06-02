@@ -15,7 +15,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Leczący Dym", "Twoje granaty dymne leczą. Granat po wypaleniu wraca do ręki", "#1fe070");
+            SkillUtils.RegisterSkill(skillName, 
+            "Leczący Dym", 
+            "Twoje granaty dymne leczą. Granat po wypaleniu wraca do ręki", 
+            "#1fe070");
         }
 
         public static void NewRound()
@@ -26,8 +29,8 @@ namespace jRandomSkills
         public static void SmokegrenadeDetonate(EventSmokegrenadeDetonate @event)
         {
             var player = @event.Userid;
-            if (player == null || !player.IsValid) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (Instance?.IsPlayerValid(player) == false) return;
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo?.Skill != skillName) return;
             smokes.TryAdd(new Vector(@event.X, @event.Y, @event.Z), 0);
         }
@@ -35,12 +38,13 @@ namespace jRandomSkills
         public static void SmokegrenadeExpired(EventSmokegrenadeExpired @event)
         {
             var player = @event.Userid;
-            if (player == null || !player.IsValid) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if(player == null) return;
+            if (Instance?.IsPlayerValid(player) == false) return;
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo?.Skill != skillName) return;
             foreach (var smoke in smokes.Keys.Where(v => v.X == @event.X && v.Y == @event.Y && v.Z == @event.Z))    
                 smokes.TryRemove(smoke, out _);
-            Instance?.AddTimer(10.0f, () =>
+            Instance?.AddTimer(14.0f, () =>
             {
                 SkillUtils.TryGiveWeapon(player, CsItem.SmokeGrenade);
             });
@@ -58,9 +62,9 @@ namespace jRandomSkills
             if (pawn == null || !pawn.IsValid || pawn.Controller == null || !pawn.Controller.IsValid || pawn.Controller.Value == null || !pawn.Controller.Value.IsValid) return;
 
             var player = pawn.Controller.Value.As<CCSPlayerController>();
-            if (player == null || !player.IsValid) return;
+            if (Instance?.IsPlayerValid(player) == false) return;
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo?.Skill != skillName) return;
 
             Server.NextFrame(() =>

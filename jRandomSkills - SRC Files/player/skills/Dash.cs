@@ -3,83 +3,95 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
+using System.Collections.Concurrent;
 
 namespace jRandomSkills
 {
     public class Dash : ISkill
     {
         private const Skills skillName = Skills.Dash;
-        private static readonly PlayerFlags[] LF = new PlayerFlags[64];
-        private static readonly int?[] J = new int?[64];
-        private static readonly PlayerButtons[] LB = new PlayerButtons[64];
+
+        private static readonly ConcurrentDictionary<ulong, PlayerDashState> PlayerStates = [];
+
+        private class PlayerDashState
+        {
+            public PlayerButtons LastButtons { get; set; }
+            public int AirJumpCount { get; set; }
+        }
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Superman", "Naciśnięcie spacji będąc w powietrzu wykonuje DASH", "#42bbfc");
+            SkillUtils.RegisterSkill(
+                skillName,
+                "Superman",
+                "Naciśnięcie skoku będąc w powietrzu wykonuje DASH",
+                "#42bbfc");
+        }
+
+        public static void NewRound()
+        {
+            PlayerStates.Clear();
+        }
+
+        public static void EnableSkill(CCSPlayerController player)
+        {
+            PlayerStates.TryAdd(player.SteamID, new PlayerDashState());
+        }
+
+        public static void DisableSkill(CCSPlayerController player)
+        {
+            PlayerStates.TryRemove(player.SteamID, out _);
         }
 
         public static void OnTick()
         {
-            foreach (var player in Utilities.GetPlayers())
+            foreach (var player in SkillUtils.CachedPlayers)
             {
-                if (Instance?.IsPlayerValid(player) == false) return;
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill == skillName)
-                    HandleDash(player);
+                if (Instance?.IsPlayerValid(player) == false) continue;
+                var playerInfo = SkillUtils.GetPlayerInfo(player);
+                if (playerInfo?.Skill != skillName) continue;
+
+                HandleDash(player);
             }
         }
 
         private static void HandleDash(CCSPlayerController player)
         {
-            var playerPawn = player.PlayerPawn.Value;
-            if (playerPawn == null || !playerPawn.IsValid) return;
+            var pawn = player.PlayerPawn.Value;
+            if (pawn == null || !pawn.IsValid) return;
+            if (!PlayerStates.TryGetValue(player.SteamID, out var state)) return;
 
-            var flags = (PlayerFlags)playerPawn.Flags;
-            var buttons = player.Buttons;
+            var currentButtons = player.Buttons;
+            bool isOnGround = ((PlayerFlags)pawn.Flags).HasFlag(PlayerFlags.FL_ONGROUND);
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (playerPawn == null || playerInfo == null) return;
-
-            if ((LF[player.Slot] & PlayerFlags.FL_ONGROUND) != 0 && (flags & PlayerFlags.FL_ONGROUND) == 0 && (LB[player.Slot] & PlayerButtons.Jump) == 0 && (buttons & PlayerButtons.Jump) != 0)
+            if (isOnGround)
             {
+                state.AirJumpCount = 0;
             }
-            else if ((flags & PlayerFlags.FL_ONGROUND) != 0)
+            else if (!state.LastButtons.HasFlag(PlayerButtons.Jump) && 
+                     currentButtons.HasFlag(PlayerButtons.Jump) && 
+                     state.AirJumpCount < 1)
             {
-                J[player.Slot] = 0;
-            }
-            else if ((LB[player.Slot] & PlayerButtons.Jump) == 0 && (buttons & PlayerButtons.Jump) != 0 && J[player.Slot] < 1)
-            {
-                J[player.Slot]++;
+                state.AirJumpCount++;
 
-                float moveX = 0;
-                float moveY = 0;
+                float dirX = 0, dirY = 0;
+                if (currentButtons.HasFlag(PlayerButtons.Forward))  dirY += 1;
+                if (currentButtons.HasFlag(PlayerButtons.Back))     dirY -= 1;
+                if (currentButtons.HasFlag(PlayerButtons.Moveleft)) dirX += 1;
+                if (currentButtons.HasFlag(PlayerButtons.Moveright))dirX -= 1;
 
-                PlayerButtons playerButtons = player.Buttons;
-                if (playerButtons.HasFlag(PlayerButtons.Forward))
-                    moveY += 1;
-                if (playerButtons.HasFlag(PlayerButtons.Back))
-                    moveY -= 1;
-                if (playerButtons.HasFlag(PlayerButtons.Moveleft))
-                    moveX += 1;
-                if (playerButtons.HasFlag(PlayerButtons.Moveright))
-                    moveX -= 1;
+                if (dirX == 0 && dirY == 0) dirY = 1;
 
-                if (moveX == 0 && moveY == 0)
-                    moveY = 1;
+                float moveAngle = MathF.Atan2(dirX, dirY) * (180f / MathF.PI);
+                QAngle dashAngles = new(0, pawn.EyeAngles.Y + moveAngle, 0);
 
-                float moveAngle = MathF.Atan2(moveX, moveY) * (180f / MathF.PI);
-                QAngle dashAngles = new(0, playerPawn.EyeAngles.Y + moveAngle, 0);
-
-                Vector newVelocity = SkillUtils.GetForwardVector(dashAngles) * 500f;
-                newVelocity.Z = playerPawn.AbsVelocity.Z + 130f;
-
-                playerPawn.AbsVelocity.X = newVelocity.X;
-                playerPawn.AbsVelocity.Y = newVelocity.Y;
-                playerPawn.AbsVelocity.Z = newVelocity.Z;
+                Vector vel = SkillUtils.GetForwardVector(dashAngles) * 500f;
+                pawn.AbsVelocity.X = vel.X;
+                pawn.AbsVelocity.Y = vel.Y;
+                pawn.AbsVelocity.Z = vel.Z + 130f;
             }
 
-            LF[player.Slot] = flags;
-            LB[player.Slot] = buttons;
+            state.LastButtons = currentButtons;
         }
     }
 }

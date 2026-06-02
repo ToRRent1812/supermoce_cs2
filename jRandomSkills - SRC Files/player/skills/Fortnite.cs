@@ -8,96 +8,57 @@ using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
-    public class Fortnite : ISkill
+    public class Fortnite : ISkill, IActiveSkill
     {
         private const Skills skillName = Skills.Fortnite;
-        private static int cd = 12;
         private static readonly string propModel = "models/props/de_aztec/hr_aztec/aztec_scaffolding/aztec_scaffold_wall_support_128.vmdl";
-        private static readonly ConcurrentDictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
-        private static readonly ConcurrentDictionary<ulong, int> barricades = [];
-        private static readonly object setLock = new();
+        private static readonly ConcurrentDictionary<int, int> barricades = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Bambik", "Stawiasz barykadę na żądanie", "#1b04cc");
+            SkillUtils.RegisterActiveSkill(
+                skillName,
+                "Bambik",
+                "Stawiasz barykadę na żądanie",
+                "#1b04cc",
+                minCooldown: 10,
+                maxCooldown: 40,
+                cooldownStep: 5);
             Instance?.RegisterListener<OnServerPrecacheResources>((ResourceManifest manifest) => manifest.AddResource(propModel));
         }
 
         public static void NewRound()
         {
-            cd = ((Instance?.Random.Next(2, 9)) ?? 2) * 5;
-            lock (setLock)
-            {
-                SkillPlayerInfo.Clear();
-                barricades.Clear();
-            }
-        }
-
-        public static void OnTick()
-        {
-            if (SkillUtils.IsFreezetime()) return;
-            foreach (var player in Utilities.GetPlayers())
-            {
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill == skillName)
-                    if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
-                        UpdateHUD(player, skillInfo);
-            }
+            barricades.Clear();
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            SkillPlayerInfo.TryAdd(player.SteamID, new PlayerSkillInfo
-            {
-                SteamID = player.SteamID,
-                CanUse = true,
-                Cooldown = DateTime.MinValue,
-            });
+            if (Instance?.IsPlayerValid(player) == false) return;
+
+            var config = SkillUtils.GetActiveSkillConfig(skillName);
+            if (config != null)
+                ActiveSkillFramework.OnSkillEnabled(skillName, player, config);
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-              SkillPlayerInfo.TryRemove(player.SteamID, out _);
-        }
-
-        private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo)
-        {
-            float cooldown = 0;
-            if (skillInfo != null)
-            {
-                float time = (int)(skillInfo.Cooldown.AddSeconds(cd) - DateTime.Now).TotalSeconds;
-                cooldown = Math.Max(time, 0);
-
-                if (cooldown == 0 && skillInfo?.CanUse == false)
-                    skillInfo.CanUse = true;
-            }
-
-            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
-            if (skillData == null) return;
-
-            string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
-            string remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>Poczekaj <font color='#FF0000'>{cooldown}</font> sek.</font>" : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>Wciśnij INSPEKT by użyć</font>";
-
-            var hudContent = skillLine + remainingLine;
-            player.PrintToCenterHtml(hudContent);
+            if (Instance?.IsPlayerValid(player) == false) return;
+            ActiveSkillFramework.OnSkillDisabled(skillName, player);
         }
 
         public static void UseSkill(CCSPlayerController player)
         {
-            if(Instance?.GameRules?.FreezePeriod == true) return;
+            if (Instance?.GameRules?.FreezePeriod == true) return;
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn?.CBodyComponent == null) return;
+            if (!player.IsValid || !player.PawnIsAlive) return;
 
-            if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
-            {
-                if (!player.IsValid || !player.PawnIsAlive) return;
-                if (skillInfo.CanUse)
-                {
-                    skillInfo.CanUse = false;
-                    skillInfo.Cooldown = DateTime.Now;
-                    CreateBox(player);
-                }
-            }
+            if (!ActiveSkillFramework.CanUseSkill(skillName, player))
+                return;
+
+            ActiveSkillFramework.MarkSkillUsed(skillName, player);
+            CreateBox(player);
         }
 
         private static void CreateBox(CCSPlayerController player)
@@ -114,9 +75,8 @@ namespace jRandomSkills
             box.Collision.SolidType = SolidType_t.SOLID_VPHYSICS;
             box.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags = (uint)(box.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags & ~(1 << 2));
             box.DispatchSpawn();
-            // randomize barricade health between 180 and 350
             int hp = Instance?.Random.Next(180, 351) ?? 180;
-            barricades.TryAdd(box.Index, hp);
+            barricades.TryAdd((int)box.Index, hp);
             Server.NextFrame(() =>
             {
                 box.SetModel(propModel);
@@ -142,22 +102,15 @@ namespace jRandomSkills
             if (box == null || !box.IsValid) return HookResult.Continue;
             box.EmitSound("Wood_Plank.BulletImpact", volume: 1f);
 
-            if (barricades.TryGetValue(box.Index, out int health))
+            if (barricades.TryGetValue((int)box.Index, out int health))
             {
                 health -= (int)info.Damage;
-                barricades.AddOrUpdate(box.Index, health, (k, v) => health);
+                barricades.AddOrUpdate((int)box.Index, health, (k, v) => health);
                 if (health <= 0) box.AcceptInput("Kill");
             }
             else box.AcceptInput("Kill");
 
             return HookResult.Continue;
-        }
-
-        public class PlayerSkillInfo
-        {
-            public ulong SteamID { get; set; }
-            public bool CanUse { get; set; }
-            public DateTime Cooldown { get; set; }
         }
     }
 }

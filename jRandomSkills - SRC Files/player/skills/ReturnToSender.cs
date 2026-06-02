@@ -14,7 +14,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Zwrot do Nadawcy", "Trafienie wroga cofa go 1 raz na resp", "#a68132");
+            SkillUtils.RegisterSkill(skillName, 
+            "Zwrot do Nadawcy", 
+            "Trafienie wroga cofa go 1 raz na resp", 
+            "#a68132");
         }
 
         public static void NewRound()
@@ -29,7 +32,7 @@ namespace jRandomSkills
             int damage = @event.DmgHealth;
 
             if (Instance?.IsPlayerValid(attacker) == false || Instance?.IsPlayerValid(victim) == false || attacker == victim) return;
-            var attackerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
+            var attackerInfo = SkillUtils.GetPlayerInfo(attacker);
             if (attackerInfo == null || attackerInfo.Skill != skillName) return;
 
             if (playersToSender.TryGetValue(victim!.Handle, out _))

@@ -11,7 +11,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Robot", "Ramiona i nogi są kuloodporne", "#9c9c9c");
+            SkillUtils.RegisterSkill(skillName, 
+            "Robot", 
+            "Ramiona i nogi są kuloodporne", 
+            "#9c9c9c");
         }
 
         public static void PlayerHurt(EventPlayerHurt @event)
@@ -22,7 +25,7 @@ namespace jRandomSkills
             var hitgroup = (HitGroup_t)@event.Hitgroup;
 
             if (Instance?.IsPlayerValid(attacker) == false || Instance?.IsPlayerValid(victim) == false) return;
-            var victimInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
+            var victimInfo = SkillUtils.GetPlayerInfo(victim);
             if (victimInfo == null || victimInfo.Skill != skillName) return;
 
             HitGroup_t[] disabledHitbox = [HitGroup_t.HITGROUP_LEFTARM, HitGroup_t.HITGROUP_RIGHTARM, HitGroup_t.HITGROUP_LEFTLEG, HitGroup_t.HITGROUP_RIGHTLEG];

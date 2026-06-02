@@ -10,7 +10,11 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Twarda Bania", "Nie otrzymujesz obrażeń w głowę", "#8B4513");
+            SkillUtils.RegisterSkill(
+                skillName, 
+                "Twarda Bania", 
+                "Nie otrzymujesz obrażeń w głowę", 
+                "#8B4513");
         }
 
         public static void PlayerHurt(EventPlayerHurt @event)
@@ -20,7 +24,7 @@ namespace jRandomSkills
             int hitgroup = @event.Hitgroup;
 
             if (Instance?.IsPlayerValid(attacker) == false || Instance?.IsPlayerValid(victim) == false || attacker == victim) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(victim);
             if (playerInfo?.Skill == skillName && hitgroup == (int)HitGroup_t.HITGROUP_HEAD)
                 ApplyIronHeadEffect(victim!, @event.DmgHealth);
         }

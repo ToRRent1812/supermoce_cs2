@@ -1,6 +1,7 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using jRandomSkills.src.player;
+using System.Collections.Concurrent;
 using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 
@@ -12,10 +13,17 @@ namespace jRandomSkills
         {
             Instance?.RegisterListener<OnTick>(() =>
             {
+                SkillUtils.RefreshTickState();
                 UpdateGameRules();
-                var validPlayers = Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV).ToArray();
+
+                bool isFreezetime = SkillUtils.IsFreezetime();
+                bool rebuildStrings = isFreezetime 
+                    ? (SkillUtils.CurrentTick & 3) == 0
+                    : (SkillUtils.CurrentTick & 15) == 0;
+
+                var validPlayers = SkillUtils.CachedPlayers;
                 foreach (var validPlayer in validPlayers)
-                    UpdatePlayerHud(validPlayer);
+                    UpdatePlayerHud(validPlayer, rebuildStrings);
             });
 
             Instance?.RegisterListener<OnMapStart>(OnMapStart);
@@ -41,11 +49,37 @@ namespace jRandomSkills
                 InitializeGameRules();
         }
 
-        private static void UpdatePlayerHud(CCSPlayerController player)
+        private static readonly ConcurrentDictionary<ulong, string> _lastHudStrings = [];
+
+        public static void ClearHudCache()
+        {
+            _lastHudStrings.Clear();
+        }
+
+        private static void UpdatePlayerHud(CCSPlayerController player, bool rebuildStrings)
         {
             if (player == null) return;
-            var skillPlayer = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var skillPlayer = SkillUtils.GetPlayerInfo(player);
             if (skillPlayer == null) return;
+
+            var activeConfig = SkillUtils.GetActiveSkillConfig(skillPlayer.Skill);
+            if (activeConfig != null && !skillPlayer.IsDrawing && player.PawnIsAlive)
+            {
+                if (!activeConfig.UseCustomHud)
+                {
+                    ActiveSkillFramework.UpdateHUD(skillPlayer.Skill, player, activeConfig);
+                    return;
+                }
+            }
+
+            string hudContent = "";
+
+            if (!rebuildStrings)
+            {
+                if (_lastHudStrings.TryGetValue(player.SteamID, out var cached) && !string.IsNullOrEmpty(cached))
+                    player.PrintToCenterHtml(cached);
+                return;
+            }
 
             string infoLine = "";
             string skillLine = "";
@@ -57,7 +91,7 @@ namespace jRandomSkills
             }
             else if (skillPlayer.IsDrawing && !SkillUtils.IsWarmup())
             {
-                var randomSkill = SkillData.Skills.ToArray()[Instance?.Random.Next(SkillData.Skills.Count) ?? 0];
+                var randomSkill = SkillUtils.GetCachedSkillsArray()[Instance?.Random.Next(SkillData.Skills.Count) ?? 0];
                 infoLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='#FFFFFF'>Losowanie supermocy...</font> <br>";
                 skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{randomSkill.Color}'>{randomSkill.Name}</font>";
             }
@@ -83,8 +117,12 @@ namespace jRandomSkills
                 }
             }
 
-            if (string.IsNullOrEmpty(infoLine) && string.IsNullOrEmpty(skillLine)) return;
-            player.PrintToCenterHtml(infoLine + skillLine);
+            if (!string.IsNullOrEmpty(infoLine) || !string.IsNullOrEmpty(skillLine))
+            {
+                hudContent = infoLine + skillLine;
+                _lastHudStrings[player.SteamID] = hudContent;
+                player.PrintToCenterHtml(hudContent);
+            }
         }
 
         private static (string infoLine, string skillLine)? GetObserverHud(CCSPlayerController player)
@@ -95,7 +133,7 @@ namespace jRandomSkills
             var observedPlayer = Utilities.GetPlayers().FirstOrDefault(p => p?.Pawn?.Value?.Handle == pawn.ObserverServices?.ObserverTarget?.Value?.Handle);
             if (observedPlayer == null) return null;
 
-            var observeredPlayerSkill = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == observedPlayer.SteamID);
+            var observeredPlayerSkill = SkillUtils.GetPlayerInfo(observedPlayer);
             if (observeredPlayerSkill == null) return null;
 
             var skillInfo = SkillData.Skills.FirstOrDefault(s => s.Skill == observeredPlayerSkill.Skill);

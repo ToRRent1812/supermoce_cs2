@@ -10,7 +10,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Semtex", "Twoje granaty przyklejają się do ścian", "#fff52e");
+            SkillUtils.RegisterSkill(skillName, 
+            "Semtex", 
+            "Twoje granaty przyklejają się do ścian", 
+            "#fff52e");
         }
 
         public static void OnEntitySpawned(CEntityInstance entity)
@@ -26,9 +29,9 @@ namespace jRandomSkills
             if (pawn == null || !pawn.IsValid || pawn.Controller == null || pawn.Controller.Value == null || !pawn.Controller.Value.IsValid) return;
 
             var player = pawn.Controller.Value.As<CCSPlayerController>();
-            if (player == null || !player.IsValid) return;
+            if (Instance?.IsPlayerValid(player) == false) return;
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo?.Skill != skillName) return;
             grenade.Bounces = 555;
         }

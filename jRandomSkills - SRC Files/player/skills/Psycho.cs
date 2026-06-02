@@ -2,7 +2,6 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
@@ -13,7 +12,11 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Psychopata", "Każdy wystrzelony pocisk Terrorystów zadaje im 1 HP", "#a55ece", 2);
+            SkillUtils.RegisterSkill(skillName, 
+            "Psychopata", 
+            "Każdy wystrzelony pocisk Terrorystów zadaje im 1 HP", 
+            "#a55ece", 
+            teamnum:2);
         }
 
         public static void NewRound()
@@ -32,9 +35,8 @@ namespace jRandomSkills
             {
                 if (p != null && p.IsValid && p.Team == CsTeam.CounterTerrorist)
                 {
-                    var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                    var playerInfo = SkillUtils.GetPlayerInfo(player);
                     if (player.PawnIsAlive && playerInfo?.Skill == skillName) return;
-                    // Jeżeli ktoś nadal ma psycho, to nie usuwamy mocy
                     skillEnabled = true;
                     return;
                 }

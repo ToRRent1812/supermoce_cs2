@@ -12,21 +12,28 @@ namespace jRandomSkills
     {
         private const Skills skillName = Skills.LongFlame;
         private static readonly ConcurrentDictionary<Vector, ulong> fires = [];
+        private static readonly ConcurrentDictionary<uint, float> infernoEndTimes = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Ognisko", "Twoje mołotowy płoną 60 sekund. Po 20 sekundach moli wraca do ręki.", "#ff8800", 1);
+            SkillUtils.RegisterSkill(skillName, 
+            "Ognisko", 
+            "Twoje mołotowy palą się 60 sek.", 
+            "#ff3c00", 
+            teamnum:1);
         }
 
         public static void NewRound()
         {
             fires.Clear();
+            infernoEndTimes.Clear();
         }
 
         public static void MolotovDetonate(EventMolotovDetonate @event)
         {
             var player = @event.Userid;
-            if (player == null || !player.IsValid) return;
+            if(player == null) return;
+            if (Instance?.IsPlayerValid(player) == false) return;
             var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName) return;
             fires.TryAdd(new Vector(@event.X, @event.Y, @event.Z), player.SteamID);
@@ -39,58 +46,57 @@ namespace jRandomSkills
         public static void OnEntitySpawned(CEntityInstance entity)
         {
             if (entity.DesignerName != "inferno")
-            {
-                Server.PrintToConsole($"[LongFlame] Entity name doesn't match: {entity.DesignerName}");
                 return;
-            }
 
-            var inferno = new CInferno(entity.Handle);
+            var inferno = entity.As<CInferno>();
             if (inferno == null || !inferno.IsValid)
-            {
-                Server.PrintToConsole("[LongFlame] Inferno is null or invalid");
                 return;
-            }
 
             if (inferno.OwnerEntity == null || !inferno.OwnerEntity.IsValid || inferno.OwnerEntity.Value == null || !inferno.OwnerEntity.Value.IsValid)
-            {
-                Server.PrintToConsole("[LongFlame] Inferno OwnerEntity is invalid");
                 return;
-            }
 
-            var projectile = inferno.OwnerEntity.Value.As<CBaseCSGrenadeProjectile>();
-            if (projectile == null || !projectile.IsValid || projectile.OwnerEntity == null || !projectile.OwnerEntity.IsValid || projectile.OwnerEntity.Value == null || !projectile.OwnerEntity.Value.IsValid)
-            {
-                Server.PrintToConsole("[LongFlame] Projectile is invalid");
-                return;
-            }
-
-            var pawn = projectile.OwnerEntity.Value.As<CCSPlayerPawn>();
+            var pawn = inferno.OwnerEntity.Value.As<CCSPlayerPawn>();
             if (pawn == null || !pawn.IsValid || pawn.Controller == null || !pawn.Controller.IsValid || pawn.Controller.Value == null || !pawn.Controller.Value.IsValid)
-            {
-                Server.PrintToConsole("[LongFlame] Pawn or Controller is invalid");
                 return;
-            }
 
             var player = pawn.Controller.Value.As<CCSPlayerController>();
-            if (player == null || !player.IsValid)
-            {
-                Server.PrintToConsole("[LongFlame] Player is invalid");
-                return;
-            }
+            if (player == null || !player.IsValid) return;
 
             var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
             if (playerInfo?.Skill != skillName)
-            {
-                Server.PrintToConsole($"[LongFlame] Player skill doesn't match. Expected: {skillName}, Got: {playerInfo?.Skill}");
                 return;
+
+            infernoEndTimes[inferno.Index] = Server.CurrentTime + 60f;
+        }
+
+        public static void OnTick()
+        {
+            if (Server.TickCount % 16 != 0) return;
+
+            var now = Server.CurrentTime;
+            var expired = new List<uint>();
+
+            foreach (var kv in infernoEndTimes)
+            {
+                var inferno = Utilities.GetEntityFromIndex<CInferno>((int)kv.Key);
+                if (inferno == null || !inferno.IsValid)
+                {
+                    expired.Add(kv.Key);
+                    continue;
+                }
+
+                if (now >= kv.Value)
+                {
+                    expired.Add(kv.Key);
+                    continue;
+                }
+
+                if (inferno.FireCount < 5)
+                    inferno.FireCount = 5;
             }
 
-            if (inferno.IsValid)
-            {
-                Server.PrintToConsole($"[LongFlame] Default values - FireLifetime: {inferno.FireLifetime}");
-                inferno.FireLifetime = 60f;
-                Server.PrintToConsole($"[LongFlame] Updated values - FireLifetime: {inferno.FireLifetime}");
-            }
+            foreach (var index in expired)
+                infernoEndTimes.TryRemove(index, out _);
         }
 
         public static void EnableSkill(CCSPlayerController player)

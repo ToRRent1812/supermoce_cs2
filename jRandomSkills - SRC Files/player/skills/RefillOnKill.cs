@@ -10,7 +10,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Rusznikarz", "Odnawiasz amunicję i zdrowie po każdym zabójstwie.", "#18dda2");
+            SkillUtils.RegisterSkill(skillName, 
+            "Rusznikarz", 
+            "Odnawiasz amunicję i zdrowie po każdym zabójstwie.", 
+            "#18dda2");
         }
 
         public static void PlayerDeath(EventPlayerDeath @event)
@@ -19,7 +22,7 @@ namespace jRandomSkills
             var victim = @event.Userid;
             if (killer == null || killer == victim || Instance?.IsPlayerValid(killer) == false || !killer.PawnIsAlive) return;
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == killer.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(killer);
             if (playerInfo?.Skill == skillName)
             {
                 var killerPawn = killer.PlayerPawn.Value;

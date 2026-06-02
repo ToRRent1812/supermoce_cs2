@@ -1,6 +1,5 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
 using System.Collections.Concurrent;
 using CounterStrikeSharp.API.Modules.Timers;
@@ -10,111 +9,111 @@ using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
-    public class Illusionist : ISkill
+    public class Illusionist : ISkill, IActiveSkill
     {
         private const Skills skillName = Skills.Illusionist;
-        private static readonly ConcurrentDictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
+        private static readonly ConcurrentDictionary<ulong, uint> ActiveReplicas = [];
         private static readonly ConcurrentDictionary<int, Timer> ActiveTimers = [];
-        private static readonly object setLock = new();
-        private static int cd = 30;
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Android", "Możesz stworzyć hologram idący przed siebie", "#eeff00");
+            SkillUtils.RegisterActiveSkill(
+                skillName,
+                "Android",
+                "Możesz stworzyć hologram idący przed siebie",
+                "#eeff00",
+                minCooldown: 20,
+                maxCooldown: 50,
+                cooldownStep: 5);
         }
 
         public static void NewRound()
         {
-            cd = ((Instance?.Random.Next(4, 11)) ?? 4) * 5;
-            ClearAllReplicas();
-            lock (setLock)
-                SkillPlayerInfo.Clear();
-        }
-
-        private static void ClearAllReplicas()
-        {
+            ActiveSkillFramework.OnNewRound();
             foreach (var timer in ActiveTimers.Values) timer?.Kill();
             ActiveTimers.Clear();
 
-            var entities = Utilities.FindAllEntitiesByDesignerName<CDynamicProp>("prop_dynamic_override");
-            foreach (var entity in entities)
-                if (entity != null && entity.IsValid && entity.Entity != null && !string.IsNullOrEmpty(entity.Entity.Name) && (entity.Entity.Name?.StartsWith("Illusionist_") ?? false))
-                    entity.AcceptInput("Kill");
-        }
+            foreach (var replicaIndex in ActiveReplicas.Values)
+                SkillUtils.SafeKillEntity<CDynamicProp>(replicaIndex);
 
-        public static void OnTick()
-        {
-            if (SkillUtils.IsFreezetime()) return;
-            foreach (var player in Utilities.GetPlayers())
-            {
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill == skillName && SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
-                    UpdateHUD(player, skillInfo);
-            }
+            ActiveReplicas.Clear();
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            SkillPlayerInfo.TryAdd(player.SteamID, new PlayerSkillInfo
-            {
-                SteamID = player.SteamID,
-                CanUse = true,
-                Cooldown = DateTime.MinValue,
-            });
+            if (Instance?.IsPlayerValid(player) == false) return;
+
+            var config = SkillUtils.GetActiveSkillConfig(skillName);
+            if (config != null)
+                ActiveSkillFramework.OnSkillEnabled(skillName, player, config);
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            SkillPlayerInfo.TryRemove(player.SteamID, out _);
+            if (Instance?.IsPlayerValid(player) == false) return;
+
+            ActiveSkillFramework.OnSkillDisabled(skillName, player);
+
+            if (ActiveReplicas.TryRemove(player.SteamID, out var replicaIndex))
+            {
+                SkillUtils.SafeKillEntity<CDynamicProp>(replicaIndex);
+                if (ActiveTimers.TryRemove((int)replicaIndex, out var timer))
+                    timer?.Kill();
+            }
         }
 
-        private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo)
+        public static void PlayerDeath(EventPlayerDeath @event)
         {
-            float cooldown = 0;
-            if (skillInfo != null)
-            {
-                float time = (int)(skillInfo.Cooldown.AddSeconds(cd) - DateTime.Now).TotalSeconds;
-                cooldown = Math.Max(time, 0);
+            var player = @event.Userid;
+            if (player == null) return;
 
-                if (cooldown == 0 && skillInfo.CanUse == false)
-                    skillInfo.CanUse = true;
+            if (ActiveReplicas.TryRemove(player.SteamID, out var replicaIndex))
+            {
+                SkillUtils.SafeKillEntity<CDynamicProp>(replicaIndex);
+                if (ActiveTimers.TryRemove((int)replicaIndex, out var timer))
+                    timer?.Kill();
             }
 
-            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
-            if (skillData == null) return;
-
-            string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
-            string remainingLine = cooldown != 0
-                ? $"<font class='fontSize-m' color='#FFFFFF'>Poczekaj <font color='#FF0000'>{cooldown}</font> sek.</font>"
-                : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>Wciśnij INSPEKT by użyć</font>";
-
-            player.PrintToCenterHtml(skillLine + remainingLine);
+            ActiveSkillFramework.OnSkillDisabled(skillName, player);
         }
 
         public static void UseSkill(CCSPlayerController player)
         {
             if (player == null || !player.IsValid || !player.PawnIsAlive) return;
+            if (!ActiveSkillFramework.CanUseSkill(skillName, player)) return;
 
-            if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo) && skillInfo.CanUse)
-            {
-                skillInfo.CanUse = false;
-                skillInfo.Cooldown = DateTime.Now;
-                CreateReplica(player);
-            }
+            var playerPawn = player.PlayerPawn?.Value;
+            if (playerPawn == null || playerPawn.CBodyComponent == null || playerPawn.AbsOrigin == null || playerPawn.AbsRotation == null)
+                return;
+
+            if (!((PlayerFlags)playerPawn.Flags).HasFlag(PlayerFlags.FL_ONGROUND))
+                return;
+
+            if (!CreateReplica(player))
+                return;
+
+            ActiveSkillFramework.MarkSkillUsed(skillName, player);
         }
 
-        private static void CreateReplica(CCSPlayerController player)
+        private static bool CreateReplica(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn.Value;
-            if (playerPawn == null || !playerPawn.IsValid) return;
-            if (playerPawn.AbsOrigin == null || playerPawn.AbsRotation == null) return;
+            if (playerPawn == null || !playerPawn.IsValid) return false;
+            if (playerPawn.AbsOrigin == null || playerPawn.AbsRotation == null) return false;
+
+            if (ActiveReplicas.TryRemove(player.SteamID, out var existingReplicaIndex))
+            {
+                SkillUtils.SafeKillEntity<CDynamicProp>(existingReplicaIndex);
+                if (ActiveTimers.TryRemove((int)existingReplicaIndex, out var oldTimer))
+                    oldTimer?.Kill();
+            }
 
             var replica = Utilities.CreateEntityByName<CDynamicProp>("prop_dynamic_override");
-            if (replica == null || !replica.IsValid) return;
+            if (replica == null || !replica.IsValid) return false;
 
             replica.Collision.SolidType = SolidType_t.SOLID_VPHYSICS;
             replica.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags = (uint)(replica.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags & ~(1 << 2));
-           
+
             replica.SetModel(playerPawn!.CBodyComponent!.SceneNode!.GetSkeletonInstance().ModelState.ModelName);
             replica.Entity!.Name = replica.Globalname = $"Illusionist_{Server.TickCount}_{(player.Team == CsTeam.CounterTerrorist ? "CT" : "TT")}";
 
@@ -127,7 +126,6 @@ namespace jRandomSkills
             replica.Teleport(startPos, angle, new Vector(0, 0, -100));
 
             bool ducking = ((PlayerFlags)playerPawn.Flags).HasFlag(PlayerFlags.FL_DUCKING);
-
             string animName = ducking ? "crouch_new_knife_n" : "run_new_knife_n";
             replica.AcceptInput("SetAnimation", value: animName);
             replica.AcceptInput("SetPlaybackRate", value: "1.0");
@@ -136,12 +134,14 @@ namespace jRandomSkills
             Vector forwardVec = SkillUtils.GetForwardVector(angle);
             int replicaIndex = (int)replica.Index;
 
-            Instance?.AddTickTimer(10, () => {
+            Instance?.AddTickTimer(10, () =>
+            {
                 var moveTimer = Instance.AddTickTimer(1, () =>
                 {
                     if (replica == null || !replica.IsValid)
                     {
                         if (ActiveTimers.TryRemove(replicaIndex, out var timer)) timer?.Kill();
+                        ActiveReplicas.TryRemove(player.SteamID, out _);
                         return;
                     }
 
@@ -159,6 +159,7 @@ namespace jRandomSkills
                     );
                     replica.Teleport(nexPos, null, null);
                 }, TimerFlags.REPEAT | TimerFlags.STOP_ON_MAPCHANGE);
+
                 ActiveTimers.TryAdd(replicaIndex, moveTimer);
             });
 
@@ -169,8 +170,12 @@ namespace jRandomSkills
                 {
                     replica.AcceptInput("Kill");
                     if (ActiveTimers.TryRemove(replicaIndex, out var timer)) timer?.Kill();
+                    ActiveReplicas.TryRemove(player.SteamID, out _);
                 }
             });
+
+            ActiveReplicas.TryAdd(player.SteamID, (uint)replicaIndex);
+            return true;
         }
 
         public static HookResult OnTakeDamage(CEntityInstance entity, CTakeDamageInfo info)
@@ -187,6 +192,17 @@ namespace jRandomSkills
             if (ActiveTimers.TryRemove((int)replica.Index, out var timer)) timer?.Kill();
             replica.AcceptInput("Kill");
 
+            ulong? staleKey = null;
+            foreach (var kvp in ActiveReplicas)
+            {
+                if (kvp.Value == replica.Index)
+                {
+                    staleKey = kvp.Key;
+                    break;
+                }
+            }
+            if (staleKey != null) ActiveReplicas.TryRemove(staleKey.Value, out _);
+
             CCSPlayerPawn attackerPawn = new(info.Attacker.Value.Handle);
             if (attackerPawn.DesignerName != "player")
                 return HookResult.Continue;
@@ -196,13 +212,6 @@ namespace jRandomSkills
             SkillUtils.TakeHealth(attackerPawn, attackerTeam != replicaTeam ? 20 : 10);
 
             return HookResult.Continue;
-        }
-
-        public class PlayerSkillInfo
-        {
-            public ulong SteamID { get; set; }
-            public bool CanUse { get; set; }
-            public DateTime Cooldown { get; set; }
         }
     }
 }

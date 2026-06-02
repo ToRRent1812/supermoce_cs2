@@ -8,14 +8,22 @@ using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
-    public class Flash : ISkill
+    public class Flash : ISkill, IPassiveSkill
     {
         private const Skills skillName = Skills.Flash;
         private static readonly ConcurrentDictionary<ulong, int> jumpedPlayers = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Struś", "Szybko biegasz", "#dd1ad3");
+            SkillUtils.RegisterPassiveSkill(
+                skillName,
+                "Struś",
+                "Szybko biegasz",
+                "#dd1ad3",
+                minValue: 130,
+                maxValue: 250,
+                step: 10,
+                customValueFormatter: (value) => $"{value}%");
         }
 
         public static void NewRound()
@@ -34,7 +42,7 @@ namespace jRandomSkills
             var player = Utilities.GetPlayers().FirstOrDefault(p => p.Pawn?.Value != null && p.Pawn.Value.IsValid && p.Pawn.Value.Index == userIndex);
             if (Instance?.IsPlayerValid(player) == false) return;
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo?.Skill != skillName) return;
 
             if (player!.Buttons.HasFlag(PlayerButtons.Speed) || player.Buttons.HasFlag(PlayerButtons.Duck))
@@ -44,7 +52,8 @@ namespace jRandomSkills
         public static void PlayerJump(EventPlayerJump @event)
         {
             var player = @event.Userid;
-            if (player == null || !player.IsValid) return;
+            if(player == null) return;
+            if (Instance?.IsPlayerValid(player) == false) return;
             if (!jumpedPlayers.TryGetValue(player.SteamID, out _)) return;
             jumpedPlayers.AddOrUpdate(player.SteamID, Server.TickCount + 20, (k, v) => Server.TickCount + 20);
         }
@@ -52,12 +61,17 @@ namespace jRandomSkills
         public static void EnableSkill(CCSPlayerController player)
         {
             var playerPawn = player.PlayerPawn.Value;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerPawn == null || playerInfo == null) return;
 
-            int randomValue = Instance?.Random?.Next(13,26) * 10 ?? 130; //130-250%
-            playerInfo.SkillChance = randomValue / 100f;
-            playerInfo.RandomPercentage = randomValue.ToString() + "%";
+            var config = SkillUtils.GetPassiveSkillConfig(skillName);
+            if (config != null)
+            {
+                PassiveSkillFramework.OnSkillEnabled(skillName, player, config);
+
+                int randomRoll = PassiveSkillFramework.GetRandomRoll(skillName, player, config);
+                playerInfo.SkillChance = randomRoll / 100f;
+            }
 
             jumpedPlayers.TryAdd(player.SteamID, 0);
             playerPawn.VelocityModifier = playerInfo.SkillChance ?? 1f;
@@ -65,6 +79,8 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
+            PassiveSkillFramework.OnSkillDisabled(skillName, player);
+
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn == null) return;
             playerPawn.VelocityModifier = 1f;
@@ -73,11 +89,11 @@ namespace jRandomSkills
 
         public static void OnTick()
         {
-            foreach (var player in Utilities.GetPlayers())
+            foreach (var player in SkillUtils.CachedPlayers)
             {
                 if (Instance?.IsPlayerValid(player) == false) continue;
 
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = SkillUtils.GetPlayerInfo(player);
                 if (playerInfo?.Skill != skillName) continue;
 
                 var playerPawn = player.PlayerPawn?.Value;

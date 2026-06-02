@@ -16,7 +16,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Zombie", "Po śmierci odradzasz się jako zombie z nożem i dużą ilością zdrowia", "#ff5C0A", 1);
+            SkillUtils.RegisterSkill(skillName, 
+            "Zombie", 
+            "Po śmierci odradzasz się jako zombie z nożem i dużą ilością zdrowia", 
+            "#ff5C0A");
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -37,8 +40,9 @@ namespace jRandomSkills
         {
             var player = @event.Userid;
             var weapon = @event.Item;
-            if (player == null || !player.IsValid) return;
-            if (!zombies.ContainsKey(player) || weapon == "c4") return;
+            if(player == null || weapon == null) return;
+            if (Instance?.IsPlayerValid(player) == false) return;
+            if (!zombies.ContainsKey(player) || weapon == "c4" || weapon.Contains("knife") || weapon.Contains("bayonet")) return;
             player.ExecuteClientCommand("slot3");
         }
 
@@ -49,39 +53,27 @@ namespace jRandomSkills
             zombies.Clear();
         }
 
-        public static void PlayerDeath(EventPlayerDeath @event)
+        public static void PlayerHurt(EventPlayerHurt @event)
         {
             var player = @event.Userid;
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid || zombies.ContainsKey(player)) return;
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo?.Skill != skillName) return;
 
             var pawn = player.PlayerPawn.Value;
-            if (pawn.AbsOrigin == null) return;
-            Vector deadPosition = new(pawn.AbsOrigin.X, pawn.AbsOrigin.Y, pawn.AbsOrigin.Z);
-            QAngle deadRotation = new(pawn.EyeAngles.X, pawn.EyeAngles.Y, pawn.EyeAngles.Z);
+            if (pawn.Health > 0) return;
 
-            player.Respawn();
-            Instance?.AddTimer(0.2f, () =>
+            lock (setLock)
             {
-                lock (setLock)
-                {
-                    player.Respawn();
-                    zombies.TryAdd(player, 0);
-                    SetPlayerColor(pawn, false);
-                    pawn.Teleport(deadPosition, deadRotation);
-                    player.ExecuteClientCommand("slot3");
-                    Instance?.AddTimer(0.5f, () => player.ExecuteClientCommand("slot3"));
-                    pawn.VelocityModifier = 1.2f;
-                    pawn.MaxHealth = 750;
-                    Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iMaxHealth");
-                    pawn.Health = 750;
-                    Utilities.SetStateChanged(pawn, "CBaseEntity", "m_iHealth");
-                }
-            });
+                bool isBlock = player.TeamChanged;
+                zombies.TryAdd(player, 0);
+                if(isBlock) return;
+                SetPlayerColor(pawn, false);
+                player.ExecuteClientCommand("slot3");
+                SkillUtils.AddHealth(pawn, 750, 750);
+            }
         }
-
 
         public static void ResetHealth(CCSPlayerController player)
         {

@@ -8,7 +8,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Inwalida", "Nie posiadasz supermocy", "#FFFFFF");
+            SkillUtils.RegisterSkill(skillName, 
+            "Inwalida", 
+            "Nie posiadasz supermocy", 
+            "#FFFFFF");
         }
     }
 }

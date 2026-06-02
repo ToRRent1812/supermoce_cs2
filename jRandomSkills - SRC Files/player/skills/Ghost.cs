@@ -42,7 +42,7 @@ namespace jRandomSkills
         {
             var player = @event.Userid;
             if (Instance?.IsPlayerValid(player) == false) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
 
             if (playerInfo?.Skill != skillName) return;
             SetWeaponVisibility(player!, false);
@@ -53,7 +53,7 @@ namespace jRandomSkills
         {
             var player = @event.Userid;
             if (Instance?.IsPlayerValid(player) == false) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
 
             if (playerInfo?.Skill != skillName) return;
             SetWeaponVisibility(player!, false);
@@ -92,7 +92,7 @@ namespace jRandomSkills
         {
             foreach (var player in Utilities.GetPlayers())
             {
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = SkillUtils.GetPlayerInfo(player);
                 if (playerInfo?.Skill == skillName)
                     UpdateHUD(player);
                 if (!player.PawnIsAlive)
@@ -113,7 +113,7 @@ namespace jRandomSkills
             var player = Utilities.GetPlayers().FirstOrDefault(p => p.Pawn?.Value != null && p.Pawn.Value.IsValid && p.Pawn.Value.Index == userIndex);
             if (Instance?.IsPlayerValid(player) == false) return;
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo?.Skill != skillName) return;
 
             um.Recipients.Clear();
@@ -163,7 +163,7 @@ namespace jRandomSkills
 
         private static void SetWeaponAttack(CCSPlayerController player, bool disableWeapon)
         {
-            if (player == null || !player.IsValid) return;
+            if (Instance?.IsPlayerValid(player) == false) return;
             var pawn = player?.PlayerPawn?.Value;
             if (pawn == null || !pawn.IsValid || pawn.WeaponServices == null) return;
 
@@ -181,7 +181,7 @@ namespace jRandomSkills
 
         private static void UpdateHUD(CCSPlayerController player)
         {
-            if (player == null || !player.IsValid) return;
+            if (Instance?.IsPlayerValid(player) == false) return;
             var pawn = player.PlayerPawn.Value;
             if (pawn == null || !pawn.IsValid || pawn.WeaponServices == null) return;
 

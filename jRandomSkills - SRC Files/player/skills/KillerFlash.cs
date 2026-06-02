@@ -11,7 +11,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Zabójczy Flesz", "Każdy oślepiony twoim granatem umiera (również ty i koledzy)", "#57bcff");
+            SkillUtils.RegisterSkill(skillName, 
+            "Zabójczy Flesz", 
+            "Każdy oślepiony twoim granatem umiera (również ty i koledzy)", 
+            "#57bcff");
         }
 
         public static void PlayerBlind(EventPlayerBlind @event)
@@ -20,8 +23,8 @@ namespace jRandomSkills
             var attacker = @event.Attacker;
             if (Instance?.IsPlayerValid(player) == false || Instance?.IsPlayerValid(attacker) == false) return;
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
-            var attackerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
+            var attackerInfo = SkillUtils.GetPlayerInfo(attacker);
 
             if (attackerInfo?.Skill == skillName && playerInfo?.Skill != Skills.AntyFlash && player!.PlayerPawn.Value!.FlashDuration >= 0.5f)
                 player?.PlayerPawn?.Value?.CommitSuicide(false, true);

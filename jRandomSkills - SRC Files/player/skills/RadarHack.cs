@@ -11,7 +11,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Radarowiec", "Widzisz wrogów na radarze", "#2effcb");
+            SkillUtils.RegisterSkill(skillName, 
+            "Radarowiec", 
+            "Widzisz wrogów na radarze", 
+            "#2effcb");
         }
 
         public static void OnTick()
@@ -20,7 +23,7 @@ namespace jRandomSkills
             {
                 if (Instance?.IsPlayerValid(player) == false) continue;
 
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = SkillUtils.GetPlayerInfo(player);
                 if (playerInfo?.Skill == skillName)
                 {
                     SetEnemiesVisibleOnRadar(player);

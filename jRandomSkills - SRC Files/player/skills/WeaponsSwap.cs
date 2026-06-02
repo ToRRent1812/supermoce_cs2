@@ -1,17 +1,14 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Entities.Constants;
-using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using System.Collections.Concurrent;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
-    public class WeaponsSwap : ISkill
+    public class WeaponsSwap : ISkill, IActiveSkill
     {
         private const Skills skillName = Skills.WeaponsSwap;
-        private static int cd = 30;
         private static readonly ConcurrentDictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
         private static readonly object setLock = new();
 
@@ -21,26 +18,56 @@ namespace jRandomSkills
         "weapon_mp5sd", "weapon_famas", "weapon_galilar", "weapon_m4a4", "weapon_m4a1_silencer", "weapon_ak47",
         "weapon_aug", "weapon_sg553", "weapon_ssg08", "weapon_awp", "weapon_scar20", "weapon_g3sg1",
         "weapon_nova", "weapon_xm1014", "weapon_mag7", "weapon_sawedoff", "weapon_m249", "weapon_negev" ];
+        private static readonly string[] grenadeWeapons = [ "weapon_flashbang", "weapon_hegrenade", "weapon_smokegrenade", "weapon_decoy", "weapon_molotov", "weapon_incgrenade" ];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Chachmęciarz", "Kradniesz ekwipunek losowego przeciwnika (Wróg zostanie z pistoletem)", "#c7e03a");
+            SkillUtils.RegisterActiveSkill(
+                skillName,
+                "Chachmęciarz",
+                "Kradniesz ekwipunek losowego przeciwnika (Wróg zostanie z pistoletem)",
+                "#c7e03a",
+                minCooldown: 20,
+                maxCooldown: 50,
+                cooldownStep: 5,
+                useCustomHud: true);
         }
 
         public static void NewRound()
         {
-            cd = ((Instance?.Random.Next(4, 11)) ?? 4) * 5;
+            ActiveSkillFramework.OnNewRound();
             lock (setLock)
-            SkillPlayerInfo.Clear();
+                SkillPlayerInfo.Clear();
+        }
+
+        public static void OnTick()
+        {
+            if (SkillUtils.IsFreezetime()) return;
+            foreach (var player in Utilities.GetPlayers())
+            {
+                if (Instance?.IsPlayerValid(player) == false) continue;
+                var playerInfo = SkillUtils.GetPlayerInfo(player);
+                if (playerInfo?.Skill != skillName) continue;
+
+                if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
+                {
+                    bool showInfo = skillInfo.LastClick.AddSeconds(4) >= DateTime.Now;
+                    UpdateHUD(player, skillInfo, showInfo);
+                }
+            }
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
+            if (Instance?.IsPlayerValid(player) == false) return;
+
+            var config = SkillUtils.GetActiveSkillConfig(skillName);
+            if (config != null)
+                ActiveSkillFramework.OnSkillEnabled(skillName, player, config);
+
             SkillPlayerInfo.TryAdd(player.SteamID, new PlayerSkillInfo
             {
                 SteamID = player.SteamID,
-                CanUse = true,
-                Cooldown = DateTime.MinValue,
                 LastClick = DateTime.MinValue,
                 FindedEnemy = true,
                 HaveWeapon = true,
@@ -49,123 +76,91 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
+            if (Instance?.IsPlayerValid(player) == false) return;
+            ActiveSkillFramework.OnSkillDisabled(skillName, player);
             SkillPlayerInfo.TryRemove(player.SteamID, out _);
-        }
-
-        public static void OnTick()
-        {
-            if (SkillUtils.IsFreezetime()) return;
-            foreach (var player in Utilities.GetPlayers())
-            {
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill == skillName)
-                    if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
-                        if (skillInfo.LastClick.AddSeconds(4) >= DateTime.Now)
-                            UpdateHUD(player, skillInfo, true);
-                else
-                    UpdateHUD(player, skillInfo, false);
-            }
         }
 
         private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo, bool showInfo)
         {
-            float cooldown = 0;
-            if (skillInfo != null)
-            {
-                float time = (int)(skillInfo.Cooldown.AddSeconds(cd) - DateTime.Now).TotalSeconds;
-                cooldown = Math.Max(time, 0);
+            if (Instance?.IsPlayerValid(player) == false) return;
+            if (!ActiveSkillFramework.TryGetSkillState(skillName, player, out var state) || state == null) return;
 
-                if (cooldown == 0 && skillInfo?.CanUse == false)
-                    skillInfo.CanUse = true;
-            }
+            float cooldown = Math.Max(state.CooldownSeconds - (int)(DateTime.Now - state.LastUseTime).TotalSeconds, 0);
 
             var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
             if (skillData == null) return;
 
-            string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
-            string remainingLine = "";
+            string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font>";
+            string remainingLine;
 
             if (showInfo)
-                remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>Poczekaj <font color='#FF0000'>{cooldown}</font> sek.</font>"
-                : skillInfo != null && !skillInfo.FindedEnemy ? $"<font class='fontSize-m' color='#FF0000'>Nie znaleziono odpowiedniego wroga</font>"
-                : skillInfo != null && !skillInfo.HaveWeapon ? $"<font class='fontSize-m' color='#FF0000'>Wróg nie ma broni głównej</font>"
-                : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>Wciśnij INSPEKT by użyć</font>";
+                remainingLine = cooldown != 0 ? $"<br><font class='fontSize-m' color='#ffe3d6'>Poczekaj <font color='#FFa600'>{cooldown}</font> sek.</font>"
+                    : !skillInfo.FindedEnemy ? $"<br><font class='fontSize-m' color='#FF0000'>Nie znaleziono odpowiedniego wroga</font>"
+                    : !skillInfo.HaveWeapon ? $"<br><font class='fontSize-m' color='#FF0000'>Wróg nie ma broni głównej</font>"
+                    : $"<br><font class='fontSize-s' class='fontWeight-Bold' color='#deff24'>Wciśnij INSPEKT by użyć</font>";
             else
-                remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>Poczekaj <font color='#FF0000'>{cooldown}</font> sek.</font> <br>" : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>Wciśnij INSPEKT by użyć</font>";
+                remainingLine = cooldown != 0 ? $"<br><font class='fontSize-m' color='#ffe3d6'>Poczekaj <font color='#FFa600'>{cooldown}</font> sek.</font>" : $"<br><font class='fontSize-s' class='fontWeight-Bold' color='#deff24'>Wciśnij INSPEKT by użyć</font>";
 
             var hudContent = skillLine + remainingLine;
-            player.PrintToCenterHtml(hudContent);
+            ActiveSkillFramework.PrintCachedHud(player, hudContent);
         }
 
         public static void UseSkill(CCSPlayerController player)
         {
-            var playerPawn = player.PlayerPawn.Value;
+            if (player == null || !player.IsValid || !player.PawnIsAlive) return;
+            if (SkillUtils.IsFreezetime()) return;
+
+            var playerPawn = player.PlayerPawn?.Value;
             if (playerPawn?.CBodyComponent == null) return;
 
-            if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
+            if (!SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo)) return;
+
+            if (!ActiveSkillFramework.CanUseSkill(skillName, player))
             {
-                if (!player.IsValid || !player.PawnIsAlive) return;
-                if (skillInfo.CanUse)
-                {
-                    CCSPlayerController? enemy = GetRandomEnemy(player);
-                    if (enemy == null)
-                    {
-                        skillInfo.FindedEnemy = false;
-                        skillInfo.LastClick = DateTime.Now;
-                        return;
-                    }
-
-                    string[]? playerWeapon = GetWeapons(player);
-                    string[]? enemyWeapon = GetWeapons(enemy);
-
-                    if (enemyWeapon != null && enemyWeapon.FirstOrDefault(w => weapons.Contains(w)) == null)
-                    {
-                        skillInfo.FindedEnemy = true;
-                        skillInfo.HaveWeapon = false;
-                        skillInfo.LastClick = DateTime.Now;
-                        return;
-                    }
-
-                    skillInfo.HaveWeapon = true;
-                    skillInfo.FindedEnemy = true;
-                    skillInfo.CanUse = false;
-                    skillInfo.Cooldown = DateTime.Now;
-
-                    if (enemyWeapon != null && playerWeapon != null)
-                    {
-                        RemoveC4(player);
-                        RemoveC4(enemy);
-                        Server.NextFrame(() =>
-                        {
-                            player.RemoveWeapons();
-                            enemy.RemoveWeapons();
-                            SkillUtils.TryGiveWeapon(enemy, CsItem.Knife);
-                            GiveWeapons(player, enemyWeapon, playerWeapon.Contains("weapon_c4"));
-                            if (enemyWeapon.Contains("weapon_c4")) SkillUtils.TryGiveWeapon(enemy, CsItem.C4);
-                            if (enemy.Team == CsTeam.Terrorist) SkillUtils.TryGiveWeapon(enemy, CsItem.Glock);
-                            else SkillUtils.TryGiveWeapon(enemy, CsItem.USPS);
-                            playerPawn.ArmorValue = 100;
-                            SkillUtils.TryGiveWeapon(player, CsItem.AssaultSuit);
-                            Utilities.SetStateChanged(playerPawn, "CCSPlayerPawn", "m_ArmorValue");
-                            Instance?.AddTimer(1f, () => enemy.ExecuteClientCommand("slot2"));
-                        });
-                        //GiveWeapons(enemy, playerWeapon, enemyWeapon.Contains("weapon_c4"), true);
-                    }
-                    SkillUtils.PrintToChat(enemy, $"Wróg ukradł Ci sprzęt.");
-                }
-                else
-                    skillInfo.LastClick = DateTime.Now;
+                skillInfo.LastClick = DateTime.Now;
+                return;
             }
-        }
 
-        private static void RemoveC4(CCSPlayerController player)
-        {
-            var pawn = player.PlayerPawn.Value;
-            if (pawn == null || !pawn.IsValid || pawn.WeaponServices == null) return;
+            CCSPlayerController? enemy = GetRandomEnemy(player);
+            if (enemy == null)
+            {
+                skillInfo.FindedEnemy = false;
+                skillInfo.LastClick = DateTime.Now;
+                return;
+            }
 
-            foreach (var item in pawn.WeaponServices.MyWeapons)
-                if (item != null && item.IsValid && item.Value != null && item.Value.IsValid && item.Value.DesignerName == "weapon_c4")
-                    item.Value.AcceptInput("Kill");
+            string[]? enemyWeapons = GetWeapons(enemy);
+            if (enemyWeapons == null)
+            {
+                skillInfo.FindedEnemy = true;
+                skillInfo.HaveWeapon = false;
+                skillInfo.LastClick = DateTime.Now;
+                return;
+            }
+
+            string[] stolenWeapons = [.. enemyWeapons.Where(IsStealableWeapon)];
+            if (stolenWeapons.Length == 0)
+            {
+                skillInfo.FindedEnemy = true;
+                skillInfo.HaveWeapon = false;
+                skillInfo.LastClick = DateTime.Now;
+                return;
+            }
+
+            skillInfo.HaveWeapon = true;
+            skillInfo.FindedEnemy = true;
+            skillInfo.LastClick = DateTime.Now;
+
+            ActiveSkillFramework.MarkSkillUsed(skillName, player);
+            RemoveStolenWeapons(enemy, stolenWeapons);
+            Server.NextFrame(() =>
+            {
+                GiveWeapons(player, stolenWeapons);
+                Instance?.AddTimer(1f, () => enemy.ExecuteClientCommand("slot2"));
+            });
+
+            SkillUtils.PrintToChat(enemy, $"Wróg ukradł Ci sprzęt.");
         }
 
         private static string[]? GetWeapons(CCSPlayerController player)
@@ -184,22 +179,36 @@ namespace jRandomSkills
             return playerWeapons.Count == 0 ? null : [.. playerWeapons];
         }
 
-        private static void GiveWeapons(CCSPlayerController player, string[]? weapons, bool addC4)
+        private static void GiveWeapons(CCSPlayerController player, string[]? weapons)
         {
             if (weapons == null || player == null || !player.IsValid || !player.PawnIsAlive) return;
-            player.GiveNamedItem("weapon_knife");
             foreach (var weapon in weapons)
+                player.GiveNamedItem(weapon);
+        }
+
+        private static void RemoveStolenWeapons(CCSPlayerController player, string[] weapons)
+        {
+            if (player == null || !player.IsValid || player.PlayerPawn == null || player.PlayerPawn.Value == null) return;
+            var pawn = player.PlayerPawn.Value;
+            if (pawn == null || !pawn.IsValid || pawn.WeaponServices == null) return;
+
+            foreach (var item in pawn.WeaponServices.MyWeapons)
             {
-                if (weapon != "weapon_c4")
-                    player.GiveNamedItem(weapon);
-                if (addC4)
-                    player.GiveNamedItem("weapon_c4");
+                if (item == null || !item.IsValid || item.Value == null || !item.Value.IsValid) continue;
+                string name = SkillUtils.GetDesignerName(item.Value);
+                if (weapons.Contains(name))
+                    item.Value.AcceptInput("Kill");
             }
+        }
+
+        private static bool IsStealableWeapon(string weapon)
+        {
+            return weapons.Contains(weapon) || grenadeWeapons.Contains(weapon);
         }
 
         private static CCSPlayerController? GetRandomEnemy(CCSPlayerController player)
         {
-            CCSPlayerController[] enemies = [.. Utilities.GetPlayers().FindAll(e => e.Team != player.Team && e.PawnIsAlive)];
+            CCSPlayerController[] enemies = SkillUtils.GetAliveEnemies(player);
             if (enemies.Length == 0) return null;
             return enemies[(Instance?.Random.Next(enemies.Length)) ?? 0];
         }
@@ -207,8 +216,6 @@ namespace jRandomSkills
         public class PlayerSkillInfo
         {
             public ulong SteamID { get; set; }
-            public bool CanUse { get; set; }
-            public DateTime Cooldown { get; set; }
             public DateTime LastClick { get; set; }
             public bool FindedEnemy { get; set; }
             public bool HaveWeapon { get; set; }

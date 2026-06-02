@@ -10,7 +10,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Super Armor", "Granaty nie zadają Ci obrażeń", "#a38c1a");
+            SkillUtils.RegisterSkill(skillName, 
+            "Super Armor", 
+            "Granaty nie zadają Ci obrażeń", 
+            "#a38c1a");
         }
 
         public static void PlayerHurt(EventPlayerHurt @event)
@@ -20,7 +23,7 @@ namespace jRandomSkills
             var weapon = @event.Weapon;
 
             if (Instance?.IsPlayerValid(player) == false) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo?.Skill != skillName) return;
 
             if (weapon == "hegrenade" || weapon == "inferno")

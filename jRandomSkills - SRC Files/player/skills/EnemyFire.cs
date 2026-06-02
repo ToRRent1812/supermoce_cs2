@@ -10,7 +10,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Zdrajca", "Do końca rundy włączony jest friendly fire", "#ff0000");
+            SkillUtils.RegisterSkill(skillName, 
+            "Zdrajca", 
+            "Do końca rundy włączony jest friendly fire", 
+            "#ff0000");
         }
 
         public static void EnableSkill(CCSPlayerController _)

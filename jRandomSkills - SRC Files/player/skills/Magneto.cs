@@ -14,7 +14,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Magneto", "Odpychasz granaty wroga", "#6ea8ff");
+            SkillUtils.RegisterSkill(skillName, 
+            "Magneto", 
+            "Odpychasz granaty wroga", 
+            "#6ea8ff");
         }
 
         public static void NewRound()

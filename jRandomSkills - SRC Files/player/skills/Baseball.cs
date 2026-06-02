@@ -14,7 +14,11 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Baseball", "Twoje wabiki odbijają się od ścian. Trafienie nim zabija",  "#49ff67", 2);
+            SkillUtils.RegisterSkill(
+                skillName, 
+                "Baseball", 
+                "Twoje wabiki odbijają się od ścian. Trafienie nim zabija", 
+                "#49ff67");
         }
 
         public static void PlayerHurt(EventPlayerHurt @event)
@@ -26,7 +30,7 @@ namespace jRandomSkills
             if (weapon != "decoy") return;
             if (Instance == null || !Instance.IsPlayerValid(victim) || !Instance.IsPlayerValid(attacker)) return;
 
-            var attackerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
+            var attackerInfo = SkillUtils.GetPlayerInfo(attacker);
             if (attackerInfo?.Skill != skillName) return;
 
             SkillUtils.TakeHealth(victim!.PlayerPawn.Value, 999);
@@ -45,9 +49,9 @@ namespace jRandomSkills
             if (pawn == null || !pawn.IsValid || pawn.Controller == null || pawn.Controller.Value == null || !pawn.Controller.Value.IsValid) return;
 
             var player = pawn.Controller.Value.As<CCSPlayerController>();
-            if (player == null || !player.IsValid) return;
+            if (Instance?.IsPlayerValid(player) == false) return;
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo?.Skill != skillName) return;
             decoys.TryAdd(decoy.Index, 0);
 
@@ -58,9 +62,10 @@ namespace jRandomSkills
         public static void DecoyStarted(EventDecoyStarted @event)
         {
             var player = @event.Userid;
-            if (player == null || !player.IsValid) return;
+            if(player == null) return;
+            if (Instance?.IsPlayerValid(player) == false) return;
             
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo?.Skill != skillName) return;
 
             uint key = (uint)@event.Entityid;
@@ -93,7 +98,7 @@ namespace jRandomSkills
                 
                 var vel = decoy.AbsVelocity;
                 float speed = vel.Length();
-                float targetSpeed = Math.Min(speed * 3f, 900f);
+                float targetSpeed = Math.Min(speed * 3f, 1000f);
 
                 if (speed > .01f)
                 {

@@ -12,7 +12,12 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Samowolka", "Możesz podłożyć bombę w dowolnym miejscu(Trzymaj klawisz podkładania)", "#7d7d7d", 1, 1);
+            SkillUtils.RegisterSkill(skillName, 
+            "Samowolka", 
+            "Możesz podłożyć bombę w dowolnym miejscu (Trzymaj klawisz podkładania)", 
+            "#7d7d7d", 
+            teamnum:1,
+            objective:1);
         }
 
         public static void DisableSkill(CCSPlayerController player)
@@ -26,7 +31,7 @@ namespace jRandomSkills
             foreach (var player in Utilities.GetPlayers())
             {
                 if (Instance?.IsPlayerValid(player) == false) continue;
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = SkillUtils.GetPlayerInfo(player);
 
                 if (playerInfo?.Skill == skillName && Instance?.GameRules?.FreezePeriod == false)
                     Schema.SetSchemaValue(player!.PlayerPawn.Value!.Handle, "CCSPlayerPawn", "m_bInBombZone", true);

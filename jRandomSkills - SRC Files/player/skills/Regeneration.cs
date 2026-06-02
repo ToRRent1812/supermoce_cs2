@@ -10,7 +10,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Regeneracja", "Pasywnie odnawiasz zdrowie", "#fff12e");
+            SkillUtils.RegisterSkill(skillName, 
+            "Regeneracja", 
+            "Pasywnie odnawiasz zdrowie", 
+            "#fff12e");
         }
 
         public static void OnTick()
@@ -18,7 +21,7 @@ namespace jRandomSkills
             if (Server.TickCount % 32 != 0) return;
             foreach (var player in Utilities.GetPlayers())
             {
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = SkillUtils.GetPlayerInfo(player);
                 if (playerInfo?.Skill != skillName) continue;
 
                 var pawn = player.PlayerPawn.Value;

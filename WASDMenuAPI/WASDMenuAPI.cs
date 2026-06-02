@@ -7,7 +7,7 @@ namespace WASDMenuAPI;
 public class WASDMenuAPI
 {
     public static string ModuleName => "WASDMenuAPI";
-    public static string ModuleVersion => "1.0.3";
+    public static string ModuleVersion => "1.0.4";
     public static string ModuleAuthor => "Interesting";
 
     public static readonly Dictionary<ulong, WasdMenuPlayer> Players = [];

@@ -1,21 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CounterStrikeSharp.API" Version="1.0.367"/>
+    <PackageReference Include="CounterStrikeSharp.API" Version="1.0.369"/>
     <PackageReference Include="MaxMind.Db" Version="5.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4"/>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="WASDMenuAPI">
-      <HintPath>/home/rabbit/Dokumenty/Github/supermoce_cs2/WASDMenuAPI/bin/Debug/net8.0/WASDMenuAPI.dll</HintPath>
-    </Reference>
-    <Reference Include="RayTraceApi">
-      <HintPath>/home/rabbit/Dokumenty/Github/supermoce_cs2/jRandomSkills - SRC Files/RayTraceApi.dll</HintPath>
+      <HintPath>/home/rabbit/Dokumenty/Github/supermoce_cs2/WASDMenuAPI/bin/Debug/net10.0/WASDMenuAPI.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

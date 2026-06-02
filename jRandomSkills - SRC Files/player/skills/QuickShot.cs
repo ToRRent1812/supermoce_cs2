@@ -1,27 +1,25 @@
 ﻿using CounterStrikeSharp.API;
-using CounterStrikeSharp.API.Modules.Memory;
+using CounterStrikeSharp.API.Core;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
-    public class QuickShot : ISkill
+    public class QuickShot : ISkill, IPassiveSkill
     {
         private const Skills skillName = Skills.QuickShot;
 
-        private static readonly string[] guns =
-        [
-            "weapon_deagle", "weapon_hegrenade", "weapon_flashbang", "weapon_smokegrenade", "weapon_molotov",
-            "weapon_incgrenade", "weapon_decoy", "weapon_taser", "weapon_knife", "weapon_revolver",
-            "weapon_glock", "weapon_usp_silencer", "weapon_cz75a", "weapon_fiveseven", "weapon_p250",
-            "weapon_tec9", "weapon_elite", "weapon_hkp2000", "weapon_scar20", "weapon_nova",
-            "weapon_xm1014", "weapon_mag7", "weapon_sawedoff", "weapon_ssg08", "weapon_awp",
-            "weapon_g3sg1"
-        ];
-
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Szybkostrzelność", "Bronie nie-automatyczne strzelają tak szybko jak potrafisz klikać.", "#8a42f5");
+            SkillUtils.RegisterPassiveSkill(
+                skillName,
+                "Szybkostrzelność",
+                "Strzelasz szybciej",
+                "#8a42f5",
+                minValue: 10,
+                maxValue: 50,
+                step: 5,
+                customValueFormatter: (value) => $"+{value}%");
         }
 
         public static void OnTick()
@@ -29,26 +27,61 @@ namespace jRandomSkills
             foreach (var player in Utilities.GetPlayers())
             {
                 if (Instance?.IsPlayerValid(player) == false) continue;
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = SkillUtils.GetPlayerInfo(player);
+                if (playerInfo?.Skill != skillName) continue;
 
-                if (playerInfo?.Skill == skillName)
+                float rateMultiplier = playerInfo.SkillChance ?? 1f;
+                if (rateMultiplier <= 1f) continue;
+
+                var pawn = player.PlayerPawn.Value!;
+                var weaponServices = pawn.WeaponServices;
+                if (weaponServices == null || weaponServices.ActiveWeapon == null || !weaponServices.ActiveWeapon.IsValid) continue;
+
+                var weapon = weaponServices.ActiveWeapon.Value;
+                if (weapon == null || !weapon.IsValid) continue;
+
+                if (weapon.NextPrimaryAttackTick > Server.TickCount)
                 {
-                    var pawn = player.PlayerPawn.Value!;
-                    var weaponServices = pawn.WeaponServices;
-                    if (weaponServices == null || weaponServices.ActiveWeapon == null || !weaponServices.ActiveWeapon.IsValid) continue;
-                   
-                    var weapon = weaponServices.ActiveWeapon.Value;
-                    if (weapon == null || !weapon.IsValid || pawn.CameraServices == null) continue;
-                    if (!guns.Contains(weapon.DesignerName)) continue;
-                    
-                    // Reset camera punch/tick values to reduce recoil (AimPunchTick members not present in this CS# API)
-                    pawn.CameraServices.CsViewPunchAngleTick = 0;
-                    pawn.CameraServices.CsViewPunchAngleTickRatio = 0f;
+                    int remainingPrimary = weapon.NextPrimaryAttackTick - Server.TickCount;
+                    weapon.NextPrimaryAttackTick = Server.TickCount + Math.Max(1, (int)(remainingPrimary / rateMultiplier));
+                    Utilities.SetStateChanged(weapon, "CBasePlayerWeapon", "m_nNextPrimaryAttackTick");
+                }
 
-                    Schema.SetSchemaValue<Int32>(weapon.Handle, "CBasePlayerWeapon", "m_nNextPrimaryAttackTick", Server.TickCount);
-                    Schema.SetSchemaValue<Int32>(weapon.Handle, "CBasePlayerWeapon", "m_nNextSecondaryAttackTick", Server.TickCount);
+                if (weapon.NextSecondaryAttackTick > Server.TickCount)
+                {
+                    int remainingSecondary = weapon.NextSecondaryAttackTick - Server.TickCount;
+                    weapon.NextSecondaryAttackTick = Server.TickCount + Math.Max(1, (int)(remainingSecondary / rateMultiplier));
+                    Utilities.SetStateChanged(weapon, "CBasePlayerWeapon", "m_nNextSecondaryAttackTick");
                 }
             }
+        }
+
+        public static void EnableSkill(CCSPlayerController player)
+        {
+            if (Instance?.IsPlayerValid(player) == false) return;
+
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
+            if (playerInfo == null) return;
+
+            var config = SkillUtils.GetPassiveSkillConfig(skillName);
+            if (config != null)
+            {
+                PassiveSkillFramework.OnSkillEnabled(skillName, player, config);
+                int randomValue = PassiveSkillFramework.GetRandomRoll(skillName, player, config);
+                playerInfo.SkillChance = 1f + randomValue / 100f;
+            }
+        }
+
+        public static void DisableSkill(CCSPlayerController player)
+        {
+            if (Instance?.IsPlayerValid(player) == false) return;
+
+            PassiveSkillFramework.OnSkillDisabled(skillName, player);
+
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
+            if (playerInfo == null) return;
+
+            playerInfo.SkillChance = 1f;
         }
     }
 }

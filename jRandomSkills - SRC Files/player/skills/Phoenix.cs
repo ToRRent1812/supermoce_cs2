@@ -8,7 +8,7 @@ using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
-    public class Phoenix : ISkill
+    public class Phoenix : ISkill, IPassiveSkill
     {
         private const Skills skillName = Skills.Phoenix;
         private static readonly ConcurrentDictionary<nint, byte> phoenixPlayers = [];
@@ -16,7 +16,15 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Feniks", "% szans na odrodzenie się po śmierci z 50 HP", "#d4751c");
+            SkillUtils.RegisterPassiveSkill(
+                skillName,
+                "Feniks",
+                "% szans na odrodzenie się po śmierci z 50 HP",
+                "#d4751c",
+                minValue: 20,
+                maxValue: 50,
+                step: 1,
+                customValueFormatter: (value) => $"{value}%");
         }
 
         public static void NewRound()
@@ -26,22 +34,27 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (Instance?.IsPlayerValid(player) == false) return;
+
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo == null) return;
 
-            int randomValue = Instance?.Random?.Next(5,9) * 5 ?? 25; //25-45%
-            playerInfo.SkillChance = randomValue / 100f;
-            playerInfo.RandomPercentage = $"{randomValue}%";
-            
+            var config = SkillUtils.GetPassiveSkillConfig(skillName);
+            if (config != null)
+            {
+                PassiveSkillFramework.OnSkillEnabled(skillName, player, config);
+
+                int randomValue = PassiveSkillFramework.GetRandomRoll(skillName, player, config);
+                playerInfo.SkillChance = randomValue / 100f;
+            }
         }
 
         public static void PlayerHurt(EventPlayerHurt @event)
         {
             var victim = @event.Userid;
-            int damage = @event.DmgHealth;
 
             if (Instance?.IsPlayerValid(victim) == false) return;
-            var victimInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
+            var victimInfo = SkillUtils.GetPlayerInfo(victim);
             if (victimInfo == null || victimInfo.Skill != skillName) return;
 
             var victimPawn = victim!.PlayerPawn.Value;
@@ -64,7 +77,16 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
+            if (player == null) return;
+
             phoenixPlayers.TryRemove(player.Handle, out _);
+            PassiveSkillFramework.OnSkillDisabled(skillName, player);
+
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
+            if (playerInfo != null)
+            {
+                playerInfo.SkillChance = 0;
+            }
         }
 
         private static void SetHealth(CCSPlayerController player, int health)

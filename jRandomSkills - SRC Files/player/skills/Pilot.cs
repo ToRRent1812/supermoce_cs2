@@ -3,7 +3,6 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using System.Collections.Concurrent;
-using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
@@ -14,7 +13,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Pilot", "Skocz i trzymaj klawisz rozbrajania, by latać", "#1466F5");
+            SkillUtils.RegisterSkill(skillName, 
+            "Pilot", 
+            "Skocz i trzymaj klawisz rozbrajania, by latać", 
+            "#1466F5");
         }
 
         public static void NewRound()
@@ -27,7 +29,7 @@ namespace jRandomSkills
             if (SkillUtils.IsFreezetime()) return;
             foreach (var player in Utilities.GetPlayers())
             {
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = SkillUtils.GetPlayerInfo(player);
                 if (playerInfo?.Skill == skillName)
                     HandlePilot(player);
             }

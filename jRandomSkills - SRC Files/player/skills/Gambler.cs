@@ -1,5 +1,4 @@
-﻿using CounterStrikeSharp.API;
-using CounterStrikeSharp.API.Core;
+﻿using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using System.Collections.Concurrent;
@@ -7,25 +6,28 @@ using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
-    public class Gambler : ISkill
+    public class Gambler : ISkill, IMenuSkill
     {
         private const Skills skillName = Skills.Gambler;
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Polityk", "Wybierasz sobie 1 z 3 supermocy", "#7eff47");
+            SkillUtils.RegisterMenuSkill(
+                skillName,
+                "Polityk",
+                "Wybierasz sobie 1 z 3 supermocy",
+                "#7eff47");
         }
 
         public static void NewRound()
         {
-            foreach (var player in Utilities.GetPlayers())
-                SkillUtils.CloseMenu(player);
+            MenuSkillFramework.OnNewRound();
         }
 
         public static void TypeSkill(CCSPlayerController player, string[] commands)
         {
             if (player == null || !player.IsValid || !player.PawnIsAlive) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo?.Skill != skillName) return;
 
             if (playerInfo.SkillChance == 1)
@@ -52,7 +54,9 @@ namespace jRandomSkills
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            MenuSkillFramework.OnSkillEnabled(skillName, player);
+            
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo == null) return;
             playerInfo.SkillChance = 0;
 
@@ -71,18 +75,19 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            SkillUtils.CloseMenu(player);
+            MenuSkillFramework.OnSkillDisabled(player);
         }
 
         private static List<jSkill_SkillInfo> GetSkills(CCSPlayerController player)
         {
-            var skillPlayer = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var skillPlayer = SkillUtils.GetPlayerInfo(player);
             if (skillPlayer == null) return [Event.noneSkill];
 
             List<jSkill_SkillInfo> skillList = [.. SkillData.Skills];
             skillList.RemoveAll(s => s?.Skill == skillPlayer?.Skill || s?.Skill == skillPlayer?.SpecialSkill || s?.Skill == Skills.None);
 
             skillList.RemoveAll(s => s.TeamNumber != 0);
+            skillList.RemoveAll(s => s.Objective != 0);
 
             return skillList.Count == 0 ? [Event.noneSkill] : skillList;
         }

@@ -11,7 +11,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Rambo", "Bonusowe HP w rundzie", "#009905");
+            SkillUtils.RegisterSkill(skillName, 
+            "Rambo", 
+            "Bonusowe HP w rundzie", 
+            "#009905");
         }
 
         public static void EnableSkill(CCSPlayerController player)

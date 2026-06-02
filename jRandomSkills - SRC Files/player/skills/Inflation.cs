@@ -13,12 +13,16 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Inflacja", "Każdy wystrzelony pocisk CT kosztuje ich pieniądze", "#4a944a", 1);
+            SkillUtils.RegisterSkill(skillName, 
+            "Inflacja", 
+            "Każdy wystrzelony pocisk CT kosztuje ich pieniądze", 
+            "#4a944a", 
+            teamnum:1);
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo != null)
             {
                 playerInfo.SkillChance = Instance?.Random.Next(10, 41) ?? 10;
@@ -30,7 +34,7 @@ namespace jRandomSkills
         public static void DisableSkill(CCSPlayerController player)
         {
             moneyLossPerBullet = 0;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo == null) return;
             playerInfo.SkillChance = 0;
         }
@@ -38,14 +42,14 @@ namespace jRandomSkills
         public static void WeaponFire(EventWeaponFire @event)
         {
             var player = @event.Userid;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (player != null && playerInfo?.Skill != skillName && player.Team == CsTeam.CounterTerrorist)
                 TakeMoney(player, moneyLossPerBullet);
         }
 
         private static void TakeMoney(CCSPlayerController player, int money)
         {
-            if (player?.IsValid != true) return;
+            if (player.IsValid == false) return;
             var moneyServices = player.InGameMoneyServices;
             if (moneyServices == null) return;
 

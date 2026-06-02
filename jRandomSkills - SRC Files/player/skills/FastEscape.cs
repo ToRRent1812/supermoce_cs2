@@ -36,25 +36,24 @@ namespace jRandomSkills
                 if (!affectedPlayers.ContainsKey(player.SteamID)) continue;
 
                 var playerPawn = player.PlayerPawn?.Value;
-                if (playerPawn == null || playerPawn.VelocityModifier == 0) continue;
+                if (playerPawn == null || playerPawn.VelocityModifier != 2.25f) continue;
 
                 var buttons = player.Buttons;
                 if (buttons.HasFlag(PlayerButtons.Moveleft) || buttons.HasFlag(PlayerButtons.Moveright) || buttons.HasFlag(PlayerButtons.Forward) || buttons.HasFlag(PlayerButtons.Back))
-                    playerPawn.VelocityModifier = 2.5f;
+                    playerPawn.VelocityModifier = 2.25f;
             }
         }
 
         public static void HostageFollows(EventHostageFollows @event)
         {
             var player = @event.Userid;
-            if (player == null || !player.IsValid) return;
+            if(player == null) return;
             if (Instance?.IsPlayerValid(player) == false) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo == null || playerInfo.Skill != skillName) return;
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn == null || !playerPawn.IsValid) return;
             affectedPlayers.TryAdd(player.SteamID, 0);
-            playerPawn.VelocityModifier = 2.5f;
         }
     }
 }

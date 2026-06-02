@@ -14,7 +14,12 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Ciężarne hosty", "Póki jesteś żywy, chodzenie z hostem jest znacznie wolniejsze.", "#fd4371", 1, 2);
+            SkillUtils.RegisterSkill(skillName, 
+            "Ciężarne hosty", 
+            "Póki jesteś żywy, chodzenie z hostem jest znacznie wolniejsze.", 
+            "#fd4371", 
+            teamnum:1, 
+            objective:2);
         }
 
         public static void NewRound()
@@ -26,7 +31,7 @@ namespace jRandomSkills
         public static void EnableSkill(CCSPlayerController player)
         {
             if(player == null || !player.IsValid) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo == null || playerInfo?.Skill != skillName) return;
             skillExists = true;
         }
@@ -38,7 +43,7 @@ namespace jRandomSkills
             {
                 if (p != null && p.IsValid)
                 {
-                    var playerInfo = Instance?.SkillPlayer.FirstOrDefault(a => a.SteamID == p.SteamID);
+                    var playerInfo = SkillUtils.GetPlayerInfo(p);
                     if (p.PawnIsAlive && playerInfo?.Skill == skillName) return;
                 }
             }
@@ -48,16 +53,15 @@ namespace jRandomSkills
         public static void HostageFollows(EventHostageFollows @event)
         {
             var player = @event.Userid;
-            if (player == null || !player.IsValid) return;
+            if(player == null) return;
             if (Instance?.IsPlayerValid(player) == false) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo == null) return;
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn == null || !playerPawn.IsValid) return;
             if(skillExists)
             {
                 affectedPlayers.TryAdd(player.SteamID, 0);
-                playerPawn.VelocityModifier = 0.6f;
             } 
         }
 
@@ -73,7 +77,7 @@ namespace jRandomSkills
 
                 var buttons = player.Buttons;
                 if (buttons.HasFlag(PlayerButtons.Moveleft) || buttons.HasFlag(PlayerButtons.Moveright) || buttons.HasFlag(PlayerButtons.Forward) || buttons.HasFlag(PlayerButtons.Back))
-                    playerPawn.VelocityModifier = 0.6f;
+                    playerPawn.VelocityModifier = 0.7f;
             }
         }
     }

@@ -11,15 +11,20 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Owsiak", "Wzięcie hosta wygrywa rundę", "#30fa7d", 2, 2);
+            SkillUtils.RegisterSkill(skillName, 
+            "Owsiak", 
+            "Wzięcie hosta wygrywa rundę", 
+            "#30fa7d", 
+            teamnum:2, 
+            objective:2);
         }
 
         public static void HostageFollows(EventHostageFollows @event)
         {
             var player = @event.Userid;
-            if (player == null || !player.IsValid) return;
+            if(player == null) return;
             if (Instance?.IsPlayerValid(player) == false) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo == null || playerInfo.Skill != skillName) return;
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn == null || !playerPawn.IsValid) return;

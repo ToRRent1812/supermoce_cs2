@@ -5,7 +5,6 @@ using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using System.Collections.Concurrent;
 using System.Drawing;
-using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
@@ -17,7 +16,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Jasnowidz", "Widzisz wrogów przez ściany", "#5d00ff");
+            SkillUtils.RegisterSkill(skillName, 
+            "Jasnowidz", 
+            "Widzisz wrogów przez ściany", 
+            "#5d00ff");
         }
 
         public static void CheckTransmit([CastFrom(typeof(nint))] CCheckTransmitInfoList infoList)
@@ -25,10 +27,10 @@ namespace jRandomSkills
             foreach (var (info, player) in infoList)
             {
                 if (player == null) continue;
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = SkillUtils.GetPlayerInfo(player);
 
                 var observedPlayer = Utilities.GetPlayers().FirstOrDefault(p => p?.Pawn?.Value?.Handle == player?.Pawn?.Value?.ObserverServices?.ObserverTarget?.Value?.Handle);
-                var observerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == observedPlayer?.SteamID);
+                var observerInfo = SkillUtils.GetPlayerInfo(observedPlayer);
 
                 foreach (var glow in glows)
                 {
@@ -73,7 +75,7 @@ namespace jRandomSkills
         {
             foreach (var enemy in Utilities.GetPlayers().FindAll(p => p.PawnIsAlive && p.Team is CsTeam.Terrorist or CsTeam.CounterTerrorist))
             {
-                var enemyInfo = Instance?.SkillPlayer.FirstOrDefault(e => e.SteamID == enemy.SteamID);
+                var enemyInfo = SkillUtils.GetPlayerInfo(enemy);
                 if (enemyInfo?.Skill == Skills.Ghost)
                     return;
 

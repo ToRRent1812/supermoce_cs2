@@ -1,112 +1,67 @@
-﻿using CounterStrikeSharp.API;
-using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Utils;
+﻿using CounterStrikeSharp.API.Core;
 using jRandomSkills.src.player;
-using System.Collections.Concurrent;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
-    public class GodMode : ISkill
+    public class GodMode : ISkill, IActiveSkill
     {
         private const Skills skillName = Skills.GodMode;
-        private static int cd = 30;
-        private static readonly ConcurrentDictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
-        private static readonly object setLock = new();
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Nieśmiertelka", "Chwilowo stajesz się nieśmiertelny", "#e0d83a");
+            SkillUtils.RegisterActiveSkill(
+                skillName,
+                "Nieśmiertelka",
+                "Chwilowo stajesz się nieśmiertelny",
+                "#e0d83a",
+                minCooldown: 25,
+                maxCooldown: 50,
+                cooldownStep: 5);
         }
 
         public static void NewRound()
         {
-            cd = ((Instance?.Random.Next(4, 11)) ?? 4) * 5;
-            lock (setLock) 
-                SkillPlayerInfo.Clear();
+            ActiveSkillFramework.OnNewRound();
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            SkillPlayerInfo.TryAdd(player.SteamID, new PlayerSkillInfo
+            var config = SkillUtils.GetActiveSkillConfig(skillName);
+            if (config != null)
             {
-                SteamID = player.SteamID,
-                CanUse = true,
-                Cooldown = DateTime.MinValue,
-            });
-        }
-
-        public static void OnTick()
-        {
-            if (SkillUtils.IsFreezetime()) return;
-            foreach (var player in Utilities.GetPlayers())
-            {
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill == skillName)
-                    if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
-                        UpdateHUD(player, skillInfo);
+                ActiveSkillFramework.OnSkillEnabled(skillName, player, config);
             }
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            SkillPlayerInfo.TryRemove(player.SteamID, out _);
-        }
-
-        private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo)
-        {
-            float cooldown = 0;
-            if (skillInfo != null)
-            {
-                float time = (int)(skillInfo.Cooldown.AddSeconds(cd) - DateTime.Now).TotalSeconds;
-                cooldown = Math.Max(time, 0);
-
-                if (cooldown == 0 && skillInfo?.CanUse == false)
-                    skillInfo.CanUse = true;
-            }
-
-            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
-            if (skillData == null) return;
-
-            string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
-            string remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>Poczekaj <font color='#FF0000'>{cooldown}</font> sek.</font>" : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>Wciśnij INSPEKT by użyć</font>";
-
-            var hudContent = skillLine + remainingLine;
-            player.PrintToCenterHtml(hudContent);
+            ActiveSkillFramework.OnSkillDisabled(skillName, player);
         }
 
         public static void UseSkill(CCSPlayerController player)
         {
+            if (!ActiveSkillFramework.CanUseSkill(skillName, player))
+                return;
+
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn?.CBodyComponent == null) return;
 
-            if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
-            {
-                if (!player.IsValid || !player.PawnIsAlive || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
-                if (skillInfo.CanUse)
+            if (!player.IsValid || !player.PawnIsAlive || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid)
+                return;
+
+            ActiveSkillFramework.MarkSkillUsed(skillName, player);
+
+            SkillUtils.PrintToChat(player, "Nieśmiertelność włączona", false);
+            player.PlayerPawn.Value.TakesDamage = false;
+
+            Instance?.AddTimer(1.5f, () => {
+                if (player.IsValid && player.PawnIsAlive)
                 {
-                    skillInfo.CanUse = false;
-                    skillInfo.Cooldown = DateTime.Now;
-
-                    SkillUtils.PrintToChat(player, $"Nieśmiertelność włączona", false);
-                    player.PlayerPawn.Value.TakesDamage = false;
-
-                    Instance?.AddTimer(1.5f, () => {
-                        if (player.IsValid && player.PawnIsAlive)
-                        {
-                            player.PlayerPawn.Value.TakesDamage = true;
-                            SkillUtils.PrintToChat(player, $"Nieśmiertelność wyłączona", true);
-                        }
-                    });
+                    player.PlayerPawn.Value.TakesDamage = true;
+                    SkillUtils.PrintToChat(player, "Nieśmiertelność wyłączona", true);
                 }
-            }
-        }
-
-        public class PlayerSkillInfo
-        {
-            public ulong SteamID { get; set; }
-            public bool CanUse { get; set; }
-            public DateTime Cooldown { get; set; }
+            });
         }
     }
 }

@@ -5,7 +5,6 @@ using CounterStrikeSharp.API.Modules.Utils;
 using System.Collections.Concurrent;
 
 using jRandomSkills.src.player;
-using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
@@ -16,7 +15,11 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Mina przeciwpiechotna", "Twoje granaty wybuchowe działają na ruch", "#c21010", 2);
+            SkillUtils.RegisterSkill(skillName, 
+            "Mina przeciwpiechotna", 
+            "Twoje granaty wybuchowe działają na ruch", 
+            "#c21010", 
+            teamnum:2);
         }
 
         public static void NewRound()
@@ -26,7 +29,7 @@ namespace jRandomSkills
 
         public static void OnTick()
         {
-            if (Server.TickCount % 16 != 0) return;
+            if (Server.TickCount % 32 != 0) return;
             float detonationRange = 120f;
             float currentTime = Server.CurrentTime;
 
@@ -88,7 +91,7 @@ namespace jRandomSkills
             if (pawn.Controller.Value == null || !pawn.Controller.Value.IsValid) return;
             var player = pawn.Controller.Value.As<CCSPlayerController>();
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo?.Skill != skillName) return;
 
             nades.TryAdd(grenade.Index, 0);

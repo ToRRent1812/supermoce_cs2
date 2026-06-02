@@ -10,14 +10,18 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Kangurek", "Skakanie przywraca zdrowie", "#a86eff");
+            SkillUtils.RegisterSkill(skillName, 
+            "Kangurek", 
+            "Skakanie przywraca zdrowie", 
+            "#a86eff");
         }
 
         public static void PlayerJump(EventPlayerJump @event)
         {
             var player = @event.Userid;
-            if (player == null || !player.IsValid) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if(player == null) return;
+            if (Instance?.IsPlayerValid(player) == false) return;
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo?.Skill != skillName) return;
             SkillUtils.AddHealth(player.PlayerPawn.Value, Instance?.Random.Next(8, 16) ?? 8);
         }

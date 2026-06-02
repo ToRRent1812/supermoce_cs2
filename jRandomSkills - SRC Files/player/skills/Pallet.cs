@@ -2,16 +2,14 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using System.Collections.Concurrent;
 using static CounterStrikeSharp.API.Core.Listeners;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
-    public class Pallet : ISkill
+    public class Pallet : ISkill, IActiveSkill
     {
         private const Skills skillName = Skills.Pallet;
-        private static int cd = 15;
         private static readonly string[] PropModels =
         [
             "models/props/cs_italy/italy_wine_pallet.vmdl",
@@ -20,13 +18,18 @@ namespace jRandomSkills
             "models/props/de_vertigo/pallet_stack01.vmdl",
             "models/props/de_dust/pallet01.vmdl",
         ];
-        private static readonly ConcurrentDictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
-        private static readonly ConcurrentDictionary<ulong, int> barricades = [];
-        private static readonly object setLock = new();
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Magazynier", "Stawiasz niezniszczalną paletę na żądanie", "#1b04cc");
+            SkillUtils.RegisterActiveSkill(
+                skillName,
+                "Magazynier",
+                "Stawiasz niezniszczalną paletę na żądanie",
+                "#1b04cc",
+                minCooldown: 15,
+                maxCooldown: 60,
+                cooldownStep: 5);
+
             Instance?.RegisterListener<OnServerPrecacheResources>(manifest =>
             {
                 foreach (var model in PropModels)
@@ -36,109 +39,73 @@ namespace jRandomSkills
 
         public static void NewRound()
         {
-            cd = ((Instance?.Random.Next(3, 9)) ?? 2) * 5;
-            lock (setLock)
-            {
-                SkillPlayerInfo.Clear();
-                barricades.Clear();
-            }
-        }
-
-        public static void OnTick()
-        {
-            if (SkillUtils.IsFreezetime()) return;
-            foreach (var player in Utilities.GetPlayers())
-            {
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill == skillName)
-                    if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
-                        UpdateHUD(player, skillInfo);
-            }
+            ActiveSkillFramework.OnNewRound();
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            SkillPlayerInfo.TryAdd(player.SteamID, new PlayerSkillInfo
-            {
-                SteamID = player.SteamID,
-                CanUse = true,
-                Cooldown = DateTime.MinValue,
-            });
+            if (Instance?.IsPlayerValid(player) == false) return;
+
+            var config = SkillUtils.GetActiveSkillConfig(skillName);
+            if (config != null)
+                ActiveSkillFramework.OnSkillEnabled(skillName, player, config);
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-              SkillPlayerInfo.TryRemove(player.SteamID, out _);
-        }
-
-        private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo)
-        {
-            float cooldown = 0;
-            if (skillInfo != null)
-            {
-                float time = (int)(skillInfo.Cooldown.AddSeconds(cd) - DateTime.Now).TotalSeconds;
-                cooldown = Math.Max(time, 0);
-
-                if (cooldown == 0 && skillInfo?.CanUse == false)
-                    skillInfo.CanUse = true;
-            }
-
-            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
-            if (skillData == null) return;
-
-            string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
-            string remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>Poczekaj <font color='#FF0000'>{cooldown}</font> sek.</font>" : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>Wciśnij INSPEKT by użyć</font>";
-
-            var hudContent = skillLine + remainingLine;
-            player.PrintToCenterHtml(hudContent);
+            if (Instance?.IsPlayerValid(player) == false) return;
+            ActiveSkillFramework.OnSkillDisabled(skillName, player);
         }
 
         public static void UseSkill(CCSPlayerController player)
         {
-            if(Instance?.GameRules?.FreezePeriod == true) return;
-            var playerPawn = player.PlayerPawn.Value;
-            if (playerPawn?.CBodyComponent == null) return;
+            if (player == null || player.IsValid == false || player.PawnIsAlive == false || Instance?.GameRules?.FreezePeriod == true)
+                return;
 
-            if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
-            {
-                if (!player.IsValid || !player.PawnIsAlive) return;
-                if (skillInfo.CanUse)
-                {
-                    skillInfo.CanUse = false;
-                    skillInfo.Cooldown = DateTime.Now;
-                    CreateBox(player);
-                }
-            }
+            if (!ActiveSkillFramework.CanUseSkill(skillName, player))
+                return;
+
+            var playerPawn = player.PlayerPawn?.Value;
+            if (playerPawn == null || playerPawn.CBodyComponent == null || playerPawn.AbsOrigin == null || playerPawn.AbsRotation == null)
+                return;
+
+            if (!((PlayerFlags)playerPawn.Flags).HasFlag(PlayerFlags.FL_ONGROUND))
+                return;
+
+            if (!CreateBox(playerPawn))
+                return;
+
+            ActiveSkillFramework.MarkSkillUsed(skillName, player);
         }
 
-        private static void CreateBox(CCSPlayerController player)
+        private static bool CreateBox(CCSPlayerPawn playerPawn)
         {
-            var playerPawn = player.PlayerPawn.Value;
             var box = Utilities.CreateEntityByName<CDynamicProp>("prop_dynamic_override");
-            if (box == null || playerPawn == null || !playerPawn.IsValid || playerPawn.AbsOrigin == null || playerPawn.AbsRotation == null) return;
+            if (box == null || !box.IsValid)
+                return false;
+
+            var origin = playerPawn.AbsOrigin;
+            var rotation = playerPawn.AbsRotation;
+            if (origin == null || rotation == null)
+                return false;
 
             float distance = 100;
-            Vector pos = playerPawn.AbsOrigin + SkillUtils.GetForwardVector(playerPawn.AbsRotation) * distance;
-            QAngle angle = new(playerPawn.AbsRotation.X, playerPawn.AbsRotation.Y + 90, playerPawn.AbsRotation.Z);
+            Vector pos = origin! + SkillUtils.GetForwardVector(rotation!) * distance;
+            QAngle angle = new(rotation!.X, rotation!.Y + 90, rotation!.Z);
 
             box.Entity!.Name = box.Globalname = $"Pallet_{Server.TickCount}";
             box.Collision.SolidType = SolidType_t.SOLID_VPHYSICS;
             box.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags = (uint)(box.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags & ~(1 << 2));
             box.DispatchSpawn();
-            barricades.TryAdd(box.Index, 1);
+
             string selectedModel = PropModels[Instance!.Random.Next(PropModels.Length)];
             Server.NextFrame(() =>
             {
                 box.SetModel(selectedModel);
                 box.Teleport(pos, angle, null);
             });
-        }
 
-        public class PlayerSkillInfo
-        {
-            public ulong SteamID { get; set; }
-            public bool CanUse { get; set; }
-            public DateTime Cooldown { get; set; }
+            return true;
         }
     }
 }

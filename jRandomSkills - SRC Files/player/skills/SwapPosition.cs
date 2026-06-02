@@ -2,146 +2,93 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using System.Collections.Concurrent;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
-    public class SwapPosition : ISkill
+    public class SwapPosition : ISkill, IActiveSkill
     {
         private const Skills skillName = Skills.SwapPosition;
-        private static int cd = 20;
-        private static readonly ConcurrentDictionary<ulong, ZamianaMiejsc_PlayerInfo> SkillPlayerInfo = [];
-        private static readonly object setLock = new();
-        
+
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Magik", "Zamieniasz się miejscem z losowym wrogiem", "#1466F5");
+            SkillUtils.RegisterActiveSkill(
+                skillName,
+                "Magik",
+                "Zamieniasz się miejscem z losowym wrogiem",
+                "#1466F5",
+                minCooldown: 20,
+                maxCooldown: 50,
+                cooldownStep: 5);
         }
 
         public static void NewRound()
         {
-            cd = ((Instance?.Random.Next(3, 11)) ?? 3) * 5;
-            lock (setLock)
-                SkillPlayerInfo.Clear();
-        }
-
-        public static void OnTick()
-        {
-            if (SkillUtils.IsFreezetime()) return;
-            foreach (var player in Utilities.GetPlayers())
-            {
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-                if (playerInfo?.Skill == skillName)
-                    if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
-                        if (skillInfo.LastClick.AddSeconds(4) >= DateTime.Now)
-                            UpdateHUD(player, skillInfo, true);
-                        else
-                            UpdateHUD(player, skillInfo, false);
-            }
+            ActiveSkillFramework.OnNewRound();
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            SkillPlayerInfo.TryAdd(player.SteamID, new ZamianaMiejsc_PlayerInfo
+            if (Instance?.IsPlayerValid(player) == false) return;
+
+            var config = SkillUtils.GetActiveSkillConfig(skillName);
+            if (config != null)
             {
-                SteamID = player.SteamID,
-                CanUse = true,
-                Cooldown = DateTime.MinValue,
-                LastClick = DateTime.MinValue,
-                FindedEnemy = false,
-            });
+                ActiveSkillFramework.OnSkillEnabled(skillName, player, config);
+            }
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            SkillPlayerInfo.TryRemove(player.SteamID, out _);
-        }
-
-        private static void UpdateHUD(CCSPlayerController player, ZamianaMiejsc_PlayerInfo skillInfo, bool showInfo)
-        {
-            float cooldown = 0;
-            if (skillInfo != null)
-            {
-                float time = (int)(skillInfo.Cooldown.AddSeconds(cd) - DateTime.Now).TotalSeconds;
-                cooldown = Math.Max(time, 0);
-
-                if (cooldown == 0 && skillInfo?.CanUse == false)
-                    skillInfo.CanUse = true;
-            }
-
-            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
-            if (skillData == null) return;
-
-            string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
-            string remainingLine = "";
-
-            if (showInfo)
-                remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>Poczekaj <font color='#FF0000'>{cooldown}</font> sek.</font>"
-                                : skillInfo != null && !skillInfo.FindedEnemy ? $"<font class='fontSize-m' color='#FF0000'>Nie znaleziono odpowiedniego wroga</font>"
-                                : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>Wciśnij INSPEKT by użyć</font>";
-            else
-                remainingLine = cooldown != 0 ? $"<font class='fontSize-m' color='#FFFFFF'>Poczekaj <font color='#FF0000'>{cooldown}</font> sek.</font>" : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>Wciśnij INSPEKT by użyć</font>";
-
-            var hudContent = skillLine + remainingLine;
-            player.PrintToCenterHtml(hudContent);
+            if (Instance?.IsPlayerValid(player) == false) return;
+            ActiveSkillFramework.OnSkillDisabled(skillName, player);
         }
 
         public static void UseSkill(CCSPlayerController player)
         {
-            var playerPawn = player.PlayerPawn.Value;
-            if (playerPawn?.CBodyComponent == null) return;
+            if (player == null || !player.IsValid || !player.PawnIsAlive) return;
+            if (SkillUtils.IsFreezetime()) return;
 
-            if (SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
-            {
-                List<CCSPlayerController> enemy = Utilities.GetPlayers().FindAll(p => Instance?.IsPlayerValid(p) == true && p.Team != player.Team && p.PawnIsAlive);
-                if (enemy.Count == 0)
-                {
-                    skillInfo.FindedEnemy = false;
-                    skillInfo.LastClick = DateTime.Now;
-                    return;
-                }
+            var config = SkillUtils.GetActiveSkillConfig(skillName);
+            if (config == null) return;
 
-                CCSPlayerController randomEnemy = enemy[(Instance?.Random.Next(0, enemy.Count)) ?? 0];
-                if (!player.IsValid || !player.PawnIsAlive || !randomEnemy.IsValid || !randomEnemy.PawnIsAlive) return;
-                if (skillInfo.CanUse)
-                {
-                    skillInfo.FindedEnemy = true;
-                    skillInfo.CanUse = false;
-                    skillInfo.Cooldown = DateTime.Now;
-                    TeleportPlayers(player, randomEnemy);
-                }
-                else
-                    skillInfo.LastClick = DateTime.Now;
-            }
+            if (!ActiveSkillFramework.CanUseSkill(skillName, player)) return;
+
+            var enemies = SkillUtils.GetAliveEnemies(player);
+            if (enemies.Length == 0) return;
+
+            var randomEnemy = enemies[(Instance?.Random.Next(enemies.Length)) ?? 0];
+            if (!randomEnemy.IsValid || !randomEnemy.PawnIsAlive) return;
+
+            var playerPawn = player.PlayerPawn?.Value;
+            var enemyPawn = randomEnemy.PlayerPawn?.Value;
+            if (playerPawn == null || !playerPawn.IsValid || enemyPawn == null || !enemyPawn.IsValid) return;
+
+            ActiveSkillFramework.MarkSkillUsed(skillName, player);
+            TeleportPlayers(player, randomEnemy);
         }
 
         private static void TeleportPlayers(CCSPlayerController attacker, CCSPlayerController victim)
         {
-            var attackerPawn = attacker.PlayerPawn.Value;
-            var victimPawn = victim.PlayerPawn.Value;
+            var attackerPawn = attacker.PlayerPawn?.Value;
+            var victimPawn = victim.PlayerPawn?.Value;
             if (attackerPawn == null || !attackerPawn.IsValid || victimPawn == null || !victimPawn.IsValid) return;
-            if (attackerPawn.AbsOrigin == null || attackerPawn.AbsRotation == null || victimPawn.AbsOrigin == null || victimPawn.AbsRotation == null) return;
+            if (attackerPawn.AbsOrigin == null || attackerPawn.AbsRotation == null || victimPawn.AbsOrigin == null || victimPawn.AbsRotation == null) 
+            {
+                SkillUtils.PrintToChat(attacker, $"Nie można znaleźć odpowiedniego wroga!");
+                return;
+            }
 
-            Vector attackerPosition = new(attackerPawn.AbsOrigin.X, attackerPawn.AbsOrigin.Y, attackerPawn.AbsOrigin.Z);
-            QAngle attackerAngles = new(attackerPawn.AbsRotation.X, Instance?.Random.Next(10,350) ?? 10, attackerPawn.AbsRotation.Z);
-            Vector attackerVelocity = new(attackerPawn.AbsVelocity.X, attackerPawn.AbsVelocity.Y, attackerPawn.AbsVelocity.Z);
+            var attackerPosition = new Vector(attackerPawn.AbsOrigin.X, attackerPawn.AbsOrigin.Y, attackerPawn.AbsOrigin.Z);
+            var attackerAngles = new QAngle(attackerPawn.AbsRotation.X, Instance?.Random.Next(10, 350) ?? 10, attackerPawn.AbsRotation.Z);
+            var attackerVelocity = new Vector(attackerPawn.AbsVelocity.X, attackerPawn.AbsVelocity.Y, attackerPawn.AbsVelocity.Z);
 
-            Vector victimPosition = new(victimPawn.AbsOrigin.X, victimPawn.AbsOrigin.Y, victimPawn.AbsOrigin.Z);
-            QAngle victimAngles = new(victimPawn.AbsRotation.X, Instance?.Random.Next(10,350) ?? 10, victimPawn.AbsRotation.Z);
-            Vector victimVelocity = new(victimPawn.AbsVelocity.X, victimPawn.AbsVelocity.Y, victimPawn.AbsVelocity.Z);
+            var victimPosition = new Vector(victimPawn.AbsOrigin.X, victimPawn.AbsOrigin.Y, victimPawn.AbsOrigin.Z);
+            var victimAngles = new QAngle(victimPawn.AbsRotation.X, Instance?.Random.Next(10, 350) ?? 10, victimPawn.AbsRotation.Z);
+            var victimVelocity = new Vector(victimPawn.AbsVelocity.X, victimPawn.AbsVelocity.Y, victimPawn.AbsVelocity.Z);
 
             victimPawn.Teleport(attackerPosition, attackerAngles, attackerVelocity);
             attackerPawn.Teleport(victimPosition, victimAngles, victimVelocity);
-        }
-
-        public class ZamianaMiejsc_PlayerInfo
-        {
-            public ulong SteamID { get; set; }
-            public bool CanUse { get; set; }
-            public DateTime Cooldown { get; set; }
-            public DateTime LastClick { get; set; }
-            public bool FindedEnemy { get; set; }
         }
     }
 }

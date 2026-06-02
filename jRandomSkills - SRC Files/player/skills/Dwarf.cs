@@ -1,57 +1,61 @@
-﻿using CounterStrikeSharp.API;
-using CounterStrikeSharp.API.Core;
+﻿using CounterStrikeSharp.API.Core;
 using jRandomSkills.src.player;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
-    public class Dwarf : ISkill
+    public class Dwarf : ISkill, IPassiveSkill
     {
         private const Skills skillName = Skills.Dwarf;
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Mini Majk", "Jesteś malutki", "#ffff00");
-        }
-
-        public static void NewRound()
-        {
-            foreach (var player in Utilities.GetPlayers())
-            {
-                if (Instance?.IsPlayerValid(player) == false) continue;
-                DisableSkill(player);
-            }
+            SkillUtils.RegisterPassiveSkill(
+                skillName,
+                "Mini Majk",
+                "Jesteś malutki",
+                "#ffff00",
+                minValue: 40,
+                maxValue: 80,
+                step: 5,
+                customValueFormatter: (value) => $"{100 - value}% mniejszy");
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (Instance?.IsPlayerValid(player) == false) return;
+
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo == null) return;
 
-            var playerPawn = player.PlayerPawn?.Value;
-            if (playerPawn != null && player.IsValid)
+            var config = SkillUtils.GetPassiveSkillConfig(skillName);
+            if (config != null)
             {
-                int randomValue = Instance?.Random?.Next(40,81) ?? 40; //40-80%
-                playerInfo.SkillChance = randomValue / 100f;
-                playerInfo.RandomPercentage = (100-randomValue).ToString() + "% mniejszy";
+                PassiveSkillFramework.OnSkillEnabled(skillName, player, config);
+
+                int randomRoll = PassiveSkillFramework.GetRandomRoll(skillName, player, config);
+                playerInfo.SkillChance = randomRoll / 100f;
 
                 SkillUtils.ChangePlayerScale(player, (float)playerInfo.SkillChance);
             }
         }
 
+        public static void NewRound()
+        {
+            foreach (var player in SkillUtils.CachedPlayers)
+                DisableSkill(player);
+        }
+
         public static void DisableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (Instance?.IsPlayerValid(player) == false) return;
+            PassiveSkillFramework.OnSkillDisabled(skillName, player);
+
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo == null) return;
 
-            var playerPawn = player.PlayerPawn?.Value;
-            if (playerPawn != null && playerPawn?.CBodyComponent != null)
-            {
-                playerInfo.SkillChance = 1f; 
-                playerInfo.RandomPercentage = "";
-                SkillUtils.ChangePlayerScale(player, 1f);
-                Utilities.SetStateChanged(playerPawn, "CBaseEntity", "m_CBodyComponent");
-            }
+            SkillUtils.ChangePlayerScale(player, 1f);
+            playerInfo.SkillChance = 1f;
         }
     }
 }

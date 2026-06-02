@@ -13,7 +13,11 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Sędzia Kalosz", "Rzut granatem zmienia po cichu czas rundy", "#ff462e", 0, 1);
+            SkillUtils.RegisterSkill(skillName, 
+            "Sędzia Kalosz", 
+            "Rzut granatem zmienia po cichu czas rundy", 
+            "#ff462e", 
+            objective:1);
         }
 
         public static void NewRound()
@@ -40,7 +44,7 @@ namespace jRandomSkills
             if (pawn == null || !pawn.IsValid || pawn.Controller == null || !pawn.Controller.IsValid || pawn.Controller.Value == null || !pawn.Controller.Value.IsValid) return;
             var player = pawn.Controller.Value.As<CCSPlayerController>();
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo?.Skill != skillName || Instance?.GameRules == null) return;
 
             if (Instance != null && Instance.GameRules != null)
@@ -55,7 +59,7 @@ namespace jRandomSkills
             if (bombPlanted) return;
             foreach (var player in Utilities.GetPlayers())
             {
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+                var playerInfo = SkillUtils.GetPlayerInfo(player);
                 if (playerInfo?.Skill == skillName)
                     UpdateHUD(player);
             }

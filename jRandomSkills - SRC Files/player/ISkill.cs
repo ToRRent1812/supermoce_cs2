@@ -46,9 +46,36 @@ public interface ISkill
     public class SkillConfig { }
 }
 
+public interface IPassiveSkill
+{
+    public static abstract void LoadSkill();
+    public static abstract void EnableSkill(CCSPlayerController player);
+    public static void DisableSkill(CCSPlayerController player) { }
+    public static void NewRound() { }
+}
+
+public interface IActiveSkill
+{
+    public static abstract void LoadSkill();
+    public static abstract void EnableSkill(CCSPlayerController player);
+    public static abstract void UseSkill(CCSPlayerController player);
+    public static void DisableSkill(CCSPlayerController player) { }
+    public static void NewRound() { }
+}
+
+public interface IMenuSkill
+{
+    public static abstract void LoadSkill();
+    public static abstract void EnableSkill(CCSPlayerController player);
+    public static abstract void TypeSkill(CCSPlayerController player, string[] commands);
+    public static void DisableSkill(CCSPlayerController player) { }
+    public static void NewRound() { }
+}
+
 public enum Skills
 {
     Aimbot,
+    Airstrike,
     Gambler,
     Anomaly,
     AntyFlash,
@@ -147,6 +174,7 @@ public enum Skills
     Rubber,
     Push,
     Saper,
+    Sandstorm,
     ScriptKid,
     SecondLife,
     Smoker,

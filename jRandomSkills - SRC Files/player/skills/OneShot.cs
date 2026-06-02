@@ -1,6 +1,5 @@
 ﻿using CounterStrikeSharp.API.Core;
 using jRandomSkills.src.player;
-using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
@@ -10,7 +9,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Jednostrzałowiec", "Zabijasz jednym strzałem", "#ff5CD9");
+            SkillUtils.RegisterSkill(skillName, 
+            "Jednostrzałowiec", 
+            "Zabijasz jednym strzałem", 
+            "#ff5CD9");
         }
 
         public static HookResult OnTakeDamage(CEntityInstance entity, CTakeDamageInfo info)
@@ -29,7 +31,7 @@ namespace jRandomSkills
 
             CCSPlayerController attacker = attackerPawn.Controller.Value.As<CCSPlayerController>();
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(attacker);
             if (playerInfo == null) return HookResult.Continue;
 
             if (playerInfo.Skill == skillName && attacker.PawnIsAlive)

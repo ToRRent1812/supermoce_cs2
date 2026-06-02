@@ -12,7 +12,11 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Anty-Radar", "Przeciwnicy grają rundę bez radaru", "#f542ef");
+            SkillUtils.RegisterSkill(
+                skillName,
+                "Anty-Radar",
+                "Przeciwnicy grają rundę bez radaru",
+                "#f542ef");
         }
 
         public static void NewRound()
@@ -26,7 +30,7 @@ namespace jRandomSkills
         public static void EnableSkill(CCSPlayerController player)
         {
             if (player == null || !player.IsValid || !player.PawnIsAlive) return;
-            var enemies = Utilities.GetPlayers().Where(p => p.Team != player.Team && p.IsValid && p.PawnIsAlive && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator).ToArray();
+            var enemies = SkillUtils.GetAliveEnemies(player);
             if (enemies.Length <= 0) return;
             foreach (var enemy in enemies)
                 enemy.ReplicateConVar("sv_disable_radar", "1");
@@ -34,20 +38,19 @@ namespace jRandomSkills
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            foreach (var oplayer in Utilities.GetPlayers())
-            {
-                if (oplayer != null && oplayer.IsValid)
-                {
-                    var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == oplayer.SteamID);
-                    if (oplayer.PawnIsAlive && playerInfo?.Skill == skillName) return;
-                    // Jeżeli ktoś nadal ma Glitch, to nie przywracamy radaru
+            if (Instance?.IsPlayerValid(player) == false) return;
 
-                    var enemies = Utilities.GetPlayers().Where(p => p.IsValid && p.PawnIsAlive && p.TeamNum != oplayer.TeamNum && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator).ToArray();
-                    if (enemies.Length <= 0) continue;
-                    foreach (var enemy in enemies)
-                        enemy.ReplicateConVar("sv_disable_radar", "0");
-                }
-            }
+            bool stillHasGlitch = SkillUtils.CachedPlayers
+                .Where(p => p.Team == player.Team && p.SteamID != player.SteamID && p.PawnIsAlive)
+                .Any(p => SkillUtils.GetPlayerInfo(p)?.Skill == skillName);
+
+            if (stillHasGlitch)
+                return;
+
+            var enemies = SkillUtils.GetAliveEnemies(player);
+            if (enemies.Length == 0) return;
+            foreach (var enemy in enemies)
+                enemy.ReplicateConVar("sv_disable_radar", "0");
         }
     }
 }

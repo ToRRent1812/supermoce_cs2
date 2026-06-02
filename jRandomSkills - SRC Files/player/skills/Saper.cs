@@ -11,7 +11,11 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Saper", "Niemal natychmiastowy plant i rozbrojenie z twoich rąk", "#8A2BE2", 0, 1);
+            SkillUtils.RegisterSkill(skillName, 
+            "Saper", 
+            "Niemal natychmiastowy plant i rozbrojenie z twoich rąk", 
+            "#8A2BE2", 
+            objective:1);
         }
 
         public static void BombBegindefuse(EventBombBegindefuse @event)
@@ -19,7 +23,7 @@ namespace jRandomSkills
             var player = @event.Userid;
             if (Instance?.IsPlayerValid(player) == true)
             {
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+                var playerInfo = SkillUtils.GetPlayerInfo(player);
                 if (playerInfo?.Skill == skillName)
                 {
                     var plantedBomb = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").FirstOrDefault();
@@ -34,7 +38,7 @@ namespace jRandomSkills
             var player = @event.Userid;
             if (Instance?.IsPlayerValid(player) == false) return;
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo?.Skill == skillName)
             {
                 var bombEntities = Utilities.FindAllEntitiesByDesignerName<CC4>("weapon_c4").ToList();

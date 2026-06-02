@@ -12,7 +12,11 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Ćpun", "Losowa ilość zastrzyków w ekwipunku", "#10c212", 1);
+            SkillUtils.RegisterSkill(
+                skillName, 
+                "Ćpun", 
+                "Losowa ilość zastrzyków w ekwipunku", 
+                "#10c212");
         }
 
         public static void NewRound()
@@ -27,13 +31,15 @@ namespace jRandomSkills
         public static void EnableSkill(CCSPlayerController player)
         {
             if(player == null || !player.IsValid || !player.PawnIsAlive) return;
-            int healthshot = Instance?.Random.Next(3, 6) ?? 3;
+            
+            int healthshot = Instance?.Random.Next(2, 6) ?? 3;
             SkillUtils.TryGiveWeapon(player, CsItem.Healthshot, healthshot);
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
             if(player == null || !player.IsValid || !player.PawnIsAlive) return;
+            
             player.RemoveItemByDesignerName("weapon_healthshot");
         }
     }

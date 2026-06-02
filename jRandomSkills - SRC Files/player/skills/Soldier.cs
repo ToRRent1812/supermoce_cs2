@@ -4,23 +4,49 @@ using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
-    public class Soldier : ISkill
+    public class Soldier : ISkill, IPassiveSkill
     {
         private const Skills skillName = Skills.Soldier;
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Oficer", "Zadajesz więcej obrażeń", "#09ba00");
+            SkillUtils.RegisterPassiveSkill(
+                skillName,
+                "Oficer",
+                "Zadajesz więcej obrażeń",
+                "#00ba3e",
+                minValue: 15,
+                maxValue: 100,
+                step: 5,
+                customValueFormatter: value => $"+{value}%");
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if (Instance?.IsPlayerValid(player) == false) return;
+
+            var config = SkillUtils.GetPassiveSkillConfig(skillName);
+            if (config == null) return;
+
+            PassiveSkillFramework.OnSkillEnabled(skillName, player, config);
+            int randomValue = PassiveSkillFramework.GetRandomRoll(skillName, player, config);
+
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo == null) return;
 
-            int randomValue = Instance?.Random?.Next(2,7) * 10 ?? 20; //120-160%
-            playerInfo.SkillChance = (100f + randomValue) / 100f;
-            playerInfo.RandomPercentage = "+" + randomValue.ToString() + "%";
+            playerInfo.SkillChance = 1f + randomValue / 100f;
+        }
+
+        public static void DisableSkill(CCSPlayerController player)
+        {
+            if (Instance?.IsPlayerValid(player) == false) return;
+
+            PassiveSkillFramework.OnSkillDisabled(skillName, player);
+
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
+            if (playerInfo == null) return;
+
+            playerInfo.SkillChance = 1f;
         }
 
         public static HookResult OnTakeDamage(CEntityInstance entity, CTakeDamageInfo info)
@@ -38,9 +64,8 @@ namespace jRandomSkills
                 return HookResult.Continue;
 
             CCSPlayerController attacker = attackerPawn.Controller.Value.As<CCSPlayerController>();
-            CCSPlayerController victim = victimPawn.Controller.Value.As<CCSPlayerController>();
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(attacker);
             if (playerInfo == null) return HookResult.Continue;
 
             if (playerInfo.Skill == skillName && attacker.PawnIsAlive)

@@ -2,7 +2,6 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using jRandomSkills.src.player;
-using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
@@ -12,7 +11,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Święty Granat Ręczny", "Potrójny zasięg i obrażenia z twoich granatów wybuchowych", "#ffdd00");
+            SkillUtils.RegisterSkill(skillName, 
+            "Święty Granat Ręczny", 
+            "Potrójny zasięg i obrażenia z twoich granatów wybuchowych", 
+            "#ffdd00");
         }
 
         public static void OnEntitySpawned(CEntityInstance @event)
@@ -30,7 +32,7 @@ namespace jRandomSkills
                 if (playerPawn == null || !playerPawn.IsValid) return;
 
                 var player = Utilities.GetPlayers().FirstOrDefault(p => p.PlayerPawn.Index == playerPawn.Index);
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+                var playerInfo = SkillUtils.GetPlayerInfo(player);
                 if (playerInfo?.Skill != skillName) return;
 
                 hegrenade.Damage *= 3f;

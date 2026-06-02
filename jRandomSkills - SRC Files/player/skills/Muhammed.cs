@@ -2,7 +2,6 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
-using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
@@ -13,7 +12,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Muhammed", "Wybuchasz po śmierci", "#F5CB42");
+            SkillUtils.RegisterSkill(skillName, 
+            "Muhammed", 
+            "Wybuchasz po śmierci", 
+            "#F5CB42");
         }
 
         public static void PlayerDeath(EventPlayerDeath @event)
@@ -21,7 +23,7 @@ namespace jRandomSkills
             var player = @event.Userid;
             if (!IsDeadPlayerValid(player)) return;
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo?.Skill == skillName)
                 SpawnExplosion(player!);
         }
@@ -52,7 +54,7 @@ namespace jRandomSkills
 
                 heProjectile.TicksAtZeroVelocity = 100;
                 heProjectile.Damage = 300f;
-                heProjectile.DmgRadius = 1300f;
+                heProjectile.DmgRadius = 1100f;
                 heProjectile.DetonateTime = 0;
             });
         }

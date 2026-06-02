@@ -1,6 +1,5 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using System.Collections.Concurrent;
 using CounterStrikeSharp.API.Modules.UserMessages;
@@ -10,7 +9,7 @@ using Timer = CounterStrikeSharp.API.Modules.Timers.Timer;
 
 namespace jRandomSkills
 {
-    public class Darkness : ISkill
+    public class Darkness : ISkill, IMenuSkill
     {
         private const Skills skillName = Skills.Darkness;
         private static readonly ConcurrentDictionary<ulong, byte> playersInDark = [];
@@ -18,11 +17,15 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Fentanyl", "Do końca rundy, przyciemniasz ekran 1 wroga", "#575454");
+            SkillUtils.RegisterMenuSkill(skillName, 
+            "Fentanyl", 
+            "Do końca rundy, przyciemniasz ekran 1 wroga", 
+            "#575454");
         }
 
         public static void NewRound()
         {
+            MenuSkillFramework.OnNewRound();
             List<CCSPlayerController> allPlayers;
             lock (setLock)
             {
@@ -32,9 +35,8 @@ namespace jRandomSkills
 
             foreach (var player in allPlayers)
             {
-                if (player == null || !player.IsValid) continue;
+                if (Instance?.IsPlayerValid(player) == false) continue;
                 ApplyScreenColor(player, r: 0, g: 0, b: 0, a: 0, duration: 200, holdTime: 0);
-                SkillUtils.CloseMenu(player);
             }
         }
 
@@ -45,76 +47,34 @@ namespace jRandomSkills
             DisableSkill(player);
         }
 
-        public static void OnTick()
-        {
-            if (Server.TickCount % 32 != 0) return;
-            foreach (var player in Utilities.GetPlayers())
-            {
-                if (!SkillUtils.HasMenu(player)) continue;
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-
-                if (playerInfo == null || playerInfo.Skill != skillName) continue;
-                var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
-
-                ConcurrentBag<(string, string)> menuItems = [.. enemies.Select(e => (e.PlayerName, e.Index.ToString()))];
-                SkillUtils.UpdateMenu(player, menuItems);
-            }
-        }
-
         public static void TypeSkill(CCSPlayerController player, string[] commands)
         {
-            if (player == null || !player.IsValid || !player.PawnIsAlive) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (playerInfo?.Skill != skillName) return;
-
-            if (playerInfo.SkillChance == 1)
-            {
-                player.PrintToChat($" {ChatColors.Red}Twoja moc została już wykorzystana.");
+            if (!SkillUtils.TryGetTargetFromCommand(player, skillName, commands, out var playerInfo, out var enemy, alreadyUsedMsg: "Twoja moc została już wykorzystana."))
                 return;
-            }
 
-            string enemyId = commands[0];
-            var enemy = Utilities.GetPlayers().FirstOrDefault(p => p.Team != player.Team && p.Index.ToString() == enemyId);
-
-            if (enemy == null)
-            {
-                player.PrintToChat($" {ChatColors.Red}Nie znaleziono gracza o takim ID.");
-                return;
-            }
-
-            SetUpPostProcessing(enemy);
-            playerInfo.SkillChance = 1;
-            SkillUtils.PrintToChat(enemy, $" Wróg zgasił Ci światło");
+            SetUpPostProcessing(enemy!);
+            if (playerInfo != null) playerInfo.SkillChance = 1;
+            SkillUtils.PrintToChat(enemy!, $" Wróg zgasił Ci światło");
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (playerInfo == null) return;
-            playerInfo.SkillChance = 0;
-
-            var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
-            if (enemies.Length > 0)
-            {
-                ConcurrentBag<(string, string)> menuItems = [.. enemies.Select(e => (e.PlayerName, e.Index.ToString()))];
-                SkillUtils.CreateMenu(player, menuItems);
-            }
-            else
-                player.PrintToChat($" {ChatColors.Red}Nie znaleziono gracza o takim ID.");
+            MenuSkillFramework.OnSkillEnabled(skillName, player);
+            SkillUtils.InitTargetingSkill(player, skillName);
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
+            MenuSkillFramework.OnSkillDisabled(player);
             lock (setLock)
             {
                 SetUpPostProcessing(player, true);
-                SkillUtils.CloseMenu(player);
             }
         }
 
         private static void SetUpPostProcessing(CCSPlayerController player, bool turnOff = false)
         {
-            if (player == null || !player.IsValid) return;
+            if (Instance?.IsPlayerValid(player) == false) return;
             ulong playerSteamID = player.SteamID;
 
             lock (setLock)

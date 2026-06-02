@@ -28,7 +28,11 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Kurczak", "Zamieniasz się w kurczaka. NIE możesz używać broni głównej.", "#FF8B42", 1);
+            SkillUtils.RegisterSkill(skillName, 
+            "Kurczak", 
+            "Zamieniasz się w kurczaka. NIE możesz używać broni głównej.", 
+            "#FF8B42", 
+            teamnum:1);
         }
 
         public static void NewRound()
@@ -45,8 +49,9 @@ namespace jRandomSkills
         public static void WeaponPickup(EventItemPickup @event)
         {
             var player = @event.Userid;
-            if (player == null || !player.IsValid) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            if(player == null) return;
+            if (Instance?.IsPlayerValid(player) == false) return;
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo?.Skill != skillName) return;
             SetWeaponAttack(player, true);
         }
@@ -121,7 +126,7 @@ namespace jRandomSkills
 
         private static void SetWeaponAttack(CCSPlayerController player, bool disableWeapon)
         {
-            if (player == null || !player.IsValid) return;
+            if (Instance?.IsPlayerValid(player) == false) return;
             var pawn = player?.PlayerPawn?.Value;
             if (pawn == null || !pawn.IsValid || pawn.WeaponServices == null || pawn.WeaponServices.MyWeapons == null) return;
 
@@ -167,7 +172,7 @@ namespace jRandomSkills
             {
                 var player = valuePair.Key;
                 var chicken = valuePair.Value;
-                if (player == null || !player.IsValid) continue;
+                if (Instance?.IsPlayerValid(player) == false) continue;
                 if (chicken == null || !chicken.IsValid) continue;
 
                 var pawn = player.PlayerPawn.Value;

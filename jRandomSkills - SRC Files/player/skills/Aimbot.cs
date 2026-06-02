@@ -2,7 +2,6 @@
 using jRandomSkills.src.player;
 using System.Runtime.InteropServices;
 using System.Collections.Concurrent;
-using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
@@ -13,7 +12,11 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Aimbot", "Każdy twój trafiony pocisk to headshot", "#ff0000");
+            SkillUtils.RegisterSkill(
+                skillName,
+                 "Aimbot",
+                 "Każdy twój trafiony pocisk to headshot", 
+                 "#ff0000");
         }
 
         public static HookResult OnTakeDamage(CEntityInstance entity, CTakeDamageInfo info)
@@ -31,9 +34,7 @@ namespace jRandomSkills
                 return HookResult.Continue;
 
             CCSPlayerController attacker = attackerPawn.Controller.Value.As<CCSPlayerController>();
-            CCSPlayerController victim = victimPawn.Controller.Value.As<CCSPlayerController>();
-
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(attacker);
             if (playerInfo == null) return HookResult.Continue;
 
             if (attacker.PawnIsAlive)
@@ -46,7 +47,6 @@ namespace jRandomSkills
                     {
                         if (playerInfo.Skill == skillName)
                         {
-                            int oldValue = Marshal.ReadInt32(hitGroupOffset, 56);
                             hitGroups.TryAdd(hitGroupOffset, Marshal.ReadInt32(hitGroupOffset, 56));
                             Marshal.WriteInt32(hitGroupOffset, 56, (int)HitGroup_t.HITGROUP_HEAD);
                         } else if (hitGroups.TryGetValue(hitGroupOffset, out var hitGroup))

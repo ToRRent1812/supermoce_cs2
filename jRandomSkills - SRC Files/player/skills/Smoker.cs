@@ -20,7 +20,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Zadymiarz", "Twoje granaty dymne działają całą rundę", "#414141");
+            SkillUtils.RegisterSkill(skillName, 
+            "Zadymiarz", 
+            "Twoje granaty dymne działają całą rundę", 
+            "#b9b3b3");
         }
 
         public static void NewRound()
@@ -47,9 +50,10 @@ namespace jRandomSkills
         public static void SmokegrenadeDetonate(EventSmokegrenadeDetonate @event)
         {
             var player = @event.Userid;
-            if (player == null || !player.IsValid) return;
+            if(player == null) return;
+            if (Instance?.IsPlayerValid(player) == false) return;
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo?.Skill != skillName) return;
 
             ulong steamID = player.SteamID;
@@ -70,7 +74,10 @@ namespace jRandomSkills
                 SmokeGrenadeProjectile_CreateFunc.Invoke(pos.Handle, QAngle.Zero.Handle, Vector.Zero.Handle, Vector.Zero.Handle, IntPtr.Zero, 45, player.TeamNum);
             }, TimerFlags.REPEAT | TimerFlags.STOP_ON_MAPCHANGE);
 
-            playerSmokes.AddOrUpdate(player.SteamID, [smokeTimer], (_, list) => { list.Add(smokeTimer); return list; });
+            if (smokeTimer != null)
+            {
+                playerSmokes.AddOrUpdate(player.SteamID, [smokeTimer], (_, list) => { list.Add(smokeTimer); return list; });
+            }
         }
     }
 }

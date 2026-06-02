@@ -11,7 +11,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Cichociemny", "Twoje kroki i skoki są niesłyszalne dla INNYCH graczy", "#414141");
+            SkillUtils.RegisterSkill(skillName, 
+            "Cichociemny", 
+            "Twoje kroki i skoki są niesłyszalne dla INNYCH graczy", 
+            "#818181");
         }
 
         public static void PlayerMakeSound(UserMessage um)
@@ -26,7 +29,7 @@ namespace jRandomSkills
             var player = Utilities.GetPlayers().FirstOrDefault(p => p.Pawn?.Value != null && p.Pawn.Value.IsValid && p.Pawn.Value.Index == userIndex);
             if (Instance?.IsPlayerValid(player) == false) return;
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo?.Skill != skillName) return;
 
             um.Recipients.Clear();

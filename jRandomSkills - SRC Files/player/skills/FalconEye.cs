@@ -16,7 +16,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Sokoli wzrok", "Możesz włączyć kamerę z lotu ptaka", "#d1f542");
+            SkillUtils.RegisterSkill(skillName, 
+            "Sokoli wzrok", 
+            "Możesz włączyć kamerę z lotu ptaka", 
+            "#d1f542");
             Instance?.RegisterListener<OnServerPrecacheResources>((ResourceManifest manifest) => manifest.AddResource("models/sprays/spray_plane.vmdl"));
         }
 
@@ -33,7 +36,7 @@ namespace jRandomSkills
             var player = @event.Userid;
             if (Instance?.IsPlayerValid(player) == false) return;
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player?.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo?.Skill != skillName) return ;
 
             var pawn = player!.PlayerPawn.Value;

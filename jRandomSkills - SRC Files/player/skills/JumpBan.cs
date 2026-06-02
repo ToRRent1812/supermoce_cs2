@@ -1,48 +1,49 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using System.Collections.Concurrent;
 using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
-    public class JumpBan : ISkill
+    public class JumpBan : ISkill, IMenuSkill
     {
         private const Skills skillName = Skills.JumpBan;
         private static readonly ConcurrentDictionary<ulong, int> bannedPlayers = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Beznogi", "Wybierasz gracza, który nie będzie mógł skakać", "#b01e5d");
+            SkillUtils.RegisterMenuSkill(skillName, 
+            "Beznogi", 
+            "Wybierasz gracza, który nie będzie mógł skakać", 
+            "#b01e5d");
         }
 
         public static void NewRound()
         {
+            MenuSkillFramework.OnNewRound();
+
             foreach (var kv in bannedPlayers)
             {
                 var pl = Utilities.GetPlayers().FirstOrDefault(p => p?.SteamID == kv.Key);
                 if (pl != null && pl.IsValid && pl.PlayerPawn?.Value != null && pl.PlayerPawn.Value.IsValid)
-                {
                     pl.PlayerPawn.Value.ActualGravityScale = 1f;
-                }
             }
 
             bannedPlayers.Clear();
-            foreach (var player in Utilities.GetPlayers())
-                SkillUtils.CloseMenu(player);
         }
 
         public static void PlayerJump(EventPlayerJump @event)
         {
             var player = @event.Userid;
-            if (player == null || !player.IsValid) return;
+            if(player == null) return;
+            if (Instance?.IsPlayerValid(player) == false) return;
             if (!bannedPlayers.ContainsKey(player.SteamID)) return;
 
             var pawn = player.PlayerPawn?.Value;
             if (pawn == null || !pawn.IsValid) return;
             pawn.AbsVelocity.Z = -200;
-            pawn.ActualGravityScale = 5f;
+            pawn.ActualGravityScale = 4f;
         }
 
         public static void OnTick()
@@ -53,76 +54,35 @@ namespace jRandomSkills
                 var pl = Utilities.GetPlayers().FirstOrDefault(p => p?.SteamID == steamID);
                 if (pl == null || !pl.IsValid || pl.PlayerPawn?.Value == null || !pl.PlayerPawn.Value.IsValid) continue;
                 var pawn = pl.PlayerPawn.Value;
-                pawn.ActualGravityScale = 5f;
                 if (pawn.AbsVelocity.Z > 0)
                     pawn.AbsVelocity.Z = 0;
-            }
-
-            if (Server.TickCount % 32 != 0) return;
-            foreach (var player in Utilities.GetPlayers())
-            {
-                if (!SkillUtils.HasMenu(player)) continue;
-                var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-
-                if (playerInfo == null || playerInfo.Skill != skillName) continue;
-                var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
-
-                ConcurrentBag<(string, string)> menuItems = [.. enemies.Select(e => (e.PlayerName, e.Index.ToString()))];
-                SkillUtils.UpdateMenu(player, menuItems);
             }
         }
 
         public static void TypeSkill(CCSPlayerController player, string[] commands)
         {
-            if (player == null || !player.IsValid || !player.PawnIsAlive) return;
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (playerInfo?.Skill != skillName) return;
-
-            if (playerInfo.SkillChance == 1)
-            {
-                player.PrintToChat($" {ChatColors.Red}Nie posiadasz już tej supermocy");
+            if (!SkillUtils.TryGetTargetFromCommand(player, skillName, commands, out var playerInfo, out var enemy))
                 return;
-            }
 
-            string enemyId = commands[0];
-            var enemy = Utilities.GetPlayers().FirstOrDefault(p => p.Team != player.Team && p.Index.ToString() == enemyId);
+            bannedPlayers[enemy!.SteamID] = 1;
+            var enemyPawn = enemy.PlayerPawn?.Value;
+            if (enemyPawn != null && enemyPawn.IsValid)
+                enemyPawn.ActualGravityScale = 4f;
 
-            if (enemy == null || !enemy.IsValid || enemy.PlayerPawn.Value == null || !enemy.PlayerPawn.Value.IsValid)
-            {
-                player.PrintToChat($" {ChatColors.Red}Nie znaleziono gracza o takim ID.");
-                return;
-            }
-
-            bannedPlayers[enemy.SteamID] = 1;
-            if (enemy.PlayerPawn?.Value != null && enemy.PlayerPawn.Value.IsValid)
-            {
-                enemy.PlayerPawn.Value.ActualGravityScale = 5f;
-            }
-            playerInfo.SkillChance = 1;
             SkillUtils.PrintToChat(enemy, $"Wróg zabronił Ci skakania.");
+            if (playerInfo != null) playerInfo.SkillChance = 1;
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == player.SteamID);
-            if (playerInfo == null) return;
-            playerInfo.SkillChance = 0;
-
-            var enemies = Utilities.GetPlayers().Where(p => p.PawnIsAlive && p.Team != player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.Team != CsTeam.None).ToArray();
-            if (enemies.Length > 0)
-            {
-                ConcurrentBag<(string, string)> menuItems = [.. enemies.Select(e => (e.PlayerName, e.Index.ToString()))];
-                SkillUtils.CreateMenu(player, menuItems);
-            }
-            else
-                player.PrintToChat($" {ChatColors.Red}Nie znaleziono gracza o takim ID.");
+            MenuSkillFramework.OnSkillEnabled(skillName, player);
+            SkillUtils.InitTargetingSkill(player, skillName);
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            if (player == null || !player.IsValid) return;
-            bannedPlayers.TryRemove(player.SteamID, out _);
-            SkillUtils.CloseMenu(player);
+            MenuSkillFramework.OnSkillDisabled(player);
+            SkillUtils.DestroyTargetingSkill(player, p => bannedPlayers.TryRemove(p.SteamID, out _));
         }
     }
 }

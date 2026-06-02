@@ -11,7 +11,11 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Assassin", "Zadajesz podwójne obrażenia w plecy", "#d9d9d9");
+            SkillUtils.RegisterSkill(
+                skillName, 
+                "Assassin", 
+                "Zadajesz podwójne obrażenia w plecy", 
+                "#d9d9d9");
         }
 
         public static void PlayerHurt(EventPlayerHurt @event)
@@ -20,12 +24,11 @@ namespace jRandomSkills
             var victim = @event.Userid;
             var attacker = @event.Attacker;
             var weapon = @event.Weapon;
-            HitGroup_t hitgroup = (HitGroup_t)@event.Hitgroup;
 
             if (Instance?.IsPlayerValid(attacker) == false || Instance?.IsPlayerValid(victim) == false || attacker == victim) return;
             if (nades.Contains(weapon)) return;
 
-            var playerInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == attacker?.SteamID);
+            var playerInfo = SkillUtils.GetPlayerInfo(attacker);
             if (playerInfo?.Skill != skillName) return;
 
             if (IsBehind(attacker!, victim!))

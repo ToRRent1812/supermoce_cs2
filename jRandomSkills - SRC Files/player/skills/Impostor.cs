@@ -17,7 +17,10 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Szpieg", "Wyglądasz jak przeciwnik", "#99140B");
+            SkillUtils.RegisterSkill(skillName, 
+            "Szpieg", 
+            "Wyglądasz jak przeciwnik", 
+            "#99140B");
         }
 
         public static void NewRound()

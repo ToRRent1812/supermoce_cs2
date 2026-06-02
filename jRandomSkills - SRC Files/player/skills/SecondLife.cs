@@ -8,15 +8,23 @@ using static jRandomSkills.jRandomSkills;
 
 namespace jRandomSkills
 {
-    public class SecondLife : ISkill
+    public class SecondLife : ISkill, IPassiveSkill
     {
         private const Skills skillName = Skills.SecondLife;
-        private static readonly ConcurrentDictionary<nint, byte> secondLifePlayers = [];
+        private static readonly ConcurrentDictionary<nint, byte> secondLifePlayers = new();
         private static readonly object setLock = new();
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Drugie życie", "Po śmierci odradzasz się 1 raz z losową ilością zdrowia", "#d41c1c");
+            SkillUtils.RegisterPassiveSkill(
+                skillName,
+                "Drugie życie",
+                "Po śmierci odradzasz się 1 raz z losową ilością zdrowia",
+                "#d41c1c",
+                minValue: 10,
+                maxValue: 100,
+                step: 2,
+                customValueFormatter: value => $"{value} HP");
         }
 
         public static void NewRound()
@@ -27,10 +35,9 @@ namespace jRandomSkills
         public static void PlayerHurt(EventPlayerHurt @event)
         {
             var victim = @event.Userid;
-            int damage = @event.DmgHealth;
 
             if (Instance?.IsPlayerValid(victim) == false) return;
-            var victimInfo = Instance?.SkillPlayer.FirstOrDefault(p => p.SteamID == victim?.SteamID);
+            var victimInfo = SkillUtils.GetPlayerInfo(victim);
             if (victimInfo == null || victimInfo.Skill != skillName) return;
 
             var victimPawn = victim!.PlayerPawn.Value;
@@ -40,7 +47,9 @@ namespace jRandomSkills
             lock (setLock)
             {
                 secondLifePlayers.TryAdd(victim.Handle, 0);
-                SetHealth(victim, Instance?.Random.Next(10, 101) ?? 50);
+                var config = SkillUtils.GetPassiveSkillConfig(skillName);
+                int revivalHealth = PassiveSkillFramework.GetRandomRoll(skillName, victim, config);
+                SetHealth(victim, revivalHealth);
                 var spawn = GetSpawnVector(victim);
                 if (spawn != null)
                 {
@@ -49,9 +58,23 @@ namespace jRandomSkills
             }
         }
 
+        public static void EnableSkill(CCSPlayerController player)
+        {
+            if (Instance?.IsPlayerValid(player) == false) return;
+
+            var config = SkillUtils.GetPassiveSkillConfig(skillName);
+            if (config != null)
+            {
+                PassiveSkillFramework.OnSkillEnabled(skillName, player, config);
+            }
+        }
+
         public static void DisableSkill(CCSPlayerController player)
         {
+            if (Instance?.IsPlayerValid(player) == false) return;
+
             secondLifePlayers.TryRemove(player.Handle, out _);
+            PassiveSkillFramework.OnSkillDisabled(skillName, player);
         }
 
         private static void SetHealth(CCSPlayerController player, int health)
