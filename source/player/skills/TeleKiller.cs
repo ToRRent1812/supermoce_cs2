@@ -1,0 +1,68 @@
+using CounterStrikeSharp.API;
+using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Entities.Constants;
+using CounterStrikeSharp.API.Modules.Utils;
+using Supermoce.src.player;
+using Vector = CounterStrikeSharp.API.Modules.Utils.Vector;
+
+namespace Supermoce
+{
+    public class TeleKiller : ISkill
+    {
+        private const Skills skillName = Skills.TeleKiller;
+
+        public static void LoadSkill()
+        {
+            SkillUtils.RegisterSkill(skillName, 
+            "Krwiopijca", 
+            "Zabijając wroga, odnawiasz w pełni zdrowie i przemieszczasz się na jego zwłoki", 
+            "#ad9b9b");
+        }
+
+        public static void PlayerDeath(EventPlayerDeath @event)
+        {
+            CCSPlayerController? victimPlayer = @event.Userid;
+            CCSPlayerController? attackerPlayer = @event.Attacker;
+
+            if (attackerPlayer == null || !attackerPlayer.IsValid || !attackerPlayer.PawnIsAlive || victimPlayer == null || !victimPlayer.IsValid || attackerPlayer == victimPlayer) return;
+
+            CCSPlayerPawn? attackingPawn = attackerPlayer.PlayerPawn.Value;
+            CCSPlayerPawn? victimPawn = victimPlayer.PlayerPawn.Value;
+
+            if (attackingPawn == null || !attackingPawn.IsValid || victimPawn == null || !victimPawn.IsValid || victimPawn.AbsOrigin == null) return;
+
+            var attackerInfo = SkillUtils.GetPlayerInfo(attackerPlayer);
+            if (attackerInfo?.Skill == skillName)
+            {
+                TeleportPlayer(attackerPlayer, victimPawn.AbsOrigin);
+                SkillUtils.AddHealth(attackingPawn, 100);
+            }
+        }
+
+        public static void TeleportPlayer(CCSPlayerController? player, Vector? position, QAngle? angles = null, Vector? velocity = null)
+        {
+            if (player == null || !player.IsValid || player.PawnHealth <= 0) return;
+
+            var pawn = player.PlayerPawn.Value;
+            if (pawn == null || !pawn.IsValid) return;
+
+            pawn.Teleport(position, angles, velocity);
+
+            pawn.Collision.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_DISSOLVING;
+            pawn.Collision.CollisionAttribute.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_DISSOLVING;
+            Utilities.SetStateChanged(player, "CCollisionProperty", "m_CollisionGroup");
+            Utilities.SetStateChanged(player, "VPhysicsCollisionAttribute_t", "m_nCollisionGroup");
+
+            Server.NextFrame(() =>
+            {
+                if (!pawn.IsValid || pawn.LifeState != (int)LifeState_t.LIFE_ALIVE) return;
+
+                pawn.Collision.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_PLAYER;
+                pawn.Collision.CollisionAttribute.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_PLAYER;
+
+                Utilities.SetStateChanged(player, "CCollisionProperty", "m_CollisionGroup");
+                Utilities.SetStateChanged(player, "VPhysicsCollisionAttribute_t", "m_nCollisionGroup");
+            });
+        }
+    }
+}

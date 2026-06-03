@@ -1,0 +1,44 @@
+using CounterStrikeSharp.API.Core;
+using Supermoce.src.player;
+using static Supermoce.Supermoce;
+
+namespace Supermoce
+{
+    public class AntyHead : ISkill
+    {
+        private const Skills skillName = Skills.AntyHead;
+
+        public static void LoadSkill()
+        {
+            SkillUtils.RegisterSkill(
+                skillName, 
+                "Twarda Bania", 
+                "Nie otrzymujesz obrażeń w głowę", 
+                "#8B4513");
+        }
+
+        public static void PlayerHurt(EventPlayerHurt @event)
+        {
+            var attacker = @event.Attacker;
+            var victim = @event.Userid;
+            int hitgroup = @event.Hitgroup;
+
+            if (Instance?.IsPlayerValid(attacker) == false || Instance?.IsPlayerValid(victim) == false || attacker == victim) return;
+            var playerInfo = SkillUtils.GetPlayerInfo(victim);
+            if (playerInfo?.Skill == skillName && hitgroup == (int)HitGroup_t.HITGROUP_HEAD)
+                ApplyIronHeadEffect(victim!, @event.DmgHealth);
+        }
+
+        private static void ApplyIronHeadEffect(CCSPlayerController victim, float damage)
+        {
+            var playerPawn = victim.PlayerPawn.Value;
+            if (playerPawn == null || !playerPawn.IsValid) return;
+            var newHealth = playerPawn.Health + damage;
+
+            if (newHealth > 100)
+                newHealth = 100;
+
+            playerPawn.Health = (int)newHealth;
+        }
+    }
+}

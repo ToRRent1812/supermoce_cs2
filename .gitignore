@@ -1,12 +1,7 @@
 
-jRandomSkills - SRC Files/bin/
-
-jRandomSkills - SRC Files/obj/
-/BACKUP
-jRandomSkills - SRC Files/Compat/PluginCapability.cs
-jRandomSkills - SRC Files/jRandomSkills - SRC Files.sln
-OPTIMIZATION_PLAN.md
-/jRandomSkills - SRC Files/out
-/WASDMenuAPI/obj
-/WASDMenuAPI/bin
-/WASDMenuAPI/obj
+source/bin/
+source/obj/
+source/Compat/PluginCapability.cs
+source/out
+WASDMenuAPI/obj
+WASDMenuAPI/bin

@@ -16,4 +16,8 @@ Co wyróżnia tą wersję od jrandomskills?
 - Dodałem nowe moce: Komandos, Dopaminka, CS2, Trujące naboje, Ciepłe piwo, Ćpun, Komornik, Rusznikarz, Krwiopijca, Matrix, Chachmęciarz, Bąk morderca, Podejrzane naboje, Zdrajca, Szybka pomoc, Half-Life, Owsiak, Ognisko, Mega-tov, Robin Hood, Chemik, Ciężarne hosty, Strzał w kolano, Skarbówka, Inflacja, NanoKevlar, Olbrzym, Zamiana respów, Psychopata, Burza piaskowa, Nalot powietrzny, Konfiskata
 
 I wiele więcej, ale już zapomniałem, co się zmieniło.
-Mój fork instalujemy, na już zainstalowany jrandomskills
+
+
+# Instalacja moda
+Pobierz .zip z zakładki Releases
+Wypakuj do server/game/csgo/addons/counterstrikesharp/

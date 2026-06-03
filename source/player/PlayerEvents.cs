@@ -1,0 +1,367 @@
+using CounterStrikeSharp.API;
+using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Core.Attributes;
+using CounterStrikeSharp.API.Modules.Cvars;
+using CounterStrikeSharp.API.Modules.UserMessages;
+using CounterStrikeSharp.API.Modules.Utils;
+using Supermoce.src.player;
+using static CounterStrikeSharp.API.Core.Listeners;
+using static Supermoce.Supermoce;
+
+namespace Supermoce
+{
+    public static partial class Event
+    {
+        private static DateTime freezeTimeEnd = DateTime.MinValue;
+        public static bool isTransmitRegistered = false;
+        public static readonly SkillInfo noneSkill = new(Skills.None, "Inwalida", "Nie posiadasz supermocy", "#FFFFFF");
+        private static readonly object setLock = new();
+        public static void Load()
+        {
+            Instance?.RegisterEventHandler<EventPlayerConnectFull>(PlayerConnectFull);
+            Instance?.RegisterEventHandler<EventPlayerDisconnect>(PlayerDisconnect);
+            Instance?.RegisterEventHandler<EventRoundStart>(RoundStart);
+            Instance?.RegisterEventHandler<EventRoundEnd>(RoundEnd);
+            Instance?.RegisterEventHandler<EventPlayerDeath>(PlayerDeath);
+            Instance?.RegisterEventHandler<EventPlayerBlind>(PlayerBlind);
+            Instance?.RegisterEventHandler<EventPlayerHurt>(PlayerHurt);
+            Instance?.RegisterEventHandler<EventPlayerJump>(PlayerJump);
+            Instance?.RegisterEventHandler<EventWeaponFire>(WeaponFire);
+            Instance?.RegisterEventHandler<EventItemEquip>(WeaponEquip);
+            Instance?.RegisterEventHandler<EventItemPickup>(WeaponPickup);
+            Instance?.RegisterEventHandler<EventWeaponReload>(WeaponReload);
+            Instance?.RegisterEventHandler<EventGrenadeThrown>(GrenadeThrown);
+            Instance?.RegisterEventHandler<EventBombBeginplant>(BombBeginplant);
+            Instance?.RegisterEventHandler<EventBombPlanted>(BombPlanted);
+            Instance?.RegisterEventHandler<EventBombBegindefuse>(BombBegindefuse);
+            Instance?.RegisterEventHandler<EventHostageFollows>(HostageFollows);
+            Instance?.RegisterEventHandler<EventDecoyStarted>(DecoyStarted);
+            Instance?.RegisterEventHandler<EventDecoyDetonate>(DecoyDetonate);
+            Instance?.RegisterEventHandler<EventMolotovDetonate>(MolotovDetonate);
+            Instance?.RegisterEventHandler<EventSmokegrenadeDetonate>(SmokegrenadeDetonate);
+            Instance?.RegisterEventHandler<EventSmokegrenadeExpired>(SmokegrenadeExpired);
+
+            Instance?.RegisterListener<OnPlayerButtonsChanged>(CheckUseSkill);
+            Instance?.RegisterListener<OnEntitySpawned>(EntitySpawned);
+            Instance?.RegisterListener<OnTick>(OnTick);
+
+            Instance?.HookUserMessage(208, PlayerMakeSound);
+            Instance?.RegisterListener<OnEntityTakeDamagePre>(OnTakeDamage);
+        }
+
+        private static HookResult HandleSkillEvent(string eventName, params object[] args)
+        {
+            var snapshot = SkillUtils.GetSkillSnapshot();
+            if (snapshot.Length == 0)
+                return HookResult.Continue;
+
+            foreach (var playerSkill in snapshot)
+                if (!playerSkill.IsDrawing && SkillsWithEvent.ContainsKey((eventName, playerSkill.Skill.ToString())))
+                    Instance?.SkillAction(playerSkill.Skill.ToString(), eventName, args);
+
+            return HookResult.Continue;
+        }
+
+        private static HookResult PlayerMakeSound(UserMessage um) => HandleSkillEvent("PlayerMakeSound", um);
+        private static HookResult WeaponFire(EventWeaponFire @event, GameEventInfo info) => HandleSkillEvent("WeaponFire", @event);
+        private static HookResult WeaponEquip(EventItemEquip @event, GameEventInfo info) => HandleSkillEvent("WeaponEquip", @event);
+        private static HookResult WeaponPickup(EventItemPickup @event, GameEventInfo info) => HandleSkillEvent("WeaponPickup", @event);
+        private static HookResult WeaponReload(EventWeaponReload @event, GameEventInfo info) => HandleSkillEvent("WeaponReload", @event);
+        private static HookResult GrenadeThrown(EventGrenadeThrown @event, GameEventInfo info) => HandleSkillEvent("GrenadeThrown", @event);
+        private static HookResult BombBeginplant(EventBombBeginplant @event, GameEventInfo info) => HandleSkillEvent("BombBeginplant", @event);
+        private static HookResult BombPlanted(EventBombPlanted @event, GameEventInfo info) => HandleSkillEvent("BombPlanted", @event);
+        private static HookResult BombBegindefuse(EventBombBegindefuse @event, GameEventInfo info) => HandleSkillEvent("BombBegindefuse", @event);
+        private static HookResult HostageFollows(EventHostageFollows @event, GameEventInfo info) => HandleSkillEvent("HostageFollows", @event);
+        private static HookResult DecoyStarted(EventDecoyStarted @event, GameEventInfo info) => HandleSkillEvent("DecoyStarted", @event);
+        private static HookResult DecoyDetonate(EventDecoyDetonate @event, GameEventInfo info) => HandleSkillEvent("DecoyDetonate", @event);
+        private static HookResult MolotovDetonate(EventMolotovDetonate @event, GameEventInfo info) => HandleSkillEvent("MolotovDetonate", @event);
+        private static HookResult SmokegrenadeDetonate(EventSmokegrenadeDetonate @event, GameEventInfo info) => HandleSkillEvent("SmokegrenadeDetonate", @event);
+        private static HookResult SmokegrenadeExpired(EventSmokegrenadeExpired @event, GameEventInfo info) => HandleSkillEvent("SmokegrenadeExpired", @event);
+        private static HookResult PlayerHurt(EventPlayerHurt @event, GameEventInfo info) => HandleSkillEvent("PlayerHurt", @event);
+        private static HookResult PlayerJump(EventPlayerJump @event, GameEventInfo info) => HandleSkillEvent("PlayerJump", @event);
+        private static HookResult PlayerBlind(EventPlayerBlind @event, GameEventInfo info) => HandleSkillEvent("PlayerBlind", @event);
+        private static HookResult OnTakeDamage(CEntityInstance entity, CTakeDamageInfo info) => HandleSkillEvent("OnTakeDamage", entity, info);
+
+        private static void OnTick()
+        {
+            var snapshot = SkillUtils.GetSkillSnapshot();
+            MenuSkillFramework.OnTick();
+
+            if (snapshot.Length == 0) return;
+
+            foreach (var playerSkill in snapshot)
+                if (!playerSkill.IsDrawing && SkillsWithOnTick.ContainsKey(playerSkill.Skill.ToString()))
+                    Instance?.SkillAction(playerSkill.Skill.ToString(), "OnTick");
+        }
+
+        private static HookResult PlayerConnectFull(EventPlayerConnectFull @event, GameEventInfo info)
+        {
+            lock (setLock)
+            {
+                var player = @event.Userid;
+                if (player == null || !player.IsValid) return HookResult.Continue;
+
+                Instance?.SkillPlayer.TryAdd(player.SteamID, new SkillPlayerInfo
+                {
+                    SteamID = player.SteamID,
+                    PlayerName = player.PlayerName,
+                    Skill = Skills.None,
+                    SpecialSkill = Skills.None,
+                    IsDrawing = false,
+                    SkillChance = 1,
+                    RandomPercentage = "",
+                });
+
+                SkillUtils.PrintToChat(player, $"UWAGA! By zbindować supermoce na własny klawisz.");
+                SkillUtils.PrintToChat(player, $"wyjdź z serwera i wpisz w konsolę {ChatColors.Yellow}bind v css_useskill{ChatColors.Lime} w menu głównym gdzie V to klawisz.");
+                return HookResult.Continue;
+            }
+        }
+
+        private static HookResult PlayerDisconnect(EventPlayerDisconnect @event, GameEventInfo info)
+        {
+            lock (setLock)
+            {
+                var player = @event.Userid;
+                if (player == null || !player.IsValid) return HookResult.Continue;
+
+                var skillPlayer = SkillUtils.GetPlayerInfo(player);
+                if (skillPlayer == null) return HookResult.Continue;
+
+                Instance?.SkillPlayer.TryRemove(skillPlayer.SteamID, out _);
+
+                return HookResult.Continue;
+            }
+        }
+
+        private static HookResult RoundStart(EventRoundStart @event, GameEventInfo info)
+        {
+            lock (setLock)
+            {
+                isTransmitRegistered = false;
+                Instance?.AddTimer(.1f, DisableAll);
+                foreach (var player in Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.Team is CsTeam.CounterTerrorist or CsTeam.Terrorist))
+                {
+                    var skillPlayer = SkillUtils.GetPlayerInfo(player);
+                    if (skillPlayer == null) continue;
+                    skillPlayer.IsDrawing = true;
+                }
+
+                Instance?.RemoveListener<CheckTransmit>(CheckTransmit);
+                int freezetime = ConVar.Find("mp_freezetime")?.GetPrimitiveValue<int>() ?? 0;
+                freezeTimeEnd = DateTime.Now.AddSeconds(freezetime + (Instance?.GameRules?.TeamIntroPeriod == true ? 7 : 0));
+                Instance?.AddTimer((Instance?.GameRules?.TeamIntroPeriod == true ? 7 : 0) + Math.Max(freezetime - 6, 0) + .3f, SetSkill);
+                return HookResult.Continue;
+            }
+        }
+
+        private static void DisableAll()
+        {
+            lock (setLock)
+            {
+                foreach (var player in Utilities.GetPlayers().Where(p => !p.IsBot))
+                {
+                    var playerInfo = SkillUtils.GetPlayerInfo(player);
+                    if (playerInfo == null) continue;
+                    Instance?.SkillAction(playerInfo.Skill.ToString(), "DisableSkill", [player]);
+                    Instance?.SkillAction(playerInfo.Skill.ToString(), "NewRound");
+                }
+
+                PassiveSkillFramework.OnNewRound();
+                ActiveSkillFramework.OnNewRound();
+                MenuSkillFramework.OnNewRound();
+                PlayerOnTick.ClearHudCache();
+            }
+        }
+
+        private static HookResult RoundEnd(EventRoundEnd @event, GameEventInfo info)
+        {
+            return HookResult.Continue;
+        }
+
+        private static HookResult PlayerDeath(EventPlayerDeath @event, GameEventInfo info)
+        {
+            if (Instance?.SkillPlayer != null)
+            {
+                var snapshot = SkillUtils.GetSkillSnapshot();
+                foreach (var playerSkill in snapshot)
+                    if (!playerSkill.IsDrawing)
+                        Instance.SkillAction(playerSkill.Skill.ToString(), "PlayerDeath", [@event]);
+            }
+
+            var victim = @event.Userid;
+            var attacker = @event.Attacker;
+            if (victim == null || attacker == null) return HookResult.Continue;
+
+            var playerInfo = SkillUtils.GetPlayerInfo(victim);
+            if (playerInfo == null || playerInfo.IsDrawing) return HookResult.Continue;
+            playerInfo.RandomPercentage = "";
+            Instance?.SkillAction(playerInfo.Skill.ToString(), "DisableSkill", [victim]);
+
+            if (victim == attacker) return HookResult.Continue;
+            if (!SkillUtils.IsWarmup())
+            {
+                var attackerInfo = SkillUtils.GetPlayerInfo(attacker);
+                if (attackerInfo != null)
+                {
+                    var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == attackerInfo.Skill);
+                    var specialSkillData = SkillData.Skills.FirstOrDefault(s => s.Skill == attackerInfo.SpecialSkill);
+                    if (skillData == null || specialSkillData == null) return HookResult.Continue;
+                    string skillDesc = skillData.Description;
+
+                    SkillUtils.PrintToChat(victim, $"{ChatColors.DarkRed}{attacker.PlayerName}{ChatColors.Lime} ma {ChatColors.DarkRed}{(attackerInfo.SpecialSkill == Skills.None ? skillData.Name : $"{specialSkillData.Name} -> {skillData.Name}")}", false);
+                    SkillUtils.PrintToChat(victim, $"{skillDesc}", false);
+                }
+            }
+            return HookResult.Continue;
+        }
+
+        private static void CheckUseSkill(CCSPlayerController player, PlayerButtons pressed, PlayerButtons released)
+        {
+            lock (setLock)
+            {
+                if (!pressed.HasFlag(PlayerButtons.Inspect)) return;
+                if (SkillUtils.IsFreezetime() == true) return;
+
+                if (player == null) return;
+                var playerInfo = SkillUtils.GetPlayerInfo(player);
+                if (playerInfo == null || playerInfo.IsDrawing) return;
+
+                var playerPawn = player.PlayerPawn.Value;
+                if (playerPawn?.CBodyComponent == null) return;
+                if (!player.IsValid || !player.PawnIsAlive) return;
+
+                Instance?.SkillAction(playerInfo.Skill.ToString(), "UseSkill", [player]);
+            }
+        }
+
+        private static void EntitySpawned(CEntityInstance entity)
+        {
+            var snapshot = SkillUtils.GetSkillSnapshot();
+            if (snapshot.Length == 0) return;
+
+            foreach (var playerSkill in snapshot)
+                if (!playerSkill.IsDrawing && SkillsWithEvent.ContainsKey(("OnEntitySpawned", playerSkill.Skill.ToString())))
+                    Instance?.SkillAction(playerSkill.Skill.ToString(), "OnEntitySpawned", [entity]);
+        }
+
+        private static SkillInfo GetRandomSkill(CCSPlayerController player, SkillPlayerInfo skillPlayer)
+        {
+            if (Instance?.GameRules != null && !SkillUtils.IsWarmup())
+            {
+                List<SkillInfo> skillList = [.. SkillData.Skills];
+                skillList.RemoveAll(s => s?.Skill == skillPlayer?.Skill || s?.Skill == skillPlayer?.SpecialSkill || s?.Skill == Skills.None);
+
+                skillList.RemoveAll(s => 
+                    (player.Team == CsTeam.Terrorist && s.TeamNumber == 2) ||  
+                    (player.Team == CsTeam.CounterTerrorist && s.TeamNumber == 1)
+                );
+
+                bool isBombMap = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("func_bomb_target").Any();
+                skillList.RemoveAll(s => 
+                    (isBombMap && s.Objective == 2) || 
+                    (!isBombMap && s.Objective == 1)
+                );
+
+                return skillList.Count == 0 ? noneSkill : skillList[Instance.Random.Next(skillList.Count)];
+            }
+            return noneSkill;
+        }
+
+        private static void SetSkill()
+        {
+            lock (setLock)
+            {
+                if (SkillUtils.IsWarmup()) return;
+                var validPlayers = Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.Team is CsTeam.CounterTerrorist or CsTeam.Terrorist).ToList();
+
+                foreach (var player in validPlayers)
+                {
+                    if (player == null) continue;
+                    var teammates = validPlayers.Where(p => p.Team == player.Team && p != player);
+                    string teammateSkills = "";
+
+                    var skillPlayer = SkillUtils.GetPlayerInfo(player);
+                    if (skillPlayer == null) continue;
+                    skillPlayer.RandomPercentage = "";
+
+                    if (player.PlayerPawn.Value == null || !player.PlayerPawn.IsValid)
+                    {
+                        skillPlayer.Skill = Skills.None;
+                        continue;
+                    }
+
+                    skillPlayer.IsDrawing = false;
+                    var randomSkill = GetRandomSkill(player, skillPlayer);
+
+                    skillPlayer.Skill = randomSkill.Skill;
+                    player.EmitSound("UIPanorama.tab_mainmenu_news", volume: 0.1f);
+                    skillPlayer.SpecialSkill = Skills.None;
+                    Instance?.SkillAction(randomSkill.Skill.ToString(), "EnableSkill", [player]);
+
+                    Instance?.AddTimer(.5f, () =>
+                    {
+                        foreach (var teammate in teammates)
+                        {
+                            var teammateSkill = SkillUtils.GetPlayerInfo(teammate)?.Skill;
+                            if (teammateSkill != null)
+                            {
+                                var skillInfo = SkillData.Skills.FirstOrDefault(p => p.Skill == teammateSkill);
+                                teammateSkills += $"{ChatColors.Lime}{(skillInfo == null ? Skills.None : skillInfo.Name)} {ChatColors.White}| ";
+                            }
+                        }
+
+                        if (!string.IsNullOrEmpty(teammateSkills))
+                        {
+                            SkillUtils.PrintToChat(player, $" {ChatColors.Lime}Koledzy posiadają: {teammateSkills}", false);
+                        }
+                    });
+                }
+            }
+        }
+
+        public static void SetRandomSkill(CCSPlayerController player)
+        {
+            lock (setLock)
+            {
+                if (player == null) return;
+                var skillPlayer = SkillUtils.GetPlayerInfo(player);
+                if (skillPlayer == null) return;
+                skillPlayer.RandomPercentage = "";
+
+                if (player.PlayerPawn.Value == null || !player.PlayerPawn.IsValid)
+                {
+                    skillPlayer.Skill = Skills.None;
+                    return;
+                }
+
+                var randomSkill = GetRandomSkill(player, skillPlayer);
+
+                skillPlayer.Skill = randomSkill.Skill;
+                skillPlayer.SpecialSkill = Skills.None;
+                Instance?.SkillAction(randomSkill.Skill.ToString(), "EnableSkill", [player]);
+            }
+        }
+
+        public static void CheckTransmit([CastFrom(typeof(nint))] CCheckTransmitInfoList infoList)
+        {
+            var snapshot = SkillUtils.GetSkillSnapshot();
+            if (snapshot.Length == 0) return;
+
+            foreach (var playerSkill in snapshot)
+                if (!playerSkill.IsDrawing && SkillsWithEvent.ContainsKey(("CheckTransmit", playerSkill.Skill.ToString())))
+                    Instance?.SkillAction(playerSkill.Skill.ToString(), "CheckTransmit", [infoList]);
+        }
+
+        public static void EnableTransmit()
+        {
+            if (!isTransmitRegistered)
+            {
+                Instance?.RegisterListener<CheckTransmit>(CheckTransmit);
+                isTransmitRegistered = true;
+            }
+        }
+        
+        public static DateTime GetFreezeTimeEnd() => freezeTimeEnd;
+    }
+}
