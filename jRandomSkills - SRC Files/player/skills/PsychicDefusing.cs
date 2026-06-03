@@ -17,12 +17,16 @@ namespace jRandomSkills
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, 
+            SkillUtils.RegisterPassiveSkill(skillName, 
             "Medium", 
-            "Rozbrajasz bombę zdalnie w obszarze 25m", 
+            "Rozbrajasz bombę zdalnie", 
             "#507529", 
             teamnum:2,
-            objective:1);
+            objective:1,
+            minValue:15,
+            maxValue:40,
+            step:1,
+            customValueFormatter: (value) => $"{value}m");
         }
 
         public static void NewRound()
@@ -69,10 +73,13 @@ namespace jRandomSkills
                 var player = playerController.As<CCSPlayerController>();
                 if (Instance?.IsPlayerValid(player) == false) return;
 
+                var playerInfo = SkillUtils.GetPlayerInfo(player);
+                if (playerInfo == null) return;
+
                 float maxDefuseTime = GetDefuseTime(player);
                 if (pawn.AbsOrigin != null) bombDistance = (nint)SkillUtils.GetDistance(pawn.AbsOrigin, bombLocation);
 
-                if (pawn.AbsOrigin == null || bombDistance > 1000)
+                if (pawn.AbsOrigin == null || bombDistance > playerInfo.SkillChance)
                 {
                     info.Defusing = false;
                     info.DefusingTime = maxDefuseTime;
@@ -109,6 +116,17 @@ namespace jRandomSkills
 
          public static void EnableSkill(CCSPlayerController player)
         {
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
+            if (playerInfo == null) return;
+
+            var config = SkillUtils.GetPassiveSkillConfig(skillName);
+            if (config != null)
+            {
+                PassiveSkillFramework.OnSkillEnabled(skillName, player, config);
+
+                int randomValue = PassiveSkillFramework.GetRandomRoll(skillName, player, config);
+                playerInfo.SkillChance = randomValue / 0.025f;
+            }
             var pawn = player.PlayerPawn.Value;
             if (pawn == null || player.IsValid == false) return;
             float defuseTime = GetDefuseTime(player);
@@ -126,6 +144,7 @@ namespace jRandomSkills
             var pawn = player.PlayerPawn.Value;
             if (pawn == null || !pawn.IsValid) return;
             SkillPlayerInfo.TryRemove(pawn, out _);
+            PassiveSkillFramework.OnSkillDisabled(skillName, player);
         }
 
         private static float GetDefuseTime(CCSPlayerController player)
@@ -155,14 +174,17 @@ namespace jRandomSkills
             if (!skillInfo.Defusing) return;
             float defuseDuration = skillInfo.MaxDefusingTime > 0 ? skillInfo.MaxDefusingTime : 14f;
             float DefusingPercent = Math.Clamp((1f - (skillInfo.DefusingTime / defuseDuration)) * 100f, 0f, 100f);
-            float DistPercent = Math.Clamp((1f - (bombDistance / 1000f)) * 100f, 0f, 100f);
+            float Distance = bombDistance * 0.025f;
 
             var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
             if (skillData == null) return;
 
-            string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font><br>";
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
+            if (playerInfo == null) return;
+
+            string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name} ({playerInfo.SkillChance:0}m)</font><br>";
             string remainingLine = DefusingPercent < 100f
-                ? $"<font class='fontSize-m' color='#b5ffee'>Postęp: <font color='#00ff00'>{DefusingPercent:0}%</font>  |  Zasięg: {DistPercent:0}%</font></font><br>"
+                ? $"<font class='fontSize-m' color='#b5ffee'>Postęp: <font color='#00ff00'>{DefusingPercent:0}%</font>  |  Odległość: {Distance:1}m</font></font><br>"
                 : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font>";
 
             var hudContent = skillLine + remainingLine;

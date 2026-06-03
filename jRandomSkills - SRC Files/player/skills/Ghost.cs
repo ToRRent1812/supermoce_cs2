@@ -107,7 +107,8 @@ namespace jRandomSkills
             var userIndex = um.ReadUInt("source_entity_index");
             if (userIndex == 0) return;
 
-            if (Instance?.footstepSoundEvents.Contains(soundevent) == false && Instance?.silentSoundEvents.Contains(soundevent) == false)
+            if (Instance == null) return;
+            if (!Instance.footstepSoundEvents.Contains(soundevent) && !Instance.silentSoundEvents.Contains(soundevent))
                 return;
 
             var player = Utilities.GetPlayers().FirstOrDefault(p => p.Pawn?.Value != null && p.Pawn.Value.IsValid && p.Pawn.Value.Index == userIndex);

@@ -2,6 +2,7 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Commands;
 using CounterStrikeSharp.API.Modules.Commands;
+using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Utils;
 using jRandomSkills.src.player;
 using System.Collections.Concurrent;
@@ -13,45 +14,65 @@ namespace jRandomSkills
     public partial class jRandomSkills : BasePlugin
     {
         public static jRandomSkills? Instance { get; private set; }
-        public ConcurrentBag<jSkill_PlayerInfo> SkillPlayer { get; set; } = [];
+        public ConcurrentDictionary<ulong, jSkill_PlayerInfo> SkillPlayer { get; } = new();
         public Random Random { get; } = new();
         public CCSGameRules? GameRules { get; set; }
-        private ConcurrentBag<string> ManifestResources { get; set; } = [ "models/sprays/spray_plane.vmdl" ];
+        private readonly ConcurrentDictionary<string, byte> _manifestResources = new(StringComparer.OrdinalIgnoreCase);
+        private void InitManifest()
+        {
+            _manifestResources.TryAdd("models/sprays/spray_plane.vmdl", 0);
+        }
         public IWasdMenuManager? MenuManager;
         private static readonly ConcurrentDictionary<(string skill, string method), Action<object[]?>> _skillMethodCache = [];
+        internal static readonly ConcurrentDictionary<string, byte> SkillsWithOnTick = new();
 
         public override string ModuleName => "Supermoce";
         public override string ModuleAuthor => "D3X (dRandomSkills), Juzlus (jRandomSkills), Rabbit";
         public override string ModuleDescription => "Fork forka który dodaje graczom supermoce";
-        public override string ModuleVersion => "2.0.3";
+        public override string ModuleVersion => "2.0.4";
 
         public override void Load(bool hotReload)
         {
             Instance = this;
+            InitManifest();
             PlayerOnTick.Load();
             Event.Load();
             Command.Load();
             WASDMenuAPI.WASDMenuAPI.LoadPlugin(Instance, hotReload);
             LoadAllSkills();
-            Server.ExecuteCommand("sv_legacy_jump 1; mp_freezetime 13");
+
+            int currentFreezetime = ConVar.Find("mp_freezetime")?.GetPrimitiveValue<int>() ?? 0;
+            if (currentFreezetime < 13)
+                Server.ExecuteCommand($"mp_freezetime 13");
+            Server.ExecuteCommand("sv_legacy_jump 1");
         }
 
         internal void AddToManifest(string prop)
         {
-            if (!ManifestResources.Contains(prop))
-                ManifestResources.Add(prop);
+            _manifestResources.TryAdd(prop, 0);
         }
 
         internal void LoadManifest(ResourceManifest manifest)
         {
-            foreach (var prop in ManifestResources)
+            foreach (var prop in _manifestResources.Keys)
                 manifest.AddResource(prop);
         }
 
         internal void LoadAllSkills()
         {
             foreach (var skill in Enum.GetValues(typeof(Skills)))
+            {
                 SkillAction(skill.ToString()!, "LoadSkill");
+
+                string skillName = skill.ToString()!;
+                Type? type = Type.GetType($"jRandomSkills.{skillName}");
+                if (type != null && typeof(ISkill).IsAssignableFrom(type))
+                {
+                    MethodInfo? onTick = type.GetMethod("OnTick", BindingFlags.Static | BindingFlags.Public);
+                    if (onTick != null && onTick.DeclaringType == type)
+                        SkillsWithOnTick.TryAdd(skillName, 0);
+                }
+            }
         }
 
         internal void SkillAction(string skill, string methodName, object[]? param = null)
@@ -113,10 +134,6 @@ namespace jRandomSkills
         public byte TeamNumber { get; } = teamnum; //0 - all, 1 - T, 2 - CT
         public byte Objective { get; } = objective; //0 - all, 1 - bomb, 2 - hostage
 
-        public static implicit operator Skills(jSkill_SkillInfo v)
-        {
-            throw new NotImplementedException();
-        }
     }
 
     public static class SkillData
