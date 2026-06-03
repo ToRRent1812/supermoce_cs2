@@ -54,6 +54,23 @@ namespace Supermoce
             });
         }
 
+        public static void PlayerDeath(EventPlayerDeath @event)
+        {
+            var player = @event.Userid;
+            if (player == null || !player.IsValid) return;
+
+            if (frozenPlayers.TryRemove(player.SteamID, out _))
+            {
+                var pawn = player.PlayerPawn.Value;
+                if (pawn != null && pawn.IsValid)
+                {
+                    pawn.Render = Color.FromArgb(255, 255, 255, 255);
+                    Utilities.SetStateChanged(pawn, "CBaseModelEntity", "m_clrRender");
+                    pawn.VelocityModifier = 1f;
+                }
+            }
+        }
+
         public static void OnTick()
         {
             var inRangePlayers = new HashSet<ulong>();

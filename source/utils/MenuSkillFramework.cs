@@ -20,6 +20,10 @@ namespace Supermoce
             if (player == null || !player.IsValid)
                 return;
 
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
+            if (playerInfo != null)
+                playerInfo.SkillChance = 0;
+
             _menuStates.AddOrUpdate(player.SteamID,
                 new MenuSkillState
                 {

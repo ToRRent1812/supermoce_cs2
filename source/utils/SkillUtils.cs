@@ -287,8 +287,8 @@ namespace Supermoce
             var manager = GetMenuManager();
             if (manager == null) return null;
             string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='white'>{skillData.Description}</font><br/>";
-            string itemTemplate = "<font class='fontSize-s' color='white'>{0}</font><br/>";
-            string hoverTemplate = "<font class='fontSize-s' class='fontWeight-Bold' color='yellow'>[W/S] {0} [E]</font><br/>";
+            string itemTemplate = "<font class='fontSize-s' color='#ffbb00'>{0}</font><br/>";
+            string hoverTemplate = "<font class='fontSize-s' class='fontWeight-Bold' color='yellow'>[W/S]  [{0}]  [E]</font><br/>";
             return (player, playerInfo, skillData, manager, skillLine, itemTemplate, hoverTemplate);
         }
 

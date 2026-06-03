@@ -12,7 +12,7 @@ namespace Supermoce
         private const Skills skillName = Skills.FireBullets;
         private static readonly ConcurrentDictionary<CCSPlayerPawn, int> InfectedPlayers = [];
         private static readonly object setLock = new();
-        private static readonly Color infectedColor = Color.FromArgb(100, 0, 200, 0);
+        private static readonly Color infectedColor = Color.FromArgb(255, 0, 200, 0);
         private static readonly Color normalColor = Color.FromArgb(255, 255, 255, 255);
 
         public static void LoadSkill()

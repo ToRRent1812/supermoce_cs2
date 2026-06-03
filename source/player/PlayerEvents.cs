@@ -295,6 +295,7 @@ namespace Supermoce
                     var randomSkill = GetRandomSkill(player, skillPlayer);
 
                     skillPlayer.Skill = randomSkill.Skill;
+                    skillPlayer.SkillChance = 0;
                     player.EmitSound("UIPanorama.tab_mainmenu_news", volume: 0.1f);
                     skillPlayer.SpecialSkill = Skills.None;
                     Instance?.SkillAction(randomSkill.Skill.ToString(), "EnableSkill", [player]);
@@ -338,6 +339,7 @@ namespace Supermoce
                 var randomSkill = GetRandomSkill(player, skillPlayer);
 
                 skillPlayer.Skill = randomSkill.Skill;
+                skillPlayer.SkillChance = 0;
                 skillPlayer.SpecialSkill = Skills.None;
                 Instance?.SkillAction(randomSkill.Skill.ToString(), "EnableSkill", [player]);
             }

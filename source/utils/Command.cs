@@ -75,6 +75,7 @@ namespace Supermoce
             }
 
             playerInfo.Skill = targetSkill;
+            playerInfo.SkillChance = 0;
             playerInfo.SpecialSkill = Skills.None;
             playerInfo.IsDrawing = false;
             Instance?.SkillAction(targetSkill.ToString(), "EnableSkill", [player]);

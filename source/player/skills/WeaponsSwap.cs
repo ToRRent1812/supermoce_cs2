@@ -116,7 +116,6 @@ namespace Supermoce
 
             ActiveSkillFramework.MarkSkillUsed(skillName, player);
             RemoveStolenWeapons(enemy, stolenWeapons);
-            SkillUtils.TryGiveWeapon(enemy, enemy.Team == CsTeam.Terrorist ? CsItem.Glock : CsItem.USPS);
             Server.NextFrame(() =>
             {
                 GiveWeapons(player, stolenWeapons);
@@ -124,6 +123,7 @@ namespace Supermoce
             });
 
             SkillUtils.PrintToChat(enemy, $"Wróg ukradł Ci sprzęt.", true);
+            SkillUtils.TryGiveWeapon(enemy, enemy.Team == CsTeam.Terrorist ? CsItem.Glock : CsItem.USPS);
         }
 
         private static string[]? GetWeapons(CCSPlayerController player)
