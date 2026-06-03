@@ -29,8 +29,14 @@ namespace Supermoce
             var enemyPawn = enemy!.PlayerPawn?.Value;
             if (enemyPawn != null && enemyPawn.IsValid)
             {
+                bool hasC4 = enemyPawn.WeaponServices?.MyWeapons
+                    .Any(w => w?.Value?.DesignerName == "weapon_c4") == true;
+
                 enemy.RemoveWeapons();
                 SkillUtils.TryGiveWeapon(enemy, CsItem.Knife);
+
+                if (hasC4)
+                    enemy.GiveNamedItem("weapon_c4");
             }
             SkillUtils.PrintToChat(enemy, $" Wróg skasował Ci ekwipunek", true);
             if (playerInfo != null) playerInfo.SkillChance = 1;

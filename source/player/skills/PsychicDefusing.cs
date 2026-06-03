@@ -184,7 +184,7 @@ namespace Supermoce
 
             string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name} ({playerInfo.SkillChance:0}m)</font><br>";
             string remainingLine = DefusingPercent < 100f
-                ? $"<font class='fontSize-m' color='#b5ffee'>Postęp: <font color='#00ff00'>{DefusingPercent:0}%</font>  |  Odległość: {Distance:1}m</font></font><br>"
+                ? $"<font class='fontSize-m' color='#b5ffee'>Postęp: <font color='#00ff00'>{DefusingPercent:0}%</font>  |  Odległość: {Distance}m</font></font><br>"
                 : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font>";
 
             var hudContent = skillLine + remainingLine;

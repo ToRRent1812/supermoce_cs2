@@ -18,7 +18,7 @@ namespace Supermoce
                 minValue: 10,
                 maxValue: 30,
                 step: 1,
-                customValueFormatter: (value) => $"{value}% szans");
+                customValueFormatter: (value) => $"{value}%");
         }
 
         public static void EnableSkill(CCSPlayerController player)

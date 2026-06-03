@@ -123,7 +123,8 @@ namespace Supermoce
             });
 
             SkillUtils.PrintToChat(enemy, $"Wróg ukradł Ci sprzęt.", true);
-            SkillUtils.TryGiveWeapon(enemy, enemy.Team == CsTeam.Terrorist ? CsItem.Glock : CsItem.USPS);
+            Instance?.AddTimer(0.3f, () => {SkillUtils.TryGiveWeapon(enemy, enemy.Team == CsTeam.Terrorist ? CsItem.Glock : CsItem.USPS);});
+            
         }
 
         private static string[]? GetWeapons(CCSPlayerController player)
