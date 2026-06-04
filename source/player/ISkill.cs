@@ -191,4 +191,5 @@ public enum Skills
     WeaponsSwap,
     Zeus,
     AmmoStrip,
+    CollectiveBomb,
 }

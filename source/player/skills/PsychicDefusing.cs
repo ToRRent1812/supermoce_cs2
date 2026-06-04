@@ -12,7 +12,6 @@ namespace Supermoce
         private const Skills skillName = Skills.PsychicDefusing;
         private static readonly ConcurrentDictionary<CCSPlayerPawn, PlayerSkillInfo> SkillPlayerInfo = [];
         private static Vector? bombLocation = null;
-        private static nint bombDistance = 0;
         private static readonly object setLock = new();
 
         public static void LoadSkill()
@@ -73,13 +72,14 @@ namespace Supermoce
                 var player = playerController.As<CCSPlayerController>();
                 if (Instance?.IsPlayerValid(player) == false) return;
 
-                var playerInfo = SkillUtils.GetPlayerInfo(player);
-                if (playerInfo == null) return;
-
                 float maxDefuseTime = GetDefuseTime(player);
-                if (pawn.AbsOrigin != null) bombDistance = (nint)SkillUtils.GetDistance(pawn.AbsOrigin, bombLocation);
 
-                if (pawn.AbsOrigin == null || bombDistance > playerInfo.SkillChance)
+                double currentDistance = 0;
+                if (pawn.AbsOrigin != null)
+                    currentDistance = SkillUtils.GetDistance(pawn.AbsOrigin, bombLocation);
+                info.CurrentDistance = currentDistance;
+
+                if (pawn.AbsOrigin == null || currentDistance > info.MaxDistanceHammer)
                 {
                     info.Defusing = false;
                     info.DefusingTime = maxDefuseTime;
@@ -120,12 +120,13 @@ namespace Supermoce
             if (playerInfo == null) return;
 
             var config = SkillUtils.GetPassiveSkillConfig(skillName);
+            float maxDistanceMeters = 30f;
             if (config != null)
             {
                 PassiveSkillFramework.OnSkillEnabled(skillName, player, config);
 
                 int randomValue = PassiveSkillFramework.GetRandomRoll(skillName, player, config);
-                playerInfo.SkillChance = randomValue / 0.025f;
+                maxDistanceMeters = (float)randomValue;
             }
             var pawn = player.PlayerPawn.Value;
             if (pawn == null || player.IsValid == false) return;
@@ -136,6 +137,8 @@ namespace Supermoce
                 Defusing = false,
                 DefusingTime = defuseTime,
                 MaxDefusingTime = defuseTime,
+                MaxDistance = maxDistanceMeters,
+                MaxDistanceHammer = maxDistanceMeters / 0.025f,
             });
         }
 
@@ -174,17 +177,14 @@ namespace Supermoce
             if (!skillInfo.Defusing) return;
             float defuseDuration = skillInfo.MaxDefusingTime > 0 ? skillInfo.MaxDefusingTime : 14f;
             float DefusingPercent = Math.Clamp((1f - (skillInfo.DefusingTime / defuseDuration)) * 100f, 0f, 100f);
-            float Distance = bombDistance * 0.025f;
+            float Distance = (float)(skillInfo.CurrentDistance * 0.025f);
 
             var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
             if (skillData == null) return;
 
-            var playerInfo = SkillUtils.GetPlayerInfo(player);
-            if (playerInfo == null) return;
-
-            string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name} ({playerInfo.SkillChance:0}m)</font><br>";
+            string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name} ({skillInfo.MaxDistance:0}m)</font><br>";
             string remainingLine = DefusingPercent < 100f
-                ? $"<font class='fontSize-m' color='#b5ffee'>Postęp: <font color='#00ff00'>{DefusingPercent:0}%</font>  |  Odległość: {Distance}m</font></font><br>"
+                ? $"<font class='fontSize-m' color='#b5ffee'>Postęp: <font color='#00ff00'>{DefusingPercent:0}%</font>  |  Odległość: {Distance:0.0}m</font></font><br>"
                 : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font>";
 
             var hudContent = skillLine + remainingLine;
@@ -196,6 +196,9 @@ namespace Supermoce
             public bool Defusing { get; set; }
             public float DefusingTime { get; set; }
             public float MaxDefusingTime { get; set; }
+            public float MaxDistance { get; set; }
+            public float MaxDistanceHammer { get; set; }
+            public double CurrentDistance { get; set; }
         }
     }
 }

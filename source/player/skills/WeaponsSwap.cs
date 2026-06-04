@@ -1,7 +1,5 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Entities.Constants;
-using CounterStrikeSharp.API.Modules.Utils;
 using Supermoce.src.player;
 using System.Collections.Concurrent;
 using static Supermoce.Supermoce;
@@ -14,12 +12,11 @@ namespace Supermoce
         private static readonly ConcurrentDictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
         private static readonly object setLock = new();
 
-        private static readonly string[] weapons = [ "weapon_deagle", "weapon_revolver", "weapon_glock", "weapon_usp_silencer",
-        "weapon_cz75a", "weapon_fiveseven", "weapon_p250", "weapon_tec9", "weapon_elite", "weapon_hkp2000",
-        "weapon_mp9", "weapon_mac10", "weapon_bizon", "weapon_mp7", "weapon_ump45", "weapon_p90",
-        "weapon_mp5sd", "weapon_famas", "weapon_galilar", "weapon_m4a4", "weapon_m4a1_silencer", "weapon_ak47",
-        "weapon_aug", "weapon_sg553", "weapon_ssg08", "weapon_awp", "weapon_scar20", "weapon_g3sg1",
-        "weapon_nova", "weapon_xm1014", "weapon_mag7", "weapon_sawedoff", "weapon_m249", "weapon_negev" ];
+        private static readonly string[] primaryWeapons = [ "weapon_mp9", "weapon_mac10", "weapon_bizon", "weapon_mp7",
+        "weapon_ump45", "weapon_p90", "weapon_mp5sd", "weapon_famas", "weapon_galilar", "weapon_m4a4",
+        "weapon_m4a1_silencer", "weapon_ak47", "weapon_aug", "weapon_sg553", "weapon_ssg08", "weapon_awp",
+        "weapon_scar20", "weapon_g3sg1", "weapon_nova", "weapon_xm1014", "weapon_mag7", "weapon_sawedoff",
+        "weapon_m249", "weapon_negev" ];
         private static readonly string[] grenadeWeapons = [ "weapon_flashbang", "weapon_hegrenade", "weapon_smokegrenade", "weapon_decoy", "weapon_molotov", "weapon_incgrenade" ];
 
         public static void LoadSkill()
@@ -27,7 +24,7 @@ namespace Supermoce
             SkillUtils.RegisterActiveSkill(
                 skillName,
                 "Chachmęciarz",
-                "Kradniesz ekwipunek losowego przeciwnika (Wróg zostanie z pistoletem)",
+                "Na żądanie kradniesz broń główną i granaty losowego przeciwnika",
                 "#c7e03a",
                 minCooldown: 20,
                 maxCooldown: 50,
@@ -93,7 +90,7 @@ namespace Supermoce
             string[]? enemyWeapons = GetWeapons(enemy);
             if (enemyWeapons == null)
             {
-                SkillUtils.PrintToChat(player, $"Wylosowany wróg nie ma broni", true);
+                SkillUtils.PrintToChat(player, $"Wylosowany wróg nie ma odpowiedniej broni", true);
                 skillInfo.FindedEnemy = true;
                 skillInfo.HaveWeapon = false;
                 skillInfo.LastClick = DateTime.Now;
@@ -103,7 +100,7 @@ namespace Supermoce
             string[] stolenWeapons = [.. enemyWeapons.Where(IsStealableWeapon)];
             if (stolenWeapons.Length == 0)
             {
-                SkillUtils.PrintToChat(player, $"Wylosowany wróg nie ma broni", true);
+                SkillUtils.PrintToChat(player, $"Wylosowany wróg nie ma odpowiedniej broni", true);
                 skillInfo.FindedEnemy = true;
                 skillInfo.HaveWeapon = false;
                 skillInfo.LastClick = DateTime.Now;
@@ -119,11 +116,10 @@ namespace Supermoce
             Server.NextFrame(() =>
             {
                 GiveWeapons(player, stolenWeapons);
-                Instance?.AddTimer(1f, () => enemy.ExecuteClientCommand("slot2"));
+                Instance?.AddTimer(0.3f, () => enemy.ExecuteClientCommand("slot2"));
             });
 
             SkillUtils.PrintToChat(enemy, $"Wróg ukradł Ci sprzęt.", true);
-            Instance?.AddTimer(0.3f, () => {SkillUtils.TryGiveWeapon(enemy, enemy.Team == CsTeam.Terrorist ? CsItem.Glock : CsItem.USPS);});
             
         }
 
@@ -152,22 +148,14 @@ namespace Supermoce
 
         private static void RemoveStolenWeapons(CCSPlayerController player, string[] weapons)
         {
-            if (player == null || !player.IsValid || player.PlayerPawn == null || player.PlayerPawn.Value == null) return;
-            var pawn = player.PlayerPawn.Value;
-            if (pawn == null || !pawn.IsValid || pawn.WeaponServices == null) return;
-
-            foreach (var item in pawn.WeaponServices.MyWeapons)
-            {
-                if (item == null || !item.IsValid || item.Value == null || !item.Value.IsValid) continue;
-                string name = SkillUtils.GetDesignerName(item.Value);
-                if (weapons.Contains(name))
-                    item.Value.AcceptInput("Kill");
-            }
+            if (player == null || !player.IsValid) return;
+            foreach (var weapon in weapons)
+                player.RemoveItemByDesignerName(weapon);
         }
 
         private static bool IsStealableWeapon(string weapon)
         {
-            return weapons.Contains(weapon) || grenadeWeapons.Contains(weapon);
+            return primaryWeapons.Contains(weapon) || grenadeWeapons.Contains(weapon);
         }
 
         private static CCSPlayerController? GetRandomEnemy(CCSPlayerController player)
