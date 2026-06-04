@@ -19,5 +19,5 @@ I wiele więcej, ale już zapomniałem, co się zmieniło.
 
 
 # Instalacja moda
-Pobierz .zip z zakładki Releases
-Wypakuj do server/game/csgo/addons/counterstrikesharp/
+Pobierz .zip z zakładki [Releases](https://github.com/ToRRent1812/supermoce_cs2/releases)  
+Wypakuj do ```server/game/csgo/addons/counterstrikesharp/```
