@@ -74,7 +74,7 @@ namespace Supermoce
                 ActiveSkillFramework.OnSkillEnabled(skillName, player, config);
 
                 if (ActiveSkillFramework.TryGetSkillState(skillName, player, out var state) && state != null)
-                    state.LastUseTime = DateTime.Now - TimeSpan.FromSeconds(state.CooldownSeconds - 4);
+                    state.LastUseTime = DateTime.Now - TimeSpan.FromSeconds(state.CooldownSeconds - 10);
             }
         }
 
