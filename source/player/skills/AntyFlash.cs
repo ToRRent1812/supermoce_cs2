@@ -13,7 +13,7 @@ namespace Supermoce
         {
             SkillUtils.RegisterSkill(
                 skillName, 
-                "Super Flesz", 
+                "Anty Flesz", 
                 "Odporność na błysk. Twoje flesze działają dłużej", 
                 "#D6E6FF");
         }

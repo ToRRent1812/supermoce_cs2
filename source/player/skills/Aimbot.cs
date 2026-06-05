@@ -49,8 +49,9 @@ namespace Supermoce
                         {
                             hitGroups.TryAdd(hitGroupOffset, Marshal.ReadInt32(hitGroupOffset, 56));
                             Marshal.WriteInt32(hitGroupOffset, 56, (int)HitGroup_t.HITGROUP_HEAD);
-                        } else if (hitGroups.TryGetValue(hitGroupOffset, out var hitGroup))
-                                Marshal.WriteInt32(hitGroupOffset, 56, hitGroup);
+                        } 
+                        else if (hitGroups.TryGetValue(hitGroupOffset, out var hitGroup))
+                            Marshal.WriteInt32(hitGroupOffset, 56, hitGroup);
                     }
                 }
             }

@@ -60,7 +60,7 @@ namespace Supermoce
 
             for (int wave = 0; wave < 3; wave++)
             {
-                float delay = 3.0f + (wave * 2.0f);
+                float delay = 3.0f + (wave * 1.5f);
                 float capturedOffset = wave * 30f;
 
                 Instance?.AddTimer(delay, () =>

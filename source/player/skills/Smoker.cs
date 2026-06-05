@@ -5,7 +5,6 @@ using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Modules.Utils;
 using System.Collections.Concurrent;
 using Timer = CounterStrikeSharp.API.Modules.Timers.Timer;
-using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using Supermoce.src.player;
 using static Supermoce.Supermoce;
 
@@ -15,7 +14,6 @@ namespace Supermoce
     {
         private const Skills skillName = Skills.Smoker;
         private readonly static ConcurrentDictionary<ulong, List<Timer>> playerSmokes = [];
-        private static readonly MemoryFunctionWithReturn<IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, int, int, CSmokeGrenadeProjectile> SmokeGrenadeProjectile_CreateFunc = new(GameData.GetSignature("SmokeGrenadeProjectile_CreateFunc"));
         private static readonly object setLock = new();
 
         public static void LoadSkill()
@@ -71,7 +69,7 @@ namespace Supermoce
                     smokeTimer?.Kill();
                     return;
                 }
-                SmokeGrenadeProjectile_CreateFunc.Invoke(pos.Handle, QAngle.Zero.Handle, Vector.Zero.Handle, Vector.Zero.Handle, IntPtr.Zero, 45, player.TeamNum);
+                SkillUtils.CreateSmokeGrenadeProjectile(pos, QAngle.Zero, new Vector(0, 0, 0), player.TeamNum);
             }, TimerFlags.REPEAT | TimerFlags.STOP_ON_MAPCHANGE);
 
             if (smokeTimer != null)

@@ -17,6 +17,8 @@ namespace Supermoce
     public static class SkillUtils
     {
         private static readonly MemoryFunctionWithReturn<IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, int> HEGrenadeProjectile_CreateFunc = new(GameData.GetSignature("HEGrenadeProjectile_CreateFunc"));
+        private static readonly MemoryFunctionWithReturn<IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, int, int, CSmokeGrenadeProjectile> SmokeGrenadeProjectile_CreateFunc = new(GameData.GetSignature("SmokeGrenadeProjectile_CreateFunc"));
+        private static readonly MemoryFunctionWithReturn<IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, int, int, CFlashbangProjectile> FlashbangProjectile_CreateFunc = new(GameData.GetSignature("FlashbangProjectile_CreateFunc"));
         private static readonly MemoryFunctionVoid<nint, float, RoundEndReason, nint, nint> TerminateRoundFunc = new(GameData.GetSignature("CCSGameRules_TerminateRound"));
         public static CCSPlayerController[] CachedPlayers { get; private set; } = [];
         public static int CurrentTick { get; private set; }
@@ -189,6 +191,14 @@ namespace Supermoce
         {
             HEGrenadeProjectile_CreateFunc.Invoke(pos.Handle, angle.Handle, vel.Handle, vel.Handle, IntPtr.Zero, 44, teamNum);
         }
+        public static void CreateSmokeGrenadeProjectile(Vector pos, QAngle angle, Vector vel, int teamNum)
+        {
+            SmokeGrenadeProjectile_CreateFunc.Invoke(pos.Handle, angle.Handle, vel.Handle, vel.Handle, IntPtr.Zero, 45, teamNum);
+        }
+        public static void CreateFlashGrenadeProjectile(Vector pos, QAngle angle, Vector vel, int teamNum)
+        {
+            FlashbangProjectile_CreateFunc.Invoke(pos.Handle, angle.Handle, vel.Handle, vel.Handle, IntPtr.Zero, 46, teamNum);
+        }
         public static void TakeHealth(CCSPlayerPawn? pawn, int damage, bool playSound = true)
         {
             if (pawn == null || !pawn.IsValid || pawn.LifeState != (byte)LifeState_t.LIFE_ALIVE)
@@ -203,7 +213,7 @@ namespace Supermoce
             if (pawn.Health <= 0)
                 Server.NextFrame(() =>
                 {
-                    pawn?.CommitSuicide(false, true); // NOTE: no kill credit is awarded to the damage source
+                    pawn?.CommitSuicide(false, true);
                 });
         }
         public static void AddHealth(CCSPlayerPawn? pawn, int extraHealth, int maxHealth = 100)
@@ -286,9 +296,9 @@ namespace Supermoce
             if (skillData == null) return null;
             var manager = GetMenuManager();
             if (manager == null) return null;
-            string skillLine = $"<font class='fontSize-l' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='white'>{skillData.Description}</font><br/>";
-            string itemTemplate = "<font class='fontSize-s' color='#ffbb00'>{0}</font><br/>";
-            string hoverTemplate = "<font class='fontSize-s' class='fontWeight-Bold' color='yellow'>[W/S]  [{0}]  [E]</font><br/>";
+            string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='white'>{skillData.Description}</font>";
+            string itemTemplate = "<br><font class='fontSize-m' color='#ffbb00'>{0}</font>";
+            string hoverTemplate = "<br><font class='fontSize-m' class='fontWeight-Bold' color='yellow'>[W/S]   [{0}]   [E]</font>";
             return (player, playerInfo, skillData, manager, skillLine, itemTemplate, hoverTemplate);
         }
 

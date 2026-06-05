@@ -11,7 +11,7 @@ namespace Supermoce
         public static void LoadSkill()
         {
             SkillUtils.RegisterSkill(skillName, 
-            "Kangurek", 
+            "Skakanka", 
             "Skakanie przywraca zdrowie", 
             "#a86eff");
         }

@@ -1,5 +1,6 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Utils;
 using Supermoce.src.player;
 using System.Collections.Concurrent;
 using System.Drawing;
@@ -17,8 +18,8 @@ namespace Supermoce
         {
             SkillUtils.RegisterSkill(skillName, 
             "Zombie", 
-            "Po śmierci odradzasz się jako zombie z nożem i dużą ilością zdrowia", 
-            "#ff5C0A");
+            "Po śmierci robisz błysk i odradzasz się jako zombie z nożem i dużą ilością zdrowia", 
+            "#3c922b");
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -32,7 +33,6 @@ namespace Supermoce
             zombies.TryRemove(player, out _);
             SetPlayerColor(player.PlayerPawn.Value, true);
             ResetHealth(player);
-            player.PlayerPawn.Value.VelocityModifier = 1f;
         }
 
         public static void WeaponEquip(EventItemEquip @event)
@@ -72,7 +72,21 @@ namespace Supermoce
                 player.ExecuteClientCommand("slot3");
                 SkillUtils.AddHealth(pawn, 750, 750);
                 SkillUtils.PrintToChat(player, $"Jesteś zombie! Możesz używać tylko noża");
+                Vector pos = new(pawn.AbsOrigin?.X ?? 0, pawn.AbsOrigin?.Y ?? 0, pawn.AbsOrigin?.Z ?? 0);
+                SkillUtils.CreateFlashGrenadeProjectile(pos, QAngle.Zero, new Vector(0, 0, 0), player.TeamNum);
             }
+        }
+
+        public static void PlayerBlind(EventPlayerBlind @event)
+        {
+            var player = @event.Userid;
+            if (player == null || !player.IsValid) return;
+
+            var playerPawn = player.PlayerPawn.Value;
+            if (playerPawn == null || !playerPawn.IsValid) return;
+
+            if (zombies.ContainsKey(player))
+                playerPawn.FlashDuration = 0.0f;
         }
 
         public static void ResetHealth(CCSPlayerController player)
