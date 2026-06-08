@@ -26,24 +26,6 @@ namespace Supermoce
         {
             activeSkillCount = 0;
             bombCarriers.Clear();
-            Server.NextFrame(() =>
-            {
-                foreach (var player in Utilities.GetPlayers()
-                    .Where(p => p.IsValid && !p.IsBot && p.Team == CsTeam.Terrorist && p.PawnIsAlive))
-                {
-                    var pawn = player.PlayerPawn?.Value;
-                    if (pawn?.WeaponServices == null) continue;
-
-                    bool hasC4 = pawn.WeaponServices.MyWeapons
-                        .Any(w => w?.Value?.DesignerName == "weapon_c4");
-
-                    if (!hasC4)
-                    {
-                        player.GiveNamedItem("weapon_c4");
-                        bombCarriers.TryAdd(player.SteamID, 0);
-                    }
-                }
-            });
         }
 
         public static void BombPlanted(EventBombPlanted @event)
@@ -67,9 +49,27 @@ namespace Supermoce
             bombCarriers.TryRemove(victim.SteamID, out _);
         }
 
-        public static void EnableSkill(CCSPlayerController player)
+        public static void EnableSkill(CCSPlayerController _)
         {
             activeSkillCount += 1;
+            Server.NextFrame(() =>
+            {
+                foreach (var player in Utilities.GetPlayers()
+                    .Where(p => p.IsValid && !p.IsBot && p.Team == CsTeam.Terrorist && p.PawnIsAlive))
+                {
+                    var pawn = player.PlayerPawn?.Value;
+                    if (pawn?.WeaponServices == null) continue;
+
+                    bool hasC4 = pawn.WeaponServices.MyWeapons
+                        .Any(w => w?.Value?.DesignerName == "weapon_c4");
+
+                    if (!hasC4)
+                    {
+                        player.GiveNamedItem("weapon_c4");
+                        bombCarriers.TryAdd(player.SteamID, 0);
+                    }
+                }
+            });
         }
 
         public static void DisableSkill(CCSPlayerController player)
