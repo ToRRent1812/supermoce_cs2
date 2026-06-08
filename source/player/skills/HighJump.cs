@@ -34,8 +34,20 @@ namespace Supermoce
                 PassiveSkillFramework.OnSkillEnabled(skillName, player, config);
 
                 int randomRoll = PassiveSkillFramework.GetRandomRoll(skillName, player, config);
-                playerInfo.SkillChance = randomRoll / 100f;
+                playerInfo.SkillChance = 1f + randomRoll / 100f;
             }
+        }
+
+        public static void DisableSkill(CCSPlayerController player)
+        {
+            if (Instance?.IsPlayerValid(player) == false) return;
+
+            PassiveSkillFramework.OnSkillDisabled(skillName, player);
+
+            var playerInfo = SkillUtils.GetPlayerInfo(player);
+            if (playerInfo == null) return;
+
+            playerInfo.SkillChance = 1f;
         }
 
         public static void PlayerJump(EventPlayerJump @event)

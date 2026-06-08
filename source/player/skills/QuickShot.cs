@@ -17,8 +17,8 @@ namespace Supermoce
                 "Strzelasz szybciej",
                 "#8a42f5",
                 minValue: 10,
-                maxValue: 50,
-                step: 5,
+                maxValue: 30,
+                step: 2,
                 customValueFormatter: (value) => $"+{value}%");
         }
 
