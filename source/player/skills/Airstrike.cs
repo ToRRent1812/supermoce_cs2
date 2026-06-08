@@ -49,7 +49,7 @@ namespace Supermoce
 
             var decoyPos = new Vector(@event.X, @event.Y, @event.Z);
             airstrikeUsed[player.SteamID] = true;
-            SkillUtils.PrintToChat(player, $"Nalot wezwany, ETA 3 sekundy!");
+            SkillUtils.PrintToChat(player, $"Nalot nadciąga!");
 
             /*Server.NextFrame(() =>
             {
@@ -60,7 +60,7 @@ namespace Supermoce
 
             for (int wave = 0; wave < 3; wave++)
             {
-                float delay = 3.0f + (wave * 1.5f);
+                float delay = 2.0f + (wave * 1.5f);
                 float capturedOffset = wave * 30f;
 
                 Instance?.AddTimer(delay, () =>

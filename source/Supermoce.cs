@@ -28,9 +28,9 @@ namespace Supermoce
         internal static readonly ConcurrentDictionary<(string eventName, string skillName), byte> SkillsWithEvent = new();
 
         public override string ModuleName => "Supermoce";
-        public override string ModuleAuthor => "D3X (dRandomSkills), Juzlus (Supermoce), Rabbit";
-        public override string ModuleDescription => "Fork forka który dodaje graczom supermoce";
-        public override string ModuleVersion => "2.1.3";
+        public override string ModuleAuthor => "D3X (dRandomSkills), Juzlus (jRandomSkills), Rabbit";
+        public override string ModuleDescription => "Fork forka, który dodaje graczom supermoce";
+        public override string ModuleVersion => "2.1.5";
 
         public override void Load(bool hotReload)
         {

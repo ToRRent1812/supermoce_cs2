@@ -192,4 +192,6 @@ public enum Skills
     Zeus,
     AmmoStrip,
     CollectiveBomb,
+    SmokeMaster,
+    HighJump,
 }
