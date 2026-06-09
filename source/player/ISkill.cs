@@ -194,4 +194,5 @@ public enum Skills
     CollectiveBomb,
     SmokeMaster,
     HighJump,
+    MrBlysk,
 }
