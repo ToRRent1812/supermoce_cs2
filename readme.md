@@ -13,7 +13,7 @@ Co wyróżnia tą wersję od jrandomskills?
 - Usunięto niepotrzebny mi system językowy oraz configi
 - Niektóre supermoce mają zmienioną nazwę lub funkcję
 - Wszystkie supermoce na przycisk mają losowy cooldown
-- Dodałem nowe moce: Komandos, Dopaminka, CS2, Trujące naboje, Ciepłe piwo, Ćpun, Komornik, Rusznikarz, Krwiopijca, Matrix, Chachmęciarz, Bąk morderca, Podejrzane naboje, Zdrajca, Szybka pomoc, Half-Life, Owsiak, Robin Hood, Chemik, Ciężarne hosty, Strzał w kolano, Skarbówka, Inflacja, NanoKevlar, Olbrzym, Zamiana respów, Psychopata, Burza piaskowa, Nalot powietrzny, Konfiskata, Super Smoke, Wąski
+- Dodałem nowe moce: Komandos, Dopaminka, CS2, Trujące naboje, Ciepłe piwo, Ćpun, Komornik, Rusznikarz, Krwiopijca, Matrix, Chachmęciarz, Bąk morderca, Podejrzane naboje, Zdrajca, Szybka pomoc, Half-Life, Owsiak, Robin Hood, Chemik, Ciężarne hosty, Strzał w kolano, Skarbówka, Inflacja, NanoKevlar, Olbrzym, Zamiana respów, Psychopata, Burza piaskowa, Nalot powietrzny, Konfiskata, Super Smoke, Wąski, Mr. Błysk
 
 I wiele więcej, ale już zapomniałem, co się zmieniło.
 
