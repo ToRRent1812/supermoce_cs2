@@ -85,8 +85,6 @@ public enum Skills
     BrokenKnee,
     Astronaut,
     Enemyfire,
-    //LongFlame,
-    //MegaMoly,
     Giant,
     LongBomb,
     FastEscape,
@@ -136,7 +134,6 @@ public enum Skills
     Impostor,
     Psycho,
     InfiniteAmmo,
-    //Jackal,
     Jammer,
     Phoenix,
     Halflife,
@@ -195,4 +192,6 @@ public enum Skills
     SmokeMaster,
     HighJump,
     MrBlysk,
+    Judgement,
+    Realism,
 }
