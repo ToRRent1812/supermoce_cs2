@@ -1,5 +1,6 @@
 ﻿using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
+using CounterStrikeSharp.API.Modules.Entities.Constants;
 using Supermoce.src.player;
 using static Supermoce.Supermoce;
 
@@ -29,7 +30,7 @@ namespace Supermoce
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn == null || !playerPawn.IsValid) return;
             SkillUtils.TerminateRound(CsTeam.CounterTerrorist);
-            // Dodać nagrodę finanowsą za rundę
+            SkillUtils.AwardRoundEndMoney(CsTeam.CounterTerrorist, player, RoundEndReason.AllHostageRescued);
             SkillUtils.PrintToChatAll($" {ChatColors.LightBlue}{player.PlayerName} {ChatColors.Lime}wygrał rundę mając moc {ChatColors.DarkRed}Owsiak", false);
         }
     }

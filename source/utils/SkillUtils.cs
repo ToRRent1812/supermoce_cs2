@@ -394,6 +394,54 @@ namespace Supermoce
             TerminateRoundFunc.Invoke(Supermoce.Instance.GameRules.Handle, 5f, winnerTeam == CsTeam.CounterTerrorist ? RoundEndReason.BombDefused : RoundEndReason.TargetBombed, 0, 0);
         }
 
+        public static void AwardRoundEndMoney(CsTeam winnerTeam, CCSPlayerController? mvpPlayer = null, RoundEndReason reason = RoundEndReason.BombDefused)
+        {
+            int maxMoney = ConVar.Find("mp_maxmoney")?.GetPrimitiveValue<int>() ?? 16000;
+
+            int teamReward = reason switch
+            {
+                RoundEndReason.BombDefused => ConVar.Find("cash_team_win_by_defusing_bomb")?.GetPrimitiveValue<int>() ?? 3500,
+                RoundEndReason.TargetBombed => ConVar.Find("cash_team_win_by_bomb")?.GetPrimitiveValue<int>() ?? 3500,
+                RoundEndReason.AllHostageRescued => ConVar.Find("cash_team_win_by_hostage_rescue")?.GetPrimitiveValue<int>() ?? 3500,
+                _ => ConVar.Find("cash_team_elimination_bomb_map")?.GetPrimitiveValue<int>() ?? 3250,
+            };
+
+            int individualBonus = reason switch
+            {
+                RoundEndReason.BombDefused => ConVar.Find("cash_player_bomb_defused")?.GetPrimitiveValue<int>() ?? 300,
+                RoundEndReason.TargetBombed => ConVar.Find("cash_player_bomb_planted")?.GetPrimitiveValue<int>() ?? 300,
+                RoundEndReason.AllHostageRescued => ConVar.Find("cash_player_rescued_hostage")?.GetPrimitiveValue<int>() ?? 600,
+                _ => 0,
+            };
+
+            int loserBonus = ConVar.Find("cash_team_loser_bonus")?.GetPrimitiveValue<int>() ?? 2400;
+
+            CsTeam loserTeam = winnerTeam == CsTeam.CounterTerrorist ? CsTeam.Terrorist : CsTeam.CounterTerrorist;
+
+            foreach (var player in Utilities.GetPlayers())
+            {
+                if (!player.IsValid || player.IsBot || player.IsHLTV || player.Team == CsTeam.Spectator || player.Team == CsTeam.None)
+                    continue;
+
+                var moneyServices = player.InGameMoneyServices;
+                if (moneyServices == null) continue;
+
+                int currentMoney = moneyServices.Account;
+
+                if (player.Team == winnerTeam)
+                {
+                    currentMoney += teamReward;
+                    if (mvpPlayer != null && player.SteamID == mvpPlayer.SteamID)
+                        currentMoney += individualBonus;
+                }
+                else if (player.Team == loserTeam)
+                    currentMoney += loserBonus;
+
+                moneyServices.Account = Math.Min(currentMoney, maxMoney);
+                Utilities.SetStateChanged(player, "CCSPlayerController", "m_pInGameMoneyServices");
+            }
+        }
+
         private static void UpdateServerTeamScores(short ctScore, short tScore)
         {
             if (Supermoce.Instance == null || Supermoce.Instance.GameRules == null) return;

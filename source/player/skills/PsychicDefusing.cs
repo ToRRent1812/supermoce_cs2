@@ -1,5 +1,6 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Utils;
 using Supermoce.src.player;
 using System.Collections.Concurrent;
@@ -104,7 +105,7 @@ namespace Supermoce
                     {
                         plantedBomb.AcceptInput("Kill");
                         SkillUtils.TerminateRound(CsTeam.CounterTerrorist);
-                        // Dodać nagrody za wygranie rundy
+                        SkillUtils.AwardRoundEndMoney(CsTeam.CounterTerrorist, player, RoundEndReason.BombDefused);
                         SkillUtils.PrintToChatAll($" {ChatColors.LightBlue}{player.PlayerName} rozbroił zdalnie bombę.", false);
                     }
                     SkillPlayerInfo.Clear();
