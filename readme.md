@@ -4,6 +4,7 @@ Ta wersja jest używana na serwerze Nostalgia i została mocno przebudowana pod 
 
 Co wyróżnia tą wersję od jrandomskills?
 - Odchudzenie skryptu z niepotrzebnych funkcji
+- Optymalizacja kodu
 - Dodatkowe null checki by zminimalizować ryzyko zawieszenia serwera
 - Usunąłem CS2FlashingHudFix ponieważ znacznie zwiększa zużycie procesora i psuje rozgrzewkę.
 - Dodałem 3 nowe wzorce pisania mocy: pasywne, aktywne i menu
