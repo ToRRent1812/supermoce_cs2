@@ -194,4 +194,6 @@ public enum Skills
     MrBlysk,
     Judgement,
     Realism,
+    TeleDecoy,
+    Juiced,
 }

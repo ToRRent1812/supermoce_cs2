@@ -14,7 +14,7 @@ namespace Supermoce
         private static readonly string[] disabledWeapons =
         [
             "weapon_ak47", "weapon_m4a4", "weapon_m4a1", "weapon_m4a1_silencer",
-            "weapon_famas", "weapon_galilar", "weapon_aug", "weapon_sg553", 
+            "weapon_famas", "weapon_galilar", "weapon_aug", "weapon_sg556", 
             "weapon_mp9", "weapon_mac10", "weapon_bizon", "weapon_mp7",
             "weapon_ump45", "weapon_p90", "weapon_mp5sd", "weapon_ssg08",
             "weapon_awp", "weapon_scar20", "weapon_g3sg1", "weapon_nova",

@@ -165,6 +165,13 @@ namespace Supermoce
                     if (playerInfo == null) continue;
                     Instance?.SkillAction(playerInfo.Skill.ToString(), "DisableSkill", [player]);
                     Instance?.SkillAction(playerInfo.Skill.ToString(), "NewRound");
+                    var pawn = player.PlayerPawn.Value;
+                    if (pawn == null) return;
+                    pawn.VelocityModifier = 1f;
+                    pawn.ActualGravityScale = 1f;
+                    pawn.Health = 100;
+                    pawn.MaxHealth = 100;
+
                 }
 
                 PassiveSkillFramework.OnNewRound();
