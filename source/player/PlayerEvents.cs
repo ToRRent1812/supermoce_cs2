@@ -171,6 +171,7 @@ namespace Supermoce
                     pawn.ActualGravityScale = 1f;
                     pawn.Health = 100;
                     pawn.MaxHealth = 100;
+                    SkillUtils.ChangePlayerScale(player, 1f);
 
                 }
 
