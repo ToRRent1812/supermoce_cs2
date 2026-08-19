@@ -59,6 +59,7 @@ namespace Supermoce
         private static void UpdatePlayerHud(CCSPlayerController player, bool rebuildStrings)
         {
             if (player == null) return;
+            if (Instance?.MenuApi?.HasOpenedMenu(player) == true) return;
             var skillPlayer = SkillUtils.GetPlayerInfo(player);
             if (skillPlayer == null) return;
 

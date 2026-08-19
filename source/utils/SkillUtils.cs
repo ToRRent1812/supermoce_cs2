@@ -4,13 +4,13 @@ using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
+using CounterStrikeSharp.API.Modules.Menu;
 using CounterStrikeSharp.API.Modules.Utils;
+using MenuManager;
 using Supermoce.src.player;
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Runtime.InteropServices;
-using WASDMenuAPI.Classes;
-using WASDSharedAPI;
 
 namespace Supermoce
 {
@@ -248,45 +248,71 @@ namespace Supermoce
 
             return designerName;
         }
-        private static IWasdMenuManager? GetMenuManager()
+        private static IMenuApi? GetMenuApi()
         {
-            if (Supermoce.Instance != null && Supermoce.Instance.MenuManager == null)
-                Supermoce.Instance.MenuManager = new WasdManager();
-            return Supermoce.Instance?.MenuManager;
+            return Supermoce.Instance?.MenuApi;
         }
+
+        private static readonly ConcurrentDictionary<ulong, IMenu> _activeMenus = [];
+        private static readonly ConcurrentDictionary<ulong, string> _menuSignatures = [];
+
         public static void CloseMenu(CCSPlayerController? player)
         {
-            var manager = GetMenuManager();
-            if (manager == null) return;
-            manager.CloseMenu(player);
+            if (player == null) return;
+            _activeMenus.TryRemove(player.SteamID, out _);
+            _menuSignatures.TryRemove(player.SteamID, out _);
+            GetMenuApi()?.CloseMenu(player);
         }
         public static bool HasMenu(CCSPlayerController? player)
         {
-            var manager = GetMenuManager();
-            if (manager == null) return false;
-            return manager.HasMenu(player);
+            if (player == null) return false;
+            return GetMenuApi()?.HasOpenedMenu(player) ?? false;
         }
+
+        private static IMenu CreateMenuFor(CCSPlayerController player, SkillPlayerInfo playerInfo, string title, IEnumerable<(string, string)> items)
+        {
+            IMenu menu = GetMenuApi()!.GetMenu(title);
+            foreach (var item in items)
+                menu.AddMenuOption(item.Item1, (p, option) =>
+                {
+                    Supermoce.Instance?.SkillAction(playerInfo.Skill.ToString(), "TypeSkill", [p, new[] { item.Item2 }]);
+                    CloseMenu(p);
+                });
+            return menu;
+        }
+
+        private static string BuildSignature(IEnumerable<(string, string)> items)
+        {
+            return string.Join('\u0001', items.Select(i => $"{i.Item1}|{i.Item2}"));
+        }
+
         public static void UpdateMenu(CCSPlayerController? player, ConcurrentBag<(string, string)> items)
         {
             if (player == null) return;
 
-            var manager = GetMenuManager();
-            if (manager == null) return;
-
             var playerInfo = GetPlayerInfo(player);
             if (playerInfo == null) return;
 
-            Dictionary<string, Action<CCSPlayerController, IWasdMenuOption>> list = [];
+            if (!_activeMenus.TryGetValue(player.SteamID, out var menu) || menu == null)
+                return;
+
+            string signature = BuildSignature(items);
+            if (_menuSignatures.TryGetValue(player.SteamID, out var last) && last == signature)
+                return;
+
+            menu.MenuOptions.Clear();
             foreach (var item in items)
-                list.TryAdd(item.Item1, (p, option) =>
+                menu.AddMenuOption(item.Item1, (p, option) =>
                 {
                     Supermoce.Instance?.SkillAction(playerInfo.Skill.ToString(), "TypeSkill", [p, new[] { item.Item2 }]);
-                    manager.CloseMenu(p);
+                    CloseMenu(p);
                 });
 
-            manager.UpdateActiveMenu(player, list);
+            _menuSignatures[player.SteamID] = signature;
+            menu.Open(player);
         }
-        private static (CCSPlayerController player, SkillPlayerInfo playerInfo, SkillInfo skillData, IWasdMenuManager manager, string skillLine, string itemTemplate, string hoverTemplate)? BuildMenuContext(CCSPlayerController? player, Skills? overrideSkill = null)
+
+        private static (CCSPlayerController player, SkillPlayerInfo playerInfo, SkillInfo skillData, IMenuApi api, string skillTitle)? BuildMenuContext(CCSPlayerController? player, Skills? overrideSkill = null)
         {
             if (player?.IsValid != true) return null;
             var playerInfo = GetPlayerInfo(player);
@@ -294,12 +320,10 @@ namespace Supermoce
             var skill = overrideSkill ?? playerInfo.Skill;
             var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skill);
             if (skillData == null) return null;
-            var manager = GetMenuManager();
-            if (manager == null) return null;
-            string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='white'>{skillData.Description}</font>";
-            string itemTemplate = "<br><font class='fontSize-m' color='#ffbb00'>{0}</font>";
-            string hoverTemplate = "<br><font class='fontSize-m' class='fontWeight-Bold' color='yellow'>[W/S]   [{0}]   [E]</font>";
-            return (player, playerInfo, skillData, manager, skillLine, itemTemplate, hoverTemplate);
+            var api = GetMenuApi();
+            if (api == null) return null;
+            string skillTitle = $"{skillData.Description}";
+            return (player, playerInfo, skillData, api, skillTitle);
         }
 
         public static void CreateTargetingMenu(
@@ -326,15 +350,10 @@ namespace Supermoce
                 return;
             }
 
-            IWasdMenu menu = ctx.Value.manager.CreateMenu(ctx.Value.skillLine, ctx.Value.itemTemplate, ctx.Value.hoverTemplate, "");
-            foreach (var enemy in enemies)
-                menu.Add(enemy.PlayerName, (p, option) =>
-                {
-                    Supermoce.Instance?.SkillAction(ctx.Value.playerInfo.Skill.ToString(), "TypeSkill", [p, new[] { enemy.Index.ToString() }]);
-                    ctx.Value.manager.CloseMenu(p);
-                });
-
-            ctx.Value.manager.OpenMainMenu(ctx.Value.player, menu);
+            IMenu menu = CreateMenuFor(ctx.Value.player, ctx.Value.playerInfo, ctx.Value.skillTitle, enemies.Select(e => (e.PlayerName, e.Index.ToString())));
+            _activeMenus[ctx.Value.player.SteamID] = menu;
+            _menuSignatures[ctx.Value.player.SteamID] = BuildSignature(enemies.Select(e => (e.PlayerName, e.Index.ToString())));
+            menu.Open(ctx.Value.player);
         }
 
         public static void CreateMenu(CCSPlayerController? player, ConcurrentBag<(string, string)> items)
@@ -342,15 +361,10 @@ namespace Supermoce
             var ctx = BuildMenuContext(player);
             if (ctx == null) return;
 
-            IWasdMenu menu = ctx.Value.manager.CreateMenu(ctx.Value.skillLine, ctx.Value.itemTemplate, ctx.Value.hoverTemplate, "");
-            foreach (var item in items)
-                menu.Add(item.Item1, (p, option) =>
-                {
-                    Supermoce.Instance?.SkillAction(ctx.Value.playerInfo.Skill.ToString(), "TypeSkill", [p, new[] { item.Item2 }]);
-                    ctx.Value.manager.CloseMenu(p);
-                });
-
-            ctx.Value.manager.OpenMainMenu(ctx.Value.player, menu);
+            IMenu menu = CreateMenuFor(ctx.Value.player, ctx.Value.playerInfo, ctx.Value.skillTitle, items);
+            _activeMenus[ctx.Value.player.SteamID] = menu;
+            _menuSignatures[ctx.Value.player.SteamID] = BuildSignature(items);
+            menu.Open(ctx.Value.player);
         }
 
         public static void CreateMenu(CCSPlayerController? player, Skills skill)
@@ -358,8 +372,10 @@ namespace Supermoce
             var ctx = BuildMenuContext(player, skill);
             if (ctx == null) return;
 
-            IWasdMenu menu = ctx.Value.manager.CreateMenu(ctx.Value.skillLine, ctx.Value.itemTemplate, ctx.Value.hoverTemplate, "");
-            ctx.Value.manager.OpenMainMenu(ctx.Value.player, menu);
+            IMenu menu = CreateMenuFor(ctx.Value.player, ctx.Value.playerInfo, ctx.Value.skillTitle, []);
+            _activeMenus[ctx.Value.player.SteamID] = menu;
+            _menuSignatures[ctx.Value.player.SteamID] = "";
+            menu.Open(ctx.Value.player);
         }
 
         public static bool IsWarmup()

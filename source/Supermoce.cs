@@ -1,13 +1,14 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Core.Capabilities;
 using CounterStrikeSharp.API.Core.Commands;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Utils;
+using MenuManager;
 using Supermoce.src.player;
 using System.Collections.Concurrent;
 using System.Reflection;
-using WASDSharedAPI;
 
 namespace Supermoce
 {
@@ -22,7 +23,8 @@ namespace Supermoce
         {
             _manifestResources.TryAdd("models/sprays/spray_plane.vmdl", 0);
         }
-        public IWasdMenuManager? MenuManager;
+        public IMenuApi? MenuApi;
+        private readonly PluginCapability<IMenuApi?> _menuCapability = new("menu:nfcore");
         private static readonly ConcurrentDictionary<(string skill, string method), Action<object[]?>> _skillMethodCache = [];
         internal static readonly ConcurrentDictionary<string, byte> SkillsWithOnTick = new();
         internal static readonly ConcurrentDictionary<(string eventName, string skillName), byte> SkillsWithEvent = new();
@@ -30,7 +32,7 @@ namespace Supermoce
         public override string ModuleName => "Supermoce";
         public override string ModuleAuthor => "D3X (dRandomSkills), Juzlus (jRandomSkills), Rabbit";
         public override string ModuleDescription => "Fork forka, który dodaje graczom supermoce";
-        public override string ModuleVersion => "2.2.0";
+        public override string ModuleVersion => "2.2.1";
 
         public override void Load(bool hotReload)
         {
@@ -39,13 +41,19 @@ namespace Supermoce
             PlayerOnTick.Load();
             Event.Load();
             Command.Load();
-            WASDMenuAPI.WASDMenuAPI.LoadPlugin(Instance, hotReload);
             LoadAllSkills();
 
             int currentFreezetime = ConVar.Find("mp_freezetime")?.GetPrimitiveValue<int>() ?? 0;
             if (currentFreezetime < 13)
                 Server.ExecuteCommand($"mp_freezetime 13");
             Server.ExecuteCommand("sv_legacy_jump 1");
+        }
+
+        public override void OnAllPluginsLoaded(bool hotReload)
+        {
+            MenuApi = _menuCapability.Get();
+            if (MenuApi == null)
+                Console.WriteLine("[Supermoce] MenuManager API (menu:nfcore) not found - menu skills will not work. Install MenuManagerCS2.");
         }
 
         internal void AddToManifest(string prop)

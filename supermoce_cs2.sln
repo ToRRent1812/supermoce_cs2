@@ -4,6 +4,8 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Supermoce", "source\Supermoce.csproj", "{422454F0-41EC-393B-C093-EA77A25457F4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MenuManagerApi", "MenuManagerApi\MenuManagerApi.csproj", "{E25D3B7C-9B2A-4D5E-8F4C-1A3B6C7D8E9F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -14,6 +16,10 @@ Global
 		{422454F0-41EC-393B-C093-EA77A25457F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{422454F0-41EC-393B-C093-EA77A25457F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{422454F0-41EC-393B-C093-EA77A25457F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E25D3B7C-9B2A-4D5E-8F4C-1A3B6C7D8E9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E25D3B7C-9B2A-4D5E-8F4C-1A3B6C7D8E9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E25D3B7C-9B2A-4D5E-8F4C-1A3B6C7D8E9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E25D3B7C-9B2A-4D5E-8F4C-1A3B6C7D8E9F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
