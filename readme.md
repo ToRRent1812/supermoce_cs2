@@ -22,3 +22,4 @@ I wiele więcej, ale już zapomniałem, co się zmieniło.
 # Instalacja moda
 Pobierz .zip z zakładki [Releases](https://github.com/ToRRent1812/supermoce_cs2/releases)  
 Wypakuj do ```server/game/csgo/addons/counterstrikesharp/```
+Wymagany na serwerze najnowszy [metamod source](https://www.metamodsource.net/downloads.php?branch=dev) oraz [counterstrikesharp](https://github.com/roflmuffin/CounterStrikeSharp/releases)
