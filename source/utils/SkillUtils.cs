@@ -412,25 +412,25 @@ namespace Supermoce
 
         public static void AwardRoundEndMoney(CsTeam winnerTeam, CCSPlayerController? mvpPlayer = null, RoundEndReason reason = RoundEndReason.BombDefused)
         {
-            int maxMoney = ConVar.Find("mp_maxmoney")?.GetPrimitiveValue<int>() ?? 16000;
+            int maxMoney = ConVar<int>.Find("mp_maxmoney")?.Value ?? 16000;
 
             int teamReward = reason switch
             {
-                RoundEndReason.BombDefused => ConVar.Find("cash_team_win_by_defusing_bomb")?.GetPrimitiveValue<int>() ?? 3500,
-                RoundEndReason.TargetBombed => ConVar.Find("cash_team_win_by_bomb")?.GetPrimitiveValue<int>() ?? 3500,
-                RoundEndReason.AllHostageRescued => ConVar.Find("cash_team_win_by_hostage_rescue")?.GetPrimitiveValue<int>() ?? 3500,
-                _ => ConVar.Find("cash_team_elimination_bomb_map")?.GetPrimitiveValue<int>() ?? 3250,
+                RoundEndReason.BombDefused => ConVar<int>.Find("cash_team_win_by_defusing_bomb")?.Value ?? 3500,
+                RoundEndReason.TargetBombed => ConVar<int>.Find("cash_team_win_by_bomb")?.Value ?? 3500,
+                RoundEndReason.AllHostageRescued => ConVar<int>.Find("cash_team_win_by_hostage_rescue")?.Value ?? 3500,
+                _ => ConVar<int>.Find("cash_team_elimination_bomb_map")?.Value ?? 3250,
             };
 
             int individualBonus = reason switch
             {
-                RoundEndReason.BombDefused => ConVar.Find("cash_player_bomb_defused")?.GetPrimitiveValue<int>() ?? 300,
-                RoundEndReason.TargetBombed => ConVar.Find("cash_player_bomb_planted")?.GetPrimitiveValue<int>() ?? 300,
-                RoundEndReason.AllHostageRescued => ConVar.Find("cash_player_rescued_hostage")?.GetPrimitiveValue<int>() ?? 600,
+                RoundEndReason.BombDefused => ConVar<int>.Find("cash_player_bomb_defused")?.Value ?? 300,
+                RoundEndReason.TargetBombed => ConVar<int>.Find("cash_player_bomb_planted")?.Value ?? 300,
+                RoundEndReason.AllHostageRescued => ConVar<int>.Find("cash_player_rescued_hostage")?.Value ?? 600,
                 _ => 0,
             };
 
-            int loserBonus = ConVar.Find("cash_team_loser_bonus")?.GetPrimitiveValue<int>() ?? 2400;
+            int loserBonus = ConVar<int>.Find("cash_team_loser_bonus")?.Value ?? 2400;
 
             CsTeam loserTeam = winnerTeam == CsTeam.CounterTerrorist ? CsTeam.Terrorist : CsTeam.CounterTerrorist;
 
@@ -462,10 +462,10 @@ namespace Supermoce
         {
             if (Supermoce.Instance == null || Supermoce.Instance.GameRules == null) return;
             int totalRoundsPlayed = ctScore + tScore;
-            int maxRounds = ConVar.Find("mp_maxrounds")?.GetPrimitiveValue<int>() ?? 24;
+            int maxRounds = ConVar<int>.Find("mp_maxrounds")?.Value ?? 24;
             int halfRounds = maxRounds / 2;
-            int overtimeMaxRounds = ConVar.Find("mp_overtime_maxrounds")?.GetPrimitiveValue<int>() ?? 6;
-            int overtimeLimit = ConVar.Find("mp_overtime_limit")?.GetPrimitiveValue<int>() ?? 1;
+            int overtimeMaxRounds = ConVar<int>.Find("mp_overtime_maxrounds")?.Value ?? 6;
+            int overtimeLimit = ConVar<int>.Find("mp_overtime_limit")?.Value ?? 1;
 
             var gameRulesProxy = Supermoce.Instance.GameRules;
             gameRulesProxy.TotalRoundsPlayed = totalRoundsPlayed;

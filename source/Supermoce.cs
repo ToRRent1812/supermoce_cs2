@@ -32,7 +32,7 @@ namespace Supermoce
         public override string ModuleName => "Supermoce";
         public override string ModuleAuthor => "D3X (dRandomSkills), Juzlus (jRandomSkills), Rabbit";
         public override string ModuleDescription => "Fork forka, który dodaje graczom supermoce";
-        public override string ModuleVersion => "2.2.1";
+        public override string ModuleVersion => "2.2.3";
 
         public override void Load(bool hotReload)
         {
@@ -43,7 +43,7 @@ namespace Supermoce
             Command.Load();
             LoadAllSkills();
 
-            int currentFreezetime = ConVar.Find("mp_freezetime")?.GetPrimitiveValue<int>() ?? 0;
+            int currentFreezetime = ConVar<int>.Find("mp_freezetime")?.Value ?? 0;
             if (currentFreezetime < 13)
                 Server.ExecuteCommand($"mp_freezetime 13");
             Server.ExecuteCommand("sv_legacy_jump 1");

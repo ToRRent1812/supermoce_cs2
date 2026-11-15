@@ -6,7 +6,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CounterStrikeSharp.API" Version="1.0.372"/>
+    <PackageReference Include="CounterStrikeSharp.API" Version="1.0.380"/>
     <PackageReference Include="MaxMind.Db" Version="5.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4"/>
   </ItemGroup>

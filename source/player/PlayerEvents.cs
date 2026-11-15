@@ -148,7 +148,7 @@ namespace Supermoce
                 }
 
                 Instance?.RemoveListener<CheckTransmit>(CheckTransmit);
-                int freezetime = ConVar.Find("mp_freezetime")?.GetPrimitiveValue<int>() ?? 0;
+                int freezetime = ConVar<int>.Find("mp_freezetime")?.Value ?? 0;
                 freezeTimeEnd = DateTime.Now.AddSeconds(freezetime + (Instance?.GameRules?.TeamIntroPeriod == true ? 7 : 0));
                 Instance?.AddTimer((Instance?.GameRules?.TeamIntroPeriod == true ? 7 : 0) + Math.Max(freezetime - 6, 0) + .3f, SetSkill);
                 return HookResult.Continue;
