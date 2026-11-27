@@ -1,5 +1,4 @@
-﻿using CounterStrikeSharp.API;
-using CounterStrikeSharp.API.Core;
+﻿using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Utils;
 using Supermoce.src.player;
@@ -54,14 +53,16 @@ namespace Supermoce
 
         public static void BombPlanted(EventBombPlanted _)
         {
-            var plantedBomb = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").FirstOrDefault();
-            if (plantedBomb != null)
-                bombLocation = plantedBomb.AbsOrigin;
+            bombLocation = Bomb.Planted?.AbsOrigin;
         }
 
         public static void OnTick()
         {
-            if (bombLocation == null) return;
+            if (bombLocation == null)
+            {
+                bombLocation = Bomb.Planted?.AbsOrigin;
+                if (bombLocation == null) return;
+            }
             foreach (var skillInfo in SkillPlayerInfo)
             {
                 var pawn = skillInfo.Key;
@@ -100,10 +101,9 @@ namespace Supermoce
 
                 if (info.DefusingTime <= 0)
                 {
-                    var plantedBomb = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").FirstOrDefault();
-                    if (plantedBomb != null)
+                    if (Bomb.Planted != null)
                     {
-                        plantedBomb.AcceptInput("Kill");
+                        Bomb.RemovePlanted();
                         SkillUtils.TerminateRound(CsTeam.CounterTerrorist);
                         SkillUtils.AwardRoundEndMoney(CsTeam.CounterTerrorist, player, RoundEndReason.BombDefused);
                         SkillUtils.PrintToChatAll($" {ChatColors.LightBlue}{player.PlayerName} rozbroił zdalnie bombę.", false);
@@ -134,7 +134,7 @@ namespace Supermoce
             float defuseTime = GetDefuseTime(player);
             SkillPlayerInfo.TryAdd(pawn, new PlayerSkillInfo
             {
-                SteamID = player.SteamID,
+                Slot = player.Slot,
                 Defusing = false,
                 DefusingTime = defuseTime,
                 MaxDefusingTime = defuseTime,
@@ -153,24 +153,8 @@ namespace Supermoce
 
         private static float GetDefuseTime(CCSPlayerController player)
         {
-            if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid)
-                return 14f;
-
-            var pawn = player.PlayerPawn.Value;
-            if (pawn.WeaponServices?.MyWeapons == null)
-                return 14f;
-
-            foreach (var weapon in pawn.WeaponServices.MyWeapons)
-            {
-                if (weapon == null || !weapon.IsValid || weapon.Value == null || !weapon.Value.IsValid)
-                    continue;
-
-                string name = weapon.Value.DesignerName?.ToLower() ?? string.Empty;
-                if (name.Contains("defuse") || name.Contains("defuser"))
-                    return 7f;
-            }
-
-            return 14f;
+            if (player == null || !player.IsValid) return 14f;
+            return player.PawnHasDefuser ? 7f : 14f;
         }
 
         private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo)
@@ -180,20 +164,15 @@ namespace Supermoce
             float DefusingPercent = Math.Clamp((1f - (skillInfo.DefusingTime / defuseDuration)) * 100f, 0f, 100f);
             float Distance = (float)(skillInfo.CurrentDistance * 0.025f);
 
-            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
-            if (skillData == null) return;
+            string status = DefusingPercent < 100f
+                ? $"Postęp: {DefusingPercent:0}%  |  Odległość: {Distance:0.0}m"
+                : $"Zasięg: {skillInfo.MaxDistance:0}m";
 
-            string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name} ({skillInfo.MaxDistance:0}m)</font><br>";
-            string remainingLine = DefusingPercent < 100f
-                ? $"<font class='fontSize-m' color='#b5ffee'>Postęp: <font color='#00ff00'>{DefusingPercent:0}%</font>  |  Odległość: {Distance:0.0}m</font></font><br>"
-                : $"<font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font>";
-
-            var hudContent = skillLine + remainingLine;
-            player.PrintToCenterHtml(hudContent);
+            SkillHudPanel.ShowStatus(player, skillName, status);
         }
         public class PlayerSkillInfo
         {
-            public ulong SteamID { get; set; }
+            public int Slot { get; set; }
             public bool Defusing { get; set; }
             public float DefusingTime { get; set; }
             public float MaxDefusingTime { get; set; }

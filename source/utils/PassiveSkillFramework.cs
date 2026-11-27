@@ -6,18 +6,18 @@ namespace Supermoce
 {
     public static class PassiveSkillFramework
     {
-        private static readonly ConcurrentDictionary<(Skills, ulong), PassiveSkillState> _skillStates = [];
-        private static readonly ConcurrentDictionary<(Skills, ulong), int> _randomRolls = [];
+        private static readonly ConcurrentDictionary<(Skills, int), PassiveSkillState> _skillStates = [];
+        private static readonly ConcurrentDictionary<(Skills, int), int> _randomRolls = [];
 
         public class PassiveSkillState
         {
-            public ulong SteamID { get; set; }
+            public int Slot { get; set; }
             public string? RandomValue { get; set; }
         }
 
         public static void OnSkillEnabled(Skills skill, CCSPlayerController player, PassiveSkillConfig? config = null)
         {
-            var key = (skill, player.SteamID);
+            var key = (skill, player.Slot);
 
             int randomRoll = GenerateRandomRoll(config);
             _randomRolls.AddOrUpdate(key, randomRoll, (k, existing) => randomRoll);
@@ -32,18 +32,18 @@ namespace Supermoce
                 }
 
                 _skillStates.AddOrUpdate(key,
-                    new PassiveSkillState { SteamID = player.SteamID, RandomValue = playerInfo?.RandomPercentage ?? formattedValue },
-                    (k, existing) => new PassiveSkillState { SteamID = player.SteamID, RandomValue = playerInfo?.RandomPercentage ?? formattedValue });
+                    new PassiveSkillState { Slot = player.Slot, RandomValue = playerInfo?.RandomPercentage ?? formattedValue },
+                    (k, existing) => new PassiveSkillState { Slot = player.Slot, RandomValue = playerInfo?.RandomPercentage ?? formattedValue });
             }
             else
             {
-                _skillStates.TryAdd(key, new PassiveSkillState { SteamID = player.SteamID });
+                _skillStates.TryAdd(key, new PassiveSkillState { Slot = player.Slot });
             }
         }
 
         public static int GetRandomRoll(Skills skill, CCSPlayerController player, PassiveSkillConfig? config)
         {
-            var key = (skill, player.SteamID);
+            var key = (skill, player.Slot);
             if (_randomRolls.TryGetValue(key, out var roll))
                 return roll;
 
@@ -66,7 +66,7 @@ namespace Supermoce
 
         public static void OnSkillDisabled(Skills skill, CCSPlayerController player)
         {
-            var key = (skill, player.SteamID);
+            var key = (skill, player.Slot);
             _skillStates.TryRemove(key, out _);
             _randomRolls.TryRemove(key, out _);
 

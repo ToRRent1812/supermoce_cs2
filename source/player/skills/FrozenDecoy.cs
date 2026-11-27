@@ -13,7 +13,7 @@ namespace Supermoce
     {
         private const Skills skillName = Skills.FrozenDecoy;
         private static readonly ConcurrentDictionary<Vector, byte> decoys = [];
-        private static readonly ConcurrentDictionary<ulong, byte> frozenPlayers = [];
+        private static readonly ConcurrentDictionary<int, byte> frozenPlayers = [];
         private static readonly Color frozenColor = Color.FromArgb(255, 0, 150, 255);
 
         public static void LoadSkill()
@@ -59,7 +59,7 @@ namespace Supermoce
             var player = @event.Userid;
             if (player == null || !player.IsValid) return;
 
-            if (frozenPlayers.TryRemove(player.SteamID, out _))
+            if (frozenPlayers.TryRemove(player.Slot, out _))
             {
                 var pawn = player.PlayerPawn.Value;
                 if (pawn != null && pawn.IsValid)
@@ -73,35 +73,36 @@ namespace Supermoce
 
         public static void OnTick()
         {
-            var inRangePlayers = new HashSet<ulong>();
+            var inRangePlayers = new HashSet<int>();
 
             foreach (Vector decoyPos in decoys.Keys)
-                foreach (var player in Utilities.GetPlayers().Where(p => p.Team == CsTeam.Terrorist || p.Team == CsTeam.CounterTerrorist))
+                foreach (var player in SkillUtils.CachedPlayers.Where(p => p.Team == CsTeam.Terrorist || p.Team == CsTeam.CounterTerrorist))
                 {
                     var pawn = player.PlayerPawn.Value;
                     if (pawn == null || !pawn.IsValid || pawn.AbsOrigin == null) continue;
                     double distance = SkillUtils.GetDistance(decoyPos, pawn.AbsOrigin);
                     if (distance <= 180)
                     {
-                        inRangePlayers.Add(player.SteamID);
+                        inRangePlayers.Add(player.Slot);
                         double modifier = Math.Clamp(distance / 180, 0f, 1f);
                         pawn.VelocityModifier = (float)Math.Pow(modifier, 5);
 
-                        if (!frozenPlayers.ContainsKey(player.SteamID))
+                        if (!frozenPlayers.ContainsKey(player.Slot))
                         {
-                            frozenPlayers.TryAdd(player.SteamID, 0);
+                            frozenPlayers.TryAdd(player.Slot, 0);
                             pawn.Render = frozenColor;
                             Utilities.SetStateChanged(pawn, "CBaseModelEntity", "m_clrRender");
+                            ToastService.Show(player, ToastKind.Slow, "ZIMNY WABIK!");
                         }
                     }
                 }
 
-            foreach (var steamId in frozenPlayers.Keys)
+            foreach (var slot in frozenPlayers.Keys)
             {
-                if (!inRangePlayers.Contains(steamId))
+                if (!inRangePlayers.Contains(slot))
                 {
-                    frozenPlayers.TryRemove(steamId, out _);
-                    var player = Utilities.GetPlayerFromSteamId(steamId);
+                    frozenPlayers.TryRemove(slot, out _);
+                    var player = Utilities.GetPlayerFromSlot(slot);
                     if (player != null && player.IsValid && player.PlayerPawn.Value != null && player.PlayerPawn.Value.IsValid)
                     {
                         player.PlayerPawn.Value.Render = Color.FromArgb(255, 255, 255, 255);

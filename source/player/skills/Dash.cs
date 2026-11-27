@@ -11,7 +11,7 @@ namespace Supermoce
     {
         private const Skills skillName = Skills.Dash;
 
-        private static readonly ConcurrentDictionary<ulong, PlayerDashState> PlayerStates = [];
+        private static readonly ConcurrentDictionary<int, PlayerDashState> PlayerStates = [];
 
         private class PlayerDashState
         {
@@ -35,12 +35,12 @@ namespace Supermoce
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            PlayerStates.TryAdd(player.SteamID, new PlayerDashState());
+            PlayerStates.TryAdd(player.Slot, new PlayerDashState());
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            PlayerStates.TryRemove(player.SteamID, out _);
+            PlayerStates.TryRemove(player.Slot, out _);
         }
 
         public static void OnTick()
@@ -59,7 +59,7 @@ namespace Supermoce
         {
             var pawn = player.PlayerPawn.Value;
             if (pawn == null || !pawn.IsValid) return;
-            if (!PlayerStates.TryGetValue(player.SteamID, out var state)) return;
+            if (!PlayerStates.TryGetValue(player.Slot, out var state)) return;
 
             var currentButtons = player.Buttons;
             bool isOnGround = ((PlayerFlags)pawn.Flags).HasFlag(PlayerFlags.FL_ONGROUND);

@@ -12,7 +12,7 @@ namespace Supermoce
     public class Darkness : ISkill, IMenuSkill
     {
         private const Skills skillName = Skills.Darkness;
-        private static readonly ConcurrentDictionary<ulong, byte> playersInDark = [];
+        private static readonly ConcurrentDictionary<int, byte> playersInDark = [];
         private static readonly object setLock = new();
 
         public static void LoadSkill()
@@ -54,7 +54,7 @@ namespace Supermoce
 
             SetUpPostProcessing(enemy!);
             if (playerInfo != null) playerInfo.SkillChance = 1;
-            SkillUtils.PrintToChat(enemy!, $" Wróg zgasił Ci światło", true);
+            ToastService.Show(enemy, ToastKind.Blind, "ZACIEMNIENIE!");
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -75,24 +75,24 @@ namespace Supermoce
         private static void SetUpPostProcessing(CCSPlayerController player, bool turnOff = false)
         {
             if (Instance?.IsPlayerValid(player) == false) return;
-            ulong playerSteamID = player.SteamID;
+            int playerSlot = player.Slot;
 
             lock (setLock)
             {
                 if (!turnOff)
                 {
-                    playersInDark.TryAdd(playerSteamID, 0);
+                    playersInDark.TryAdd(playerSlot, 0);
                     ApplyScreenColor(player, r: 0, g: 0, b: 0, a: 235, duration: 100, holdTime: 3000);
 
                     Timer? darkTimer = null;
                     darkTimer = Instance?.AddTimer(5f, () => {
-                        if (!playersInDark.ContainsKey(playerSteamID))
+                        if (!playersInDark.ContainsKey(playerSlot))
                         {
                             darkTimer?.Kill();
                             return;
                         }
 
-                        var target = Utilities.GetPlayerFromSteamId(playerSteamID);
+                        var target = Utilities.GetPlayerFromSlot(playerSlot);
                         if (target == null || !target.IsValid)
                         {
                             darkTimer?.Kill();
@@ -106,7 +106,7 @@ namespace Supermoce
                 else
                 {
                     ApplyScreenColor(player, r: 0, g: 0, b: 0, a: 0, duration: 200, holdTime: 0);
-                    playersInDark.TryRemove(player.SteamID, out _);
+                    playersInDark.TryRemove(player.Slot, out _);
                 }
             }
         }

@@ -67,18 +67,11 @@ namespace Supermoce
 
         private static void UpdateHUD(CCSPlayerController player)
         {
-            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
-            if (skillData == null || Instance?.GameRules == null || Instance?.GameRules?.RoundTime == null || Instance?.GameRules?.RoundStartTime == null) return;
+            var rules = Instance?.GameRules;
+            if (rules == null) return;
 
-            var roundTime = Instance?.GameRules?.RoundTime ?? 0;
-            var roundStartTime = Instance?.GameRules?.RoundStartTime ?? 0;
-            int seconds = 1 + (int)(roundTime - (Server.CurrentTime - roundStartTime));
-
-            string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
-            string remainingLine = $"<font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>{skillData.Description}</font> <br><font class='fontSize-s' class='fontWeight-Bold' color='#ffcccc'>Prawdziwy czas rundy: {SkillUtils.SecondsToTimer(seconds)}</font>";
-
-            var hudContent = skillLine + remainingLine;
-            player.PrintToCenterHtml(hudContent);
+            int seconds = 1 + (int)(rules.RoundTime - (Server.CurrentTime - rules.RoundStartTime));
+            SkillHudPanel.ShowStatus(player, skillName, $"Prawdziwy czas rundy: {SkillUtils.SecondsToTimer(seconds)}");
         }
     }
 }

@@ -9,7 +9,7 @@ namespace Supermoce
     public class FastEscape : ISkill
     {
         private const Skills skillName = Skills.FastEscape;
-        private static readonly ConcurrentDictionary<ulong, int> affectedPlayers = [];
+        private static readonly ConcurrentDictionary<int, int> affectedPlayers = [];
 
         public static void LoadSkill()
         {
@@ -26,14 +26,14 @@ namespace Supermoce
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn == null || !playerPawn.IsValid) return;
             playerPawn.VelocityModifier = 1f;
-            affectedPlayers.TryRemove(player.SteamID, out _);
+            affectedPlayers.TryRemove(player.Slot, out _);
         }
 
         public static void OnTick()
         {
             foreach (var player in SkillUtils.CachedPlayers)
             {
-                if (!affectedPlayers.ContainsKey(player.SteamID)) continue;
+                if (!affectedPlayers.ContainsKey(player.Slot)) continue;
 
                 var playerPawn = player.PlayerPawn?.Value;
                 if (playerPawn == null || playerPawn.VelocityModifier != 2.25f) continue;
@@ -53,7 +53,7 @@ namespace Supermoce
             if (playerInfo == null || playerInfo.Skill != skillName) return;
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn == null || !playerPawn.IsValid) return;
-            affectedPlayers.TryAdd(player.SteamID, 0);
+            affectedPlayers.TryAdd(player.Slot, 0);
         }
     }
 }

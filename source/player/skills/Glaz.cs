@@ -1,5 +1,4 @@
-﻿using CounterStrikeSharp.API;
-using CounterStrikeSharp.API.Core;
+﻿using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using Supermoce.src.player;
@@ -44,7 +43,7 @@ namespace Supermoce
                 if (player == null) continue;
                 var playerInfo = SkillUtils.GetPlayerInfo(player);
 
-                var observedPlayer = Utilities.GetPlayers().FirstOrDefault(p => p?.Pawn?.Value?.Handle == player?.Pawn?.Value?.ObserverServices?.ObserverTarget?.Value?.Handle);
+                var observedPlayer = SkillUtils.CachedPlayers.FirstOrDefault(p => p?.Pawn?.Value?.Handle == player?.Pawn?.Value?.ObserverServices?.ObserverTarget?.Value?.Handle);
                 var observerInfo = SkillUtils.GetPlayerInfo(observedPlayer);
 
                 if (playerInfo?.Skill != skillName && observerInfo?.Skill != skillName) continue;

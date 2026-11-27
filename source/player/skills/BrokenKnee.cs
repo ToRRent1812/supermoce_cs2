@@ -9,7 +9,7 @@ namespace Supermoce
     {
         private const Skills skillName = Skills.BrokenKnee;
 
-        private static readonly ConcurrentDictionary<ulong, int> affectedPlayers = [];
+        private static readonly ConcurrentDictionary<int, int> affectedPlayers = [];
 
         public static void LoadSkill()
         {
@@ -36,7 +36,7 @@ namespace Supermoce
         {
             foreach (var player in SkillUtils.CachedPlayers)
             {
-                if (!affectedPlayers.ContainsKey(player.SteamID)) continue;
+                if (!affectedPlayers.ContainsKey(player.Slot)) continue;
 
                 var playerPawn = player.PlayerPawn?.Value;
                 if (playerPawn == null || !player.PawnIsAlive || playerPawn.VelocityModifier == 0.75f) continue;
@@ -53,8 +53,8 @@ namespace Supermoce
                 return;
             
             if(enemy == null || !enemy.IsValid || !enemy.PawnIsAlive) return;
-            SkillUtils.PrintToChat(enemy, $" Wróg spowodował że poruszasz się wolniej", true);
-            affectedPlayers.TryAdd(enemy.SteamID, 0);
+            ToastService.Show(enemy, ToastKind.Slow, "SPOWOLNIENIE");
+            affectedPlayers.TryAdd(enemy.Slot, 0);
             if (playerInfo != null) playerInfo.SkillChance = 1;
         }
 

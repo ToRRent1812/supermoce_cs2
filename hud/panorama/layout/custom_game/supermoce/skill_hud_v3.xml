@@ -1,0 +1,22 @@
+<root>
+	<styles>
+		<include src="s2r://panorama/styles/csgostyles.vcss_c" />
+		<include src="s2r://panorama/styles/custom_game/supermoce/common_v3.vcss_c" />
+		<include src="s2r://panorama/styles/custom_game/supermoce/tones_v3.vcss_c" />
+		<include src="s2r://panorama/styles/custom_game/supermoce/skill_hud_v3.vcss_c" />
+	</styles>
+
+	<!-- Supermoce skill HUD v3: card + 10 Hz name flash during the roll. Root id = SmHudRoot. -->
+	<Panel class="SmScreen" hittest="false">
+		<Panel id="SmHudRoot" class="SmHud sm-off" hittest="false">
+			<Panel class="SmHudBody" hittest="false">
+				<Panel class="SmHudHeader" hittest="false">
+					<Label id="SmHudName" class="SmHudName" text="{s:sm_name}" hittest="false" />
+					<Label id="SmHudRoll" class="SmHudRoll" text="{s:sm_roll}" hittest="false" />
+				</Panel>
+				<Label id="SmHudDesc" class="SmHudDesc" text="{s:sm_desc}" hittest="false" />
+				<Label id="SmHudStatus" class="SmHudStatus" text="{s:sm_status}" hittest="false" />
+			</Panel>
+		</Panel>
+	</Panel>
+</root>

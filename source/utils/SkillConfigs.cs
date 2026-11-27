@@ -17,7 +17,6 @@ namespace Supermoce
         public int MinCooldown { get; set; } = 15;
         public int MaxCooldown { get; set; } = 50;
         public int CooldownStep { get; set; } = 5;
-        public bool UseCustomHud { get; set; }
         public int GenerateCooldown()
         {
             int range = (MaxCooldown - MinCooldown) / CooldownStep + 1;

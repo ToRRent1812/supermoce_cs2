@@ -1,0 +1,37 @@
+/* Spectator skill: one row above the in-game spectator info. */
+
+.SmSpec
+{
+	width: 360px;
+	height: 34px;
+	horizontal-align: center;
+	vertical-align: bottom;
+	margin-bottom: 170px;
+	flow-children: none;
+	background-color: #0b0f14d9;
+	border: 1px solid #ffffff14;
+	border-left: 4px solid #FFA9DE;
+	border-radius: 4px;
+	world-blur: gaussian(2.0);
+	box-shadow: #00000066 0px 6px 18px 0px;
+	overflow: noclip;
+}
+
+.SmSpecText
+{
+	width: 100%;
+	text-align: center;
+	vertical-align: middle;
+	font-family: Stratum2 Bold;
+	font-size: 15px;
+	letter-spacing: 0.5px;
+	text-transform: uppercase;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Toasts reuse this row; give them the danger rail. */
+.SmSpec.sm-toast
+{
+	border-left-color: #E5484D;
+}

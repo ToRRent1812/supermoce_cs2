@@ -9,7 +9,7 @@ namespace Supermoce
     public class JumpBan : ISkill, IMenuSkill
     {
         private const Skills skillName = Skills.JumpBan;
-        private static readonly ConcurrentDictionary<ulong, int> bannedPlayers = [];
+        private static readonly ConcurrentDictionary<int, int> bannedPlayers = [];
 
         public static void LoadSkill()
         {
@@ -25,7 +25,7 @@ namespace Supermoce
 
             foreach (var kv in bannedPlayers)
             {
-                var pl = Utilities.GetPlayers().FirstOrDefault(p => p?.SteamID == kv.Key);
+                var pl = Utilities.GetPlayerFromSlot(kv.Key);
                 if (pl != null && pl.IsValid && pl.PlayerPawn?.Value != null && pl.PlayerPawn.Value.IsValid)
                     pl.PlayerPawn.Value.ActualGravityScale = 1f;
             }
@@ -38,7 +38,7 @@ namespace Supermoce
             var player = @event.Userid;
             if(player == null) return;
             if (Instance?.IsPlayerValid(player) == false) return;
-            if (!bannedPlayers.ContainsKey(player.SteamID)) return;
+            if (!bannedPlayers.ContainsKey(player.Slot)) return;
 
             var pawn = player.PlayerPawn?.Value;
             if (pawn == null || !pawn.IsValid) return;
@@ -51,7 +51,7 @@ namespace Supermoce
             if (bannedPlayers.IsEmpty) return;
             foreach (var player in SkillUtils.CachedPlayers)
             {
-                if (!bannedPlayers.ContainsKey(player.SteamID)) continue;
+                if (!bannedPlayers.ContainsKey(player.Slot)) continue;
                 var pawn = player.PlayerPawn?.Value;
                 if (pawn == null || !pawn.IsValid) continue;
                 if (pawn.AbsVelocity.Z > 0)
@@ -64,12 +64,12 @@ namespace Supermoce
             if (!SkillUtils.TryGetTargetFromCommand(player, skillName, commands, out var playerInfo, out var enemy))
                 return;
 
-            bannedPlayers[enemy!.SteamID] = 1;
+            bannedPlayers[enemy!.Slot] = 1;
             var enemyPawn = enemy.PlayerPawn?.Value;
             if (enemyPawn != null && enemyPawn.IsValid)
                 enemyPawn.ActualGravityScale = 4f;
 
-            SkillUtils.PrintToChat(enemy, $"Wróg zabronił Ci skakania.", true);
+            ToastService.Show(enemy, ToastKind.Slow, "BEZ SKAKANIA!");
             if (playerInfo != null) playerInfo.SkillChance = 1;
         }
 
@@ -82,7 +82,7 @@ namespace Supermoce
         public static void DisableSkill(CCSPlayerController player)
         {
             MenuSkillFramework.OnSkillDisabled(player);
-            SkillUtils.DestroyTargetingSkill(player, p => bannedPlayers.TryRemove(p.SteamID, out _));
+            SkillUtils.DestroyTargetingSkill(player, p => bannedPlayers.TryRemove(p.Slot, out _));
         }
     }
 }

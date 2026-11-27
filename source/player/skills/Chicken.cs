@@ -24,7 +24,7 @@ namespace Supermoce
         private static readonly ConcurrentDictionary<CCSPlayerController, CBaseModelEntity> chickens = [];
         private static readonly string defaultCTModel = "characters/models/ctm_sas/ctm_sas.vmdl";
         private static readonly string defaultTModel = "characters/models/tm_phoenix/tm_phoenix.vmdl";
-        private static readonly ConcurrentDictionary<ulong, string> originalModels = [];
+        private static readonly ConcurrentDictionary<int, string> originalModels = [];
 
         public static void LoadSkill()
         {
@@ -74,7 +74,7 @@ namespace Supermoce
                 Utilities.SetStateChanged(playerPawn, "CBaseModelEntity", "m_clrRender");
 
                 if (playerPawn.CBodyComponent != null && playerPawn.CBodyComponent.SceneNode != null)
-                    originalModels.TryAdd(player.SteamID, playerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().ModelState.ModelName);
+                    originalModels.TryAdd(player.Slot, playerPawn.CBodyComponent.SceneNode.GetSkeletonInstance().ModelState.ModelName);
 
                 SetWeaponAttack(player, true);
                 CreateChicken(player);
@@ -106,7 +106,7 @@ namespace Supermoce
                 chickens.TryRemove(player, out _);
             }
 
-            if (originalModels.TryGetValue(player.SteamID, out var model))
+            if (originalModels.TryGetValue(player.Slot, out var model))
             {
                 var pawn = player.PlayerPawn?.Value;
                 if (pawn == null) return;
@@ -119,7 +119,7 @@ namespace Supermoce
                     pawn.SetModel(model);
                     var originalRender = pawn.Render;
                     pawn.Render = Color.FromArgb(255, originalRender.R, originalRender.G, originalRender.B);
-                    originalModels.TryRemove(player.SteamID, out _);
+                    originalModels.TryRemove(player.Slot, out _);
                 });
             }
         }
@@ -187,17 +187,10 @@ namespace Supermoce
             if (player == null || !player.IsValid || player.PlayerPawn.Value == null || !player.PlayerPawn.Value.IsValid) return;
             var pawn = player.PlayerPawn.Value;
             if (pawn.WeaponServices == null || pawn.WeaponServices.ActiveWeapon == null || !pawn.WeaponServices.ActiveWeapon.IsValid || pawn.WeaponServices.ActiveWeapon.Value == null || !pawn.WeaponServices.ActiveWeapon.Value.IsValid) return;
-            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
-            if (skillData == null) return;
-
             var weapon = pawn.WeaponServices.ActiveWeapon.Value;
             if (weapon == null || !disabledWeapons.Contains(weapon.DesignerName)) return;
 
-            string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
-            string remainingLine = $"<font class='fontSize-m' color='#FF0000'>Kurczak NIE może używać tej broni!</font>";
-
-            var hudContent = skillLine + remainingLine;
-            player.PrintToCenterHtml(hudContent);
+            SkillHudPanel.ShowStatus(player, skillName, "KURCZAK NIE MOŻE UŻYWAĆ BRONI GŁÓWNEJ!");
         }
     }
 }

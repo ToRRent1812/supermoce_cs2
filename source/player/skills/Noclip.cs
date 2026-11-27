@@ -1,4 +1,5 @@
-﻿using CounterStrikeSharp.API.Core;
+﻿using CounterStrikeSharp.API;
+using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using Supermoce.src.player;
 using System.Collections.Concurrent;
@@ -9,7 +10,7 @@ namespace Supermoce
     public class Noclip : ISkill, IActiveSkill
     {
         private const Skills skillName = Skills.Noclip;
-        private static readonly ConcurrentDictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
+        private static readonly ConcurrentDictionary<int, PlayerSkillInfo> SkillPlayerInfo = [];
         private static readonly object setLock = new();
 
         public static void LoadSkill()
@@ -21,8 +22,7 @@ namespace Supermoce
                 "#44ebd4",
                 minCooldown: 15,
                 maxCooldown: 60,
-                cooldownStep: 5,
-                useCustomHud: true);
+                cooldownStep: 5);
         }
 
         public static void NewRound()
@@ -37,7 +37,7 @@ namespace Supermoce
             foreach (var player in SkillUtils.CachedPlayers)
             {
                 var playerInfo = SkillUtils.GetPlayerInfo(player);
-                if (playerInfo?.Skill == skillName && SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
+                if (playerInfo?.Skill == skillName && SkillPlayerInfo.TryGetValue(player.Slot, out var skillInfo))
                     UpdateHUD(player, skillInfo);
             }
         }
@@ -50,12 +50,12 @@ namespace Supermoce
             if (config != null)
                 ActiveSkillFramework.OnSkillEnabled(skillName, player, config);
 
-            SkillPlayerInfo.TryAdd(player.SteamID, new PlayerSkillInfo
+            SkillPlayerInfo.TryAdd(player.Slot, new PlayerSkillInfo
             {
-                SteamID = player.SteamID,
+                Slot = player.Slot,
                 IsFlying = false,
                 LastPosition = null,
-                LastUseTime = DateTime.MinValue
+                LastUseTime = -1000000f
             });
         }
 
@@ -63,7 +63,7 @@ namespace Supermoce
         {
             if (Instance?.IsPlayerValid(player) == false) return;
             ActiveSkillFramework.OnSkillDisabled(skillName, player);
-            SkillPlayerInfo.TryRemove(player.SteamID, out _);
+            SkillPlayerInfo.TryRemove(player.Slot, out _);
         }
 
         private static void UpdateHUD(CCSPlayerController player, PlayerSkillInfo skillInfo)
@@ -76,27 +76,21 @@ namespace Supermoce
                 if (ActiveSkillFramework.TryGetSkillState(skillName, player, out var state))
                 {
                     if(state == null) return;
-                    int elapsed = (int)(DateTime.Now - state.LastUseTime).TotalSeconds;
+                    int elapsed = (int)(Server.CurrentTime - state.LastUseTime);
                     cooldown = Math.Max(state.CooldownSeconds - elapsed, 0);
                 }
 
-                float flyingTime = (int)(skillInfo.LastUseTime.AddSeconds(2f) - DateTime.Now).TotalMilliseconds;
+                float flyingTime = (skillInfo.LastUseTime + 2f - Server.CurrentTime) * 1000f;
                 flying = Math.Max(flyingTime, 0);
             }
 
-            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
-            if (skillData == null) return;
+            string status = flying > 0
+                ? $"Aktywne przez {Math.Round(flying / 1000, 1)} sek."
+                : cooldown > 0
+                    ? $"Poczekaj {cooldown} sek."
+                    : "Wciśnij INSPEKT by użyć";
 
-            string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font><br><font class='fontSize-s' class='fontWeight-Bold' color='#FFFFFF'>{skillData.Description}</font>";
-            string remainingLine = cooldown != 0
-                                    ? (
-                                        flying != 0
-                                            ? $"<br><font class='fontSize-m' color='#FFFFFF'>Aktywne przez <font color='#00FF00'>{Math.Round(flying / 1000, 1)}</font> sek.</font>"
-                                            : $"<br><font class='fontSize-m' color='#ffe3d6'>Poczekaj <font color='#ffa600'>{cooldown}</font> sek.</font>"
-                                    ) : $"<br><font class='fontSize-s' class='fontWeight-Bold' color='#deff24'>Wciśnij INSPEKT by użyć</font>";
-
-            var hudContent = skillLine + remainingLine;
-            ActiveSkillFramework.PrintCachedHud(player, hudContent);
+            SkillHudPanel.ShowStatus(player, skillName, status);
         }
 
         public static void UseSkill(CCSPlayerController player)
@@ -105,7 +99,7 @@ namespace Supermoce
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn?.CBodyComponent == null) return;
 
-            if (!SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
+            if (!SkillPlayerInfo.TryGetValue(player.Slot, out var skillInfo))
                 return;
 
             if (skillInfo.IsFlying)
@@ -130,7 +124,7 @@ namespace Supermoce
 
             ActiveSkillFramework.MarkSkillUsed(skillName, player);
             skillInfo.IsFlying = true;
-            skillInfo.LastUseTime = DateTime.Now;
+            skillInfo.LastUseTime = Server.CurrentTime;
             skillInfo.LastPosition = playerPawn.AbsOrigin == null ? null : new Vector(playerPawn.AbsOrigin.X, playerPawn.AbsOrigin.Y, playerPawn.AbsOrigin.Z);
 
             playerPawn.ActualMoveType = MoveType_t.MOVETYPE_NOCLIP;
@@ -153,9 +147,9 @@ namespace Supermoce
 
         public class PlayerSkillInfo
         {
-            public ulong SteamID { get; set; }
+            public int Slot { get; set; }
             public bool IsFlying { get; set; }
-            public DateTime LastUseTime { get; set; }
+            public float LastUseTime { get; set; }
             public Vector? LastPosition { get; set; }
         }
     }

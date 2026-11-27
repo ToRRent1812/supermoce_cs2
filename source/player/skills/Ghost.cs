@@ -25,11 +25,11 @@ namespace Supermoce
             "weapon_g3sg1", "weapon_nova", "weapon_xm1014", "weapon_mag7",
             "weapon_sawedoff", "weapon_m249", "weapon_negev"
         ];
-        private static readonly ConcurrentDictionary<ulong, ConcurrentBag<uint>> invisibleEntities = [];
+        private static readonly ConcurrentDictionary<int, ConcurrentBag<uint>> invisibleEntities = [];
 
         public static void LoadSkill()
         {
-            SkillUtils.RegisterSkill(skillName, "Niewidka", "Jesteś niewidzialny i niesłyszalny ALE widać cię na radarze i nie możesz strzelać", "#FFFFFF", 1);
+            SkillUtils.RegisterSkill(skillName, "Niewidka", "Jesteś niewidzialny i niesłyszalny ALE widać cię na radarze i grasz tylko nożem", "#FFFFFF", 1);
         }
 
         public static void NewRound()
@@ -56,6 +56,11 @@ namespace Supermoce
             var playerInfo = SkillUtils.GetPlayerInfo(player);
 
             if (playerInfo?.Skill != skillName) return;
+
+            var item = @event.Item;
+            if (item == null || (!item.Contains("knife") && !item.Contains("bayonet") && item != "c4"))
+                player!.ExecuteClientCommand("slot3");
+
             SetWeaponVisibility(player!, false);
             SetWeaponAttack(player!, true);
         }
@@ -65,8 +70,8 @@ namespace Supermoce
             foreach (var (info, player) in infoList)
             {
                 if (player == null) continue;
-                foreach ((var playerId, var itemList) in invisibleEntities)
-                    if (player.SteamID !=  playerId)
+                foreach ((var playerSlot, var itemList) in invisibleEntities)
+                    if (player.Slot !=  playerSlot)
                         foreach (var item in itemList)
                             info.TransmitEntities.Remove(item);
             }
@@ -78,6 +83,7 @@ namespace Supermoce
             SetPlayerVisibility(player, false);
             SetWeaponVisibility(player, false);
             SetWeaponAttack(player, true);
+            player.ExecuteClientCommand("slot3");
         }
 
         public static void DisableSkill(CCSPlayerController player)
@@ -85,7 +91,7 @@ namespace Supermoce
             SetPlayerVisibility(player, true);
             SetWeaponVisibility(player, true);
             SetWeaponAttack(player, false);
-            invisibleEntities.TryRemove(player.SteamID, out _);
+            invisibleEntities.TryRemove(player.Slot, out _);
         }
 
         public static void OnTick()
@@ -96,8 +102,8 @@ namespace Supermoce
                 if (playerInfo?.Skill == skillName)
                     UpdateHUD(player);
                 if (!player.PawnIsAlive)
-                    if (invisibleEntities.ContainsKey(player.SteamID))
-                        invisibleEntities.TryRemove(player.SteamID, out _);
+                    if (invisibleEntities.ContainsKey(player.Slot))
+                        invisibleEntities.TryRemove(player.Slot, out _);
             }
         }
 
@@ -140,26 +146,26 @@ namespace Supermoce
             var playerPawn = player.PlayerPawn.Value!;
             if (playerPawn.WeaponServices == null) return;
 
-            invisibleEntities.TryRemove(player.SteamID, out _);
+            invisibleEntities.TryRemove(player.Slot, out _);
             foreach (var weapon in playerPawn.WeaponServices.MyWeapons)
             {
                 if (weapon != null && weapon.IsValid && weapon.Value != null && weapon.Value.IsValid)
                 {
                     if (!visible)
                     {
-                        if (invisibleEntities.TryGetValue(player.SteamID, out var items))
+                        if (invisibleEntities.TryGetValue(player.Slot, out var items))
                         {
                             if (!items.Contains(weapon.Index))
                                 items.Add(weapon.Index);
                         }
                         else
-                            invisibleEntities.TryAdd(player.SteamID, [weapon.Index]);
+                            invisibleEntities.TryAdd(player.Slot, [weapon.Index]);
                     }
                 }
             }
 
             if (visible)
-                invisibleEntities.TryRemove(player.SteamID, out _);
+                invisibleEntities.TryRemove(player.Slot, out _);
         }
 
         private static void SetWeaponAttack(CCSPlayerController player, bool disableWeapon)
@@ -186,17 +192,10 @@ namespace Supermoce
             var pawn = player.PlayerPawn.Value;
             if (pawn == null || !pawn.IsValid || pawn.WeaponServices == null) return;
 
-            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
-            if (skillData == null) return;
-
             var weapon = pawn.WeaponServices.ActiveWeapon.Value;
             if (weapon == null || !weapon.IsValid || !disabledWeapons.Contains(weapon.DesignerName)) return;
 
-            string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
-            string remainingLine = $"<font class='fontSize-m' color='#FF0000'>Nie możesz strzelać na niewidcę!</font>";
-
-            var hudContent = skillLine + remainingLine;
-            player.PrintToCenterHtml(hudContent);
+            SkillHudPanel.ShowStatus(player, skillName, "Nie możesz strzelać na niewidcę!");
         }
     }
 }

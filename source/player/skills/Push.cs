@@ -78,6 +78,7 @@ namespace Supermoce
             newVelocity.Z = player.PlayerPawn.Value.AbsVelocity.Z + 200f;
 
             player.PlayerPawn.Value.Teleport(currentPosition, currentAngles, newVelocity);
+            ToastService.Show(player, ToastKind.Slow, "ODEPCHNIĘCIE!");
         }
     }
 }

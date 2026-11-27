@@ -92,6 +92,7 @@ namespace Supermoce
 
             victimPawn.Teleport(attackerPosition, attackerAngles, attackerVelocity);
             attackerPawn.Teleport(victimPosition, victimAngles, victimVelocity);
+            ToastService.Show(victim, ToastKind.Teleport, "ZAMIANA!");
         }
     }
 }

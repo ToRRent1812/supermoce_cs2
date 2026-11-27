@@ -29,8 +29,7 @@ namespace Supermoce
             var enemyPawn = enemy!.PlayerPawn?.Value;
             if (enemyPawn != null && enemyPawn.IsValid)
             {
-                bool hasC4 = enemyPawn.WeaponServices?.MyWeapons
-                    .Any(w => w?.Value?.DesignerName == "weapon_c4") == true;
+                bool hasC4 = Bomb.IsCarryingBomb(enemy);
 
                 enemy.RemoveWeapons();
                 SkillUtils.TryGiveWeapon(enemy, CsItem.Knife);
@@ -38,13 +37,14 @@ namespace Supermoce
                 if (hasC4)
                     enemy.GiveNamedItem("weapon_c4");
             }
-            SkillUtils.PrintToChat(enemy, $" Wróg skasował Ci ekwipunek", true);
+            ToastService.Show(enemy, ToastKind.Disarm, "UTRATA!");
             if (playerInfo != null) playerInfo.SkillChance = 1;
         }
 
         public static void EnableSkill(CCSPlayerController player)
         {
             MenuSkillFramework.OnSkillEnabled(skillName, player);
+            SkillUtils.CreateTargetingMenu(player);
         }
 
         public static void DisableSkill(CCSPlayerController player)

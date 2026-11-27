@@ -1,0 +1,4 @@
+"AddonInfo"
+{
+	"title"	"Supermoce HUD"
+}

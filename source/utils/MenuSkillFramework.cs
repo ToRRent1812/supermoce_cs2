@@ -6,11 +6,11 @@ namespace Supermoce
 {
     public static class MenuSkillFramework
     {
-        private static readonly ConcurrentDictionary<ulong, MenuSkillState> _menuStates = [];
+        private static readonly ConcurrentDictionary<int, MenuSkillState> _menuStates = [];
 
         public class MenuSkillState
         {
-            public ulong SteamID { get; set; }
+            public int Slot { get; set; }
             public Skills ActiveSkill { get; set; }
             public bool HasMenu { get; set; }
         }
@@ -24,16 +24,16 @@ namespace Supermoce
             if (playerInfo != null)
                 playerInfo.SkillChance = 0;
 
-            _menuStates.AddOrUpdate(player.SteamID,
+            _menuStates.AddOrUpdate(player.Slot,
                 new MenuSkillState
                 {
-                    SteamID = player.SteamID,
+                    Slot = player.Slot,
                     ActiveSkill = skill,
                     HasMenu = true
                 },
                 (k, existing) => new MenuSkillState
                 {
-                    SteamID = player.SteamID,
+                    Slot = player.Slot,
                     ActiveSkill = skill,
                     HasMenu = true
                 });
@@ -47,35 +47,16 @@ namespace Supermoce
                 return;
 
             SkillUtils.CloseMenu(player);
-            _menuStates.TryRemove(player.SteamID, out _);
-        }
-
-        public static bool HasActiveMenu(CCSPlayerController player)
-        {
-            if (player == null)
-                return false;
-
-            return _menuStates.TryGetValue(player.SteamID, out var state) && state.HasMenu;
-        }
-
-        public static Skills? GetActiveMenuSkill(CCSPlayerController player)
-        {
-            if (player == null)
-                return null;
-
-            if (_menuStates.TryGetValue(player.SteamID, out var state) && state.HasMenu)
-                return state.ActiveSkill;
-
-            return null;
+            _menuStates.TryRemove(player.Slot, out _);
         }
 
         public static void OnTick()
         {
             if (_menuStates.IsEmpty) return;
 
-            foreach (var player in SkillUtils.CachedPlayers)
+            foreach (var player in SkillUtils.CachedHumans)
             {
-                if (!_menuStates.TryGetValue(player.SteamID, out var state) || !state.HasMenu)
+                if (!_menuStates.TryGetValue(player.Slot, out var state) || !state.HasMenu)
                     continue;
 
                 SkillUtils.UpdateTargetingMenu(player, state.ActiveSkill);
@@ -85,7 +66,7 @@ namespace Supermoce
         public static void OnNewRound()
         {
             _menuStates.Clear();
-            foreach(var player in SkillUtils.CachedPlayers)
+            foreach(var player in SkillUtils.CachedHumans)
             {
                 SkillUtils.CloseMenu(player);
             }

@@ -10,7 +10,7 @@ namespace Supermoce
     public class Sandstorm : ISkill, IActiveSkill
     {
         private const Skills skillName = Skills.Sandstorm;
-        private static readonly ConcurrentDictionary<ulong, byte> activeFogPlayers = [];
+        private static readonly ConcurrentDictionary<int, byte> activeFogPlayers = [];
 
         public static void LoadSkill()
         {
@@ -64,7 +64,7 @@ namespace Supermoce
 
             ApplyFogToEnemy(enemy);
             ActiveSkillFramework.MarkSkillUsed(skillName, player);
-            SkillUtils.PrintToChat(enemy, $" Wróg wyczarował tobie burzę piaskową!", true);
+            ToastService.Show(enemy, ToastKind.Blind, "BURZA PIASKOWA!");
         }
 
         private static void ApplyFogToEnemy(CCSPlayerController enemy)
@@ -87,7 +87,7 @@ namespace Supermoce
 
             enemy.Pawn.Value.AcceptInput("SetFogController", fogController, fogController, "!activator");
 
-            activeFogPlayers.TryAdd(enemy.SteamID, 0);
+            activeFogPlayers.TryAdd(enemy.Slot, 0);
 
             Instance?.AddTimer(10f, () =>
             {
@@ -98,7 +98,7 @@ namespace Supermoce
         private static void RemoveFogFromEnemy(CCSPlayerController player)
         {
             if (player == null || !player.IsValid) return;
-            activeFogPlayers.TryRemove(player.SteamID, out _);
+            activeFogPlayers.TryRemove(player.Slot, out _);
 
             CFogController? fogController = GetOrCreateFogController(player);
             if (fogController == null) return;
@@ -107,9 +107,9 @@ namespace Supermoce
 
         private static void CleanupAllFog()
         {
-            foreach (var steamID in activeFogPlayers.Keys)
+            foreach (var slot in activeFogPlayers.Keys)
             {
-                var player = Utilities.GetPlayerFromSteamId(steamID);
+                var player = Utilities.GetPlayerFromSlot(slot);
                 if (player != null && player.IsValid)
                     RemoveFogFromEnemy(player);
             }

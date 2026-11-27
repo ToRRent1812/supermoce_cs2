@@ -18,7 +18,7 @@ namespace Supermoce
         {
             SkillUtils.RegisterPassiveSkill(
                 skillName,
-                "Drugie życie",
+                "Druga szansa",
                 "Po śmierci odradzasz się 1 raz z losową ilością zdrowia",
                 "#d41c1c",
                 minValue: 10,
@@ -66,7 +66,6 @@ namespace Supermoce
                     if (spawn != null)
                     {
                         pawn.Teleport(spawn, pawn.AbsRotation, null);
-                        SkillUtils.PrintToChat(victim, $"Drugie życie");
                     }
                 });
             }

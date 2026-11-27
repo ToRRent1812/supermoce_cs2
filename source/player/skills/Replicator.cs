@@ -86,7 +86,7 @@ namespace Supermoce
             replica.DispatchSpawn();
         }
 
-        public static HookResult OnTakeDamage(CEntityInstance entity, CTakeDamageInfo info)
+        public static HookResult OnEntityTakeDamage(CEntityInstance entity, CTakeDamageInfo info)
         {
             if (entity == null || entity.Entity == null || info == null || info.Attacker == null || info.Attacker.Value == null)
                 return HookResult.Continue;

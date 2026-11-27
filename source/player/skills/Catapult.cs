@@ -67,7 +67,10 @@ namespace Supermoce
                 {
                     var victimPawn = victim.PlayerPawn?.Value;
                     if (victimPawn != null)
+                    {
                         victimPawn.AbsVelocity.Z = 350f;
+                        ToastService.Show(victim, ToastKind.Teleport, "PODRZUCENIE!");
+                    }
                 }
         }
     }

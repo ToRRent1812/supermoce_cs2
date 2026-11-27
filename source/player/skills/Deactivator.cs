@@ -60,7 +60,7 @@ namespace Supermoce
                 enemyInfo.SpecialSkill = enemyInfo.Skill;
                 enemyInfo.Skill = Skills.None;
                 enemyInfo.RandomPercentage = "";
-                SkillUtils.PrintToChat(enemy, $"Dostałeś antidotum. Straciłeś supermoc");
+                ToastService.Show(enemy, ToastKind.Steal, "ANTIDOTUM! Straciłeś supermoc");
             }
         }
     }

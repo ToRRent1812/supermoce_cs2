@@ -6,11 +6,17 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CounterStrikeSharp.API" Version="1.0.380"/>
-    <PackageReference Include="MaxMind.Db" Version="5.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.4"/>
+    <PackageReference Include="CounterStrikeSharp.API"/>
+    <PackageReference Include="MaxMind.Db" />
+    <PackageReference Include="Newtonsoft.Json"/>
+    <PackageReference Include="PanoramaManager" GeneratePathProperty="true" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MenuManagerApi\MenuManagerApi.csproj" />
+    <None Include="$(PkgPanoramaManager)/lib/net10.0/PanoramaManager.dll" CopyToOutputDirectory="PreserveNewest" Link="PanoramaManager.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="gamedata\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 </Project>

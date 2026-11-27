@@ -1,7 +1,9 @@
 
 source/bin/
 source/obj/
-source/Compat/PluginCapability.cs
 source/out
-WASDMenuAPI/obj
-WASDMenuAPI/bin
+/dist
+/docs
+/scripts
+hud/**/*.vxml_c
+hud/**/*.vcss_c

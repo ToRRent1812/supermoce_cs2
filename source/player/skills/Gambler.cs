@@ -46,6 +46,7 @@ namespace Supermoce
                 playerInfo.Skill = skill.Skill;
                 if (skill.Skill != skillName)
                     playerInfo.SpecialSkill = skillName;
+                playerInfo.RandomPercentage = "";
                 playerInfo.SkillChance = 1;
                 Instance?.SkillAction(skill.Skill.ToString(), "EnableSkill", [player]);
             });

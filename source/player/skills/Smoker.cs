@@ -13,7 +13,7 @@ namespace Supermoce
     public class Smoker : ISkill
     {
         private const Skills skillName = Skills.Smoker;
-        private readonly static ConcurrentDictionary<ulong, List<Timer>> playerSmokes = [];
+        private readonly static ConcurrentDictionary<int, List<Timer>> playerSmokes = [];
         private static readonly object setLock = new();
 
         public static void LoadSkill()
@@ -41,7 +41,7 @@ namespace Supermoce
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            if (playerSmokes.TryRemove(player.SteamID, out var timers))
+            if (playerSmokes.TryRemove(player.Slot, out var timers))
                 timers.ForEach(t => t?.Kill());
         }
 
@@ -54,7 +54,7 @@ namespace Supermoce
             var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo?.Skill != skillName) return;
 
-            ulong steamID = player.SteamID;
+            int slot = player.Slot;
 
             Vector pos = new(@event.X, @event.Y, @event.Z);
             float refillInterval = 15.5f;
@@ -62,7 +62,7 @@ namespace Supermoce
             Timer? smokeTimer = null;
             smokeTimer = Instance?.AddTimer(refillInterval, () =>
             {
-                var player = Utilities.GetPlayerFromSteamId(steamID);
+                var player = Utilities.GetPlayerFromSlot(slot);
 
                 if (player == null || !player.IsValid)
                 {
@@ -74,7 +74,7 @@ namespace Supermoce
 
             if (smokeTimer != null)
             {
-                playerSmokes.AddOrUpdate(player.SteamID, [smokeTimer], (_, list) => { list.Add(smokeTimer); return list; });
+                playerSmokes.AddOrUpdate(player.Slot, [smokeTimer], (_, list) => { list.Add(smokeTimer); return list; });
             }
         }
     }

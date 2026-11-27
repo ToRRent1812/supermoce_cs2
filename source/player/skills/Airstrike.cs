@@ -10,7 +10,7 @@ namespace Supermoce
     public class Airstrike : ISkill
     {
         private const Skills skillName = Skills.Airstrike;
-        private static readonly ConcurrentDictionary<ulong, bool> airstrikeUsed = [];
+        private static readonly ConcurrentDictionary<int, bool> airstrikeUsed = [];
 
         public static void LoadSkill()
         {
@@ -29,13 +29,13 @@ namespace Supermoce
         public static void EnableSkill(CCSPlayerController player)
         {
             if (Instance?.IsPlayerValid(player) == false) return;
-            airstrikeUsed[player.SteamID] = false;
+            airstrikeUsed[player.Slot] = false;
             SkillUtils.TryGiveWeapon(player, CsItem.DecoyGrenade);
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            airstrikeUsed.TryRemove(player.SteamID, out _);
+            airstrikeUsed.TryRemove(player.Slot, out _);
         }
 
         public static void DecoyStarted(EventDecoyStarted @event)
@@ -45,10 +45,10 @@ namespace Supermoce
             if (Instance?.IsPlayerValid(player) == false) return;
             var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo?.Skill != skillName) return;
-            if (airstrikeUsed.TryGetValue(player.SteamID, out bool used) && used) return;
+            if (airstrikeUsed.TryGetValue(player.Slot, out bool used) && used) return;
 
             var decoyPos = new Vector(@event.X, @event.Y, @event.Z);
-            airstrikeUsed[player.SteamID] = true;
+            airstrikeUsed[player.Slot] = true;
             SkillUtils.PrintToChat(player, $"Nalot nadciąga!");
 
             /*Server.NextFrame(() =>
@@ -58,9 +58,9 @@ namespace Supermoce
                     decoy.EmitSound("nuke.outside.airplane", volume: 0.5f);
             });*/
 
-            for (int wave = 0; wave < 3; wave++)
+            for (int wave = 0; wave < 4; wave++)
             {
-                float delay = 2.0f + (wave * 1.5f);
+                float delay = 1.0f + (wave * 1.5f);
                 float capturedOffset = wave * 30f;
 
                 Instance?.AddTimer(delay, () =>

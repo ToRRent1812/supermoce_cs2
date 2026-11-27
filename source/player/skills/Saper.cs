@@ -13,7 +13,7 @@ namespace Supermoce
         {
             SkillUtils.RegisterSkill(skillName, 
             "Saper", 
-            "Niemal natychmiastowy plant i rozbrojenie z twoich rąk", 
+            "Natychmiastowy plant i rozbrojenie z twoich rąk", 
             "#8A2BE2", 
             objective:1);
         }
@@ -26,9 +26,7 @@ namespace Supermoce
                 var playerInfo = SkillUtils.GetPlayerInfo(player);
                 if (playerInfo?.Skill == skillName)
                 {
-                    var plantedBomb = Utilities.FindAllEntitiesByDesignerName<CPlantedC4>("planted_c4").FirstOrDefault();
-                    if (plantedBomb != null)
-                        Server.NextFrame(() => plantedBomb.DefuseCountDown = 0);
+                    Bomb.ForceDefuse();
                 }
             }
         }
@@ -41,16 +39,7 @@ namespace Supermoce
             var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo?.Skill == skillName)
             {
-                var bombEntities = Utilities.FindAllEntitiesByDesignerName<CC4>("weapon_c4").ToList();
-                if (bombEntities.Count != 0)
-                {
-                    var bomb = bombEntities.FirstOrDefault();
-                    if (bomb != null)
-                    {
-                        bomb.BombPlacedAnimation = false;
-                        bomb.ArmedTime = 0.0f;
-                    }
-                }
+                Bomb.ArmInstantly();
             }
         }
     }

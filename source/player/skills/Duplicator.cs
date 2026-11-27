@@ -41,7 +41,7 @@ namespace Supermoce
                 target =>
                 {
                     var targetInfo = SkillUtils.GetPlayerInfo(target);
-                    var skillData = targetInfo == null ? null : SkillData.Skills.FirstOrDefault(s => s.Skill == targetInfo.Skill);
+                    var skillData = targetInfo == null ? null : SkillData.Find(targetInfo.Skill);
                     return skillData != null && skillData.TeamNumber == 0;
                 },
                 "Nie znaleziono gracza z uniwersalną supermocą.");

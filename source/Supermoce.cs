@@ -1,43 +1,27 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Core.Capabilities;
 using CounterStrikeSharp.API.Core.Commands;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Cvars;
-using CounterStrikeSharp.API.Modules.Utils;
-using MenuManager;
 using Supermoce.src.player;
 using System.Collections.Concurrent;
-using System.Reflection;
 
 namespace Supermoce
 {
     public partial class Supermoce : BasePlugin
     {
         public static Supermoce? Instance { get; private set; }
-        public ConcurrentDictionary<ulong, SkillPlayerInfo> SkillPlayer { get; } = new();
+        public ConcurrentDictionary<int, SkillPlayerInfo> SkillPlayer { get; } = new();
         public Random Random { get; } = new();
         public CCSGameRules? GameRules { get; set; }
-        private readonly ConcurrentDictionary<string, byte> _manifestResources = new(StringComparer.OrdinalIgnoreCase);
-        private void InitManifest()
-        {
-            _manifestResources.TryAdd("models/sprays/spray_plane.vmdl", 0);
-        }
-        public IMenuApi? MenuApi;
-        private readonly PluginCapability<IMenuApi?> _menuCapability = new("menu:nfcore");
-        private static readonly ConcurrentDictionary<(string skill, string method), Action<object[]?>> _skillMethodCache = [];
-        internal static readonly ConcurrentDictionary<string, byte> SkillsWithOnTick = new();
-        internal static readonly ConcurrentDictionary<(string eventName, string skillName), byte> SkillsWithEvent = new();
-
         public override string ModuleName => "Supermoce";
         public override string ModuleAuthor => "D3X (dRandomSkills), Juzlus (jRandomSkills), Rabbit";
         public override string ModuleDescription => "Fork forka, który dodaje graczom supermoce";
-        public override string ModuleVersion => "2.2.3";
+        public override string ModuleVersion => "3.0.0";
 
         public override void Load(bool hotReload)
         {
             Instance = this;
-            InitManifest();
             PlayerOnTick.Load();
             Event.Load();
             Command.Load();
@@ -47,83 +31,31 @@ namespace Supermoce
             if (currentFreezetime < 13)
                 Server.ExecuteCommand($"mp_freezetime 13");
             Server.ExecuteCommand("sv_legacy_jump 1");
+
+            PanoramaBootstrap.Init(this);
         }
 
-        public override void OnAllPluginsLoaded(bool hotReload)
+        public override void Unload(bool hotReload)
         {
-            MenuApi = _menuCapability.Get();
-            if (MenuApi == null)
-                Console.WriteLine("[Supermoce] MenuManager API (menu:nfcore) not found - menu skills will not work. Install MenuManagerCS2.");
-        }
-
-        internal void AddToManifest(string prop)
-        {
-            _manifestResources.TryAdd(prop, 0);
-        }
-
-        internal void LoadManifest(ResourceManifest manifest)
-        {
-            foreach (var prop in _manifestResources.Keys)
-                manifest.AddResource(prop);
+            PanoramaBootstrap.Shutdown();
         }
 
         internal void LoadAllSkills()
         {
-            string[] dispatchEvents = [
-                "PlayerMakeSound", "WeaponFire", "WeaponEquip", "WeaponPickup", "WeaponReload",
-                "GrenadeThrown", "BombBeginplant", "BombPlanted", "BombBegindefuse", "HostageFollows",
-                "DecoyStarted", "DecoyDetonate", "MolotovDetonate", "SmokegrenadeDetonate", "SmokegrenadeExpired",
-                "PlayerHurt", "PlayerJump", "PlayerBlind", "OnTakeDamage", "OnEntitySpawned", "CheckTransmit"
-            ];
+            SkillRegistry.Build();
 
             foreach (var skill in Enum.GetValues(typeof(Skills)))
-            {
-                SkillAction(skill.ToString()!, "LoadSkill");
-
-                string skillName = skill.ToString()!;
-                Type? type = Type.GetType($"Supermoce.{skillName}");
-                if (type != null && typeof(ISkill).IsAssignableFrom(type))
-                {
-                    foreach (var methodName in dispatchEvents)
-                    {
-                        MethodInfo? method = type.GetMethod(methodName, BindingFlags.Static | BindingFlags.Public);
-                        if (method != null && method.DeclaringType == type)
-                            SkillsWithEvent.TryAdd((methodName, skillName), 0);
-                    }
-
-                    MethodInfo? onTick = type.GetMethod("OnTick", BindingFlags.Static | BindingFlags.Public);
-                    if (onTick != null && onTick.DeclaringType == type)
-                        SkillsWithOnTick.TryAdd(skillName, 0);
-                }
-            }
+                SkillRegistry.DispatchByName((Skills)skill, "LoadSkill");
         }
 
         internal void SkillAction(string skill, string methodName, object[]? param = null)
         {
-            var key = (skill, methodName);
-            var action = _skillMethodCache.GetOrAdd(key, k =>
-            {
-                string skillName = k.Item1;
-                string methodName = k.Item2;
-                string className = $"Supermoce.{skillName}";
-                Type? type = Type.GetType(className);
-
-                if (type != null && typeof(ISkill).IsAssignableFrom(type))
-                {
-                    MethodInfo? method = type.GetMethod(methodName, BindingFlags.Static | BindingFlags.Public);
-                    if (method != null)
-                        return p =>
-                        {
-                            try { method.Invoke(null, p); }
-                            catch (Exception ex) { Server.PrintToConsole($"SkillAction {skillName}.{methodName} threw: {ex}"); }
-                        };
-                }
-                return _ => { };
-            });
-            action(param);
+            if (!Enum.TryParse<Skills>(skill, out var id))
+                return;
+            SkillRegistry.DispatchByName(id, methodName, param);
         }
 
-        internal new void AddCommand(string name, string description, CommandInfo.CommandCallback handler)
+        internal void AddPluginCommand(string name, string description, CommandInfo.CommandCallback handler)
         {
             var definition = new CommandDefinition(name, description, handler);
             CommandDefinitions.Add(definition);
@@ -139,8 +71,9 @@ namespace Supermoce
 
     public class SkillPlayerInfo
     {
-        public required ulong SteamID { get; set; }
+        public required int Slot { get; set; }
         public required string PlayerName { get; set; }
+        public bool IsBot { get; set; }
         public Skills Skill { get; set; }
         public Skills SpecialSkill { get; set; }
         public float? SkillChance { get; set; }
@@ -156,13 +89,18 @@ namespace Supermoce
         public string Color { get; } = color;
         public byte TeamNumber { get; } = teamnum; //0 - all, 1 - T, 2 - CT
         public byte Objective { get; } = objective; //0 - all, 1 - bomb, 2 - hostage
+        public int Tone { get; } = HudPalette.NearestSkillTone(color);
 
     }
 
     public static class SkillData
     {
         public static ConcurrentBag<SkillInfo> Skills { get; } = [];
+        public static ConcurrentDictionary<Skills, SkillInfo> BySkill { get; } = [];
         public static ConcurrentDictionary<Skills, PassiveSkillConfig> PassiveSkillConfigs { get; } = [];
         public static ConcurrentDictionary<Skills, ActiveSkillConfig> ActiveSkillConfigs { get; } = [];
+
+        public static SkillInfo? Find(Skills skill) =>
+            BySkill.TryGetValue(skill, out var info) ? info : null;
     }
 }

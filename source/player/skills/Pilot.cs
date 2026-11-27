@@ -9,7 +9,7 @@ namespace Supermoce
     public class Pilot : ISkill
     {
         private const Skills skillName = Skills.Pilot;
-        private static readonly ConcurrentDictionary<ulong, Pilot_PlayerInfo> PlayerPilotInfo = [];
+        private static readonly ConcurrentDictionary<int, Pilot_PlayerInfo> PlayerPilotInfo = [];
 
         public static void LoadSkill()
         {
@@ -37,22 +37,22 @@ namespace Supermoce
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            PlayerPilotInfo.TryAdd(player.SteamID, new Pilot_PlayerInfo
+            PlayerPilotInfo.TryAdd(player.Slot, new Pilot_PlayerInfo
             {
-                SteamID = player.SteamID,
+                Slot = player.Slot,
                 Fuel = 100f,
             });
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            PlayerPilotInfo.TryRemove(player.SteamID, out _);
+            PlayerPilotInfo.TryRemove(player.Slot, out _);
         }
 
         private static void HandlePilot(CCSPlayerController player)
         {
             var buttons = player.Buttons;
-            if (PlayerPilotInfo.TryGetValue(player.SteamID, out var pilotInfo))
+            if (PlayerPilotInfo.TryGetValue(player.Slot, out var pilotInfo))
             {
                 pilotInfo.Fuel = Math.Min(Math.Max(0, pilotInfo.Fuel - (buttons.HasFlag(PlayerButtons.Use) ? 0.5f : -0.1f)), 100f);
                 if (buttons.HasFlag(PlayerButtons.Use))
@@ -64,26 +64,9 @@ namespace Supermoce
 
         private static void UpdateHUD(CCSPlayerController player, Pilot_PlayerInfo pilotInfo)
         {
-            var buttons = player.Buttons;
-
-            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
-            if (skillData == null) return;
-
-            string fuelColor = GetFuelColor(pilotInfo.Fuel);
-            string infoLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name}</font> <br>";
-            string skillLine = $"<font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>{skillData.Description}</font> <br>";
-            string remainingLine = $"<font class='fontSize-m' color='#ffffff'>Paliwo:</font> <font color='{fuelColor}'>{pilotInfo.Fuel:F0}%</font>";
-
-            var hudContent = infoLine + skillLine + remainingLine;
-            player.PrintToCenterHtml(hudContent);
+            SkillHudPanel.ShowStatus(player, skillName, $"Paliwo: {pilotInfo.Fuel:F0}%");
         }
 
-        private static string GetFuelColor(float fuelPercentage)
-        {
-            if (fuelPercentage > (100f/2f)) return "#00FF00";
-            if (fuelPercentage > (100f/4f)) return "#FFFF00";
-            return "#FF0000";
-        }
 
         private static void ApplyPilotEffect(CCSPlayerController player)
         {
@@ -115,7 +98,7 @@ namespace Supermoce
 
         public class Pilot_PlayerInfo
         {
-            public ulong SteamID { get; set; }
+            public int Slot { get; set; }
             public float Fuel { get; set; }
         }
     }

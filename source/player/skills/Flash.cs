@@ -11,7 +11,7 @@ namespace Supermoce
     public class Flash : ISkill, IPassiveSkill
     {
         private const Skills skillName = Skills.Flash;
-        private static readonly ConcurrentDictionary<ulong, int> jumpedPlayers = [];
+        private static readonly ConcurrentDictionary<int, int> jumpedPlayers = [];
 
         public static void LoadSkill()
         {
@@ -54,8 +54,8 @@ namespace Supermoce
             var player = @event.Userid;
             if(player == null) return;
             if (Instance?.IsPlayerValid(player) == false) return;
-            if (!jumpedPlayers.TryGetValue(player.SteamID, out _)) return;
-            jumpedPlayers.AddOrUpdate(player.SteamID, Server.TickCount + 20, (k, v) => Server.TickCount + 20);
+            if (!jumpedPlayers.TryGetValue(player.Slot, out _)) return;
+            jumpedPlayers.AddOrUpdate(player.Slot, Server.TickCount + 20, (k, v) => Server.TickCount + 20);
         }
 
         public static void EnableSkill(CCSPlayerController player)
@@ -73,7 +73,7 @@ namespace Supermoce
                 playerInfo.SkillChance = randomRoll / 100f;
             }
 
-            jumpedPlayers.TryAdd(player.SteamID, 0);
+            jumpedPlayers.TryAdd(player.Slot, 0);
             playerPawn.VelocityModifier = playerInfo.SkillChance ?? 1f;
         }
 
@@ -84,7 +84,7 @@ namespace Supermoce
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn == null) return;
             playerPawn.VelocityModifier = 1f;
-            jumpedPlayers.TryRemove(player.SteamID, out _);
+            jumpedPlayers.TryRemove(player.Slot, out _);
         }
 
         public static void OnTick()
@@ -104,7 +104,7 @@ namespace Supermoce
                 if (buttons.HasFlag(PlayerButtons.Moveleft) || buttons.HasFlag(PlayerButtons.Moveright) || buttons.HasFlag(PlayerButtons.Forward) || buttons.HasFlag(PlayerButtons.Back))
                     playerPawn.VelocityModifier = newVelocity;
 
-                if (jumpedPlayers.TryGetValue(player.SteamID, out var time) && time > Server.TickCount)
+                if (jumpedPlayers.TryGetValue(player.Slot, out var time) && time > Server.TickCount)
                     continue;
 
                 if (!((PlayerFlags)playerPawn.Flags).HasFlag(PlayerFlags.FL_ONGROUND))

@@ -2,7 +2,6 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 using Supermoce.src.player;
-using static Supermoce.Supermoce;
 
 namespace Supermoce
 {
@@ -37,21 +36,16 @@ namespace Supermoce
 
         private static void UpdateHUD(CCSPlayerController player, float? moneybonus = 0)
         {
-            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skillName);
-            if (skillData == null || player?.IsValid != true || !player.PawnIsAlive || Instance?.GameRules == null) return;
-
-            string skillLine = $"<font class='fontSize-m' class='fontWeight-Bold' color='{skillData.Color}'>{skillData.Name} (+{moneybonus}$)</font> <br>";
-            string remainingLine = $"<font class='fontSize-s' class='fontWeight-Bold' color='#ffffff'>{skillData.Description}</font> ";
-
-            player.PrintToCenterHtml(skillLine + remainingLine);
+            if (player?.IsValid != true || !player.PawnIsAlive) return;
+            SkillHudPanel.ShowStatus(player, skillName, $"Bonus: +{moneybonus}$");
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
             var playerInfo = SkillUtils.GetPlayerInfo(player);
             if (playerInfo == null) return;
-            var teammates = Utilities.GetPlayers().Where(p =>
-                p.Team == player.Team && p.IsValid && !p.IsBot && !p.IsHLTV && p.Team is CsTeam.Terrorist or CsTeam.CounterTerrorist).ToArray();
+            var teammates = SkillUtils.CachedPlayers.Where(p =>
+                p.Team == player.Team && p.Team is CsTeam.Terrorist or CsTeam.CounterTerrorist).ToArray();
             foreach (var teammate in teammates)
                 AddMoney(teammate, (int)(playerInfo.SkillChance ?? 0));
             playerInfo.SkillChance = 0;

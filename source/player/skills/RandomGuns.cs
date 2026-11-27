@@ -58,7 +58,7 @@ namespace Supermoce
             if (!ActiveSkillFramework.CanUseSkill(skillName, player))
                 return;
 
-            var alivePlayers = Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV && p.Team != CsTeam.Spectator && p.PawnIsAlive && p.PawnHealth > 0).ToArray();
+            var alivePlayers = SkillUtils.CachedPlayers.Where(p => p.Team != CsTeam.Spectator && p.PawnIsAlive && p.PawnHealth > 0).ToArray();
             if (alivePlayers.Length > 0)
             {
                 foreach (var alivePlayer in alivePlayers)

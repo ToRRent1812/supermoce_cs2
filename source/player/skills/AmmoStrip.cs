@@ -28,7 +28,7 @@ namespace Supermoce
                 return;
 
             string enemyId = commands[0];
-            var enemy = Utilities.GetPlayers().FirstOrDefault(p => p.Index.ToString() == enemyId);
+            var enemy = SkillUtils.CachedPlayers.FirstOrDefault(p => p.Index.ToString() == enemyId);
             if (enemy == null)
             {
                 SkillUtils.PrintToChat(player, $"Nie znaleziono gracza o takim ID.", true);
@@ -102,7 +102,7 @@ namespace Supermoce
                     Utilities.SetStateChanged(cs2Weapon, "CBasePlayerWeapon", "m_pReserveAmmo");
                 }
 
-                SkillUtils.PrintToChat(enemy, $"Wróg pozbawił Cię zapasowych magazynków!", true);
+                ToastService.Show(enemy, ToastKind.Disarm, "STRACIŁEŚ MAGAZYNKI!");
             });
         }
     }

@@ -1,0 +1,6 @@
+<Project>
+  <!-- Phase 0: obsolete CounterStrikeSharp API usage fails the build. -->
+  <PropertyGroup>
+    <WarningsAsErrors>CS0618</WarningsAsErrors>
+  </PropertyGroup>
+</Project>

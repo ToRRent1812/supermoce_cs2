@@ -1,0 +1,211 @@
+/* Skill menu: MenuManager-style card, 8-row contract. */
+
+.SmMenu
+{
+	width: 460px;
+	horizontal-align: center;
+	vertical-align: center;
+	flow-children: right;
+	background-color: #0b0f14e6;
+	border: 1px solid #ffffff14;
+	border-left: 4px solid #FFA9DE;
+	border-radius: 4px;
+	world-blur: gaussian(3.0);
+	box-shadow: #00000088 0px 8px 24px 0px;
+	overflow: noclip;
+}
+
+.SmMenuContent
+{
+	width: fill-parent-flow(1.0);
+	flow-children: down;
+	padding: 14px 18px 16px 18px;
+}
+
+.SmMenuHeader
+{
+	width: 100%;
+	height: 44px;
+	flow-children: right;
+}
+
+.SmMenuHeadText
+{
+	width: fill-parent-flow(1.0);
+	flow-children: down;
+}
+
+.SmMenuTitle
+{
+	width: 100%;
+	font-family: Stratum2 Bold;
+	font-size: 20px;
+	letter-spacing: 2.5px;
+	text-transform: uppercase;
+	color: #FFA9DE;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.SmMenuSubtitle
+{
+	width: 100%;
+	font-family: Stratum2;
+	font-size: 13px;
+	color: #8b8f94;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.SmMenuClose
+{
+	width: 24px;
+	height: 24px;
+	vertical-align: center;
+	background-color: #ffffff0d;
+	border-radius: 3px;
+	wash-color: none;
+	transition-property: background-color;
+	transition-duration: 0.1s;
+	transition-timing-function: ease-out;
+}
+
+.SmMenuClose:hover
+{
+	background-color: #e0432f;
+}
+
+.SmMenuCloseX
+{
+	width: 100%;
+	font-size: 16px;
+	color: #9aa2ac;
+	text-align: center;
+	vertical-align: middle;
+}
+
+.SmMenuDivider
+{
+	width: 100%;
+	height: 1px;
+	background-color: #ffffff0f;
+	margin: 6px 0px 10px 0px;
+}
+
+.SmMenuRow
+{
+	width: 100%;
+	height: 40px;
+	margin-bottom: 4px;
+}
+
+.SmMenuRowBtn
+{
+	width: 100%;
+	height: 100%;
+	flow-children: down;
+	padding: 4px 12px;
+	background-color: #ffffff0d;
+	border: 0px solid transparent;
+	border-radius: 4px;
+	wash-color: none;
+	transition-property: background-color;
+	transition-duration: 0.1s;
+	transition-timing-function: ease-out;
+}
+
+.SmMenuRowBtn:hover
+{
+	background-color: #ffffff1c;
+	cursor: pointer;
+	sound: "UIPanorama.generic_button_rollover";
+}
+
+.SmMenuRowBtn:active
+{
+	background-color: #ffffff28;
+	sound: "UIPanorama.generic_button_press";
+}
+
+.SmMenuRowTitle
+{
+	width: 100%;
+	font-family: Stratum2 Bold;
+	font-size: 16px;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	color: #cdd8e4;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.SmMenuRowBtn:hover .SmMenuRowTitle
+{
+	color: #ffffff;
+}
+
+.SmMenuRowSub
+{
+	width: 100%;
+	font-family: Stratum2;
+	font-size: 12px;
+	color: #8b8f94;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.SmMenuNav
+{
+	visibility: collapse;
+	width: 100%;
+	margin-top: 8px;
+	flow-children: right;
+	horizontal-align: center;
+}
+
+.has-pages .SmMenuNav
+{
+	visibility: visible;
+}
+
+.SmMenuNavButton
+{
+	width: 32px;
+	height: 26px;
+	background-color: #ffffff0d;
+	border-radius: 3px;
+	wash-color: none;
+}
+
+.SmMenuNavButton:hover
+{
+	background-color: #ffffff1c;
+}
+
+.SmMenuNavButton Label
+{
+	width: 100%;
+	text-align: center;
+	vertical-align: middle;
+	font-size: 16px;
+	color: #cdd8e4;
+}
+
+.SmMenuPage
+{
+	font-family: Stratum2 Mono;
+	font-size: 12px;
+	color: #8b8f94;
+	vertical-align: middle;
+	margin: 0px 10px;
+}
+
+.sm-active
+{
+	border: 1px solid #FFA9DE;
+}
+
+.sm-disabled
+{
+	opacity: 0.35;
+}

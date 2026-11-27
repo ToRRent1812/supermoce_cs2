@@ -15,15 +15,14 @@ namespace Supermoce
             "#30c538");
         }
         
-        public static HookResult OnTakeDamage(CEntityInstance entity, CTakeDamageInfo info)
+        public static HookResult OnPlayerTakeDamage(CCSPlayerPawn victim, CTakeDamageInfo info)
         {
-            if (entity == null || entity.Entity == null || info == null || info.Attacker == null || info.Attacker.Value == null)
+            if (victim == null || !victim.IsValid || info == null || info.Attacker == null || info.Attacker.Value == null)
                 return HookResult.Continue;
 
             CCSPlayerPawn attackerPawn = new(info.Attacker.Value.Handle);
-            CCSPlayerPawn victimPawn = new(entity.Handle);
 
-            if (attackerPawn.DesignerName != "player" || victimPawn.DesignerName != "player")
+            if (attackerPawn.DesignerName != "player")
                 return HookResult.Continue;
 
             if (attackerPawn.Controller?.Value == null)

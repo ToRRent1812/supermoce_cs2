@@ -9,7 +9,7 @@ namespace Supermoce
     public class NoMoney : ISkill
     {
         private const Skills skillName = Skills.NoMoney;
-        private static readonly ConcurrentDictionary<ulong, byte> zeroAtFreeze = [];
+        private static readonly ConcurrentDictionary<int, byte> zeroAtFreeze = [];
 
         public static void LoadSkill()
         {
@@ -37,7 +37,7 @@ namespace Supermoce
                 amoneyServices!.Account += vmoneyServices!.Account;
                 vmoneyServices!.Account = 0;
                 if (victimPlayer != null)
-                    zeroAtFreeze.TryAdd(victimPlayer.SteamID, 0);
+                    zeroAtFreeze.TryAdd(victimPlayer.Slot, 0);
                 Utilities.SetStateChanged(victimPlayer!, "CCSPlayerController", "m_pInGameMoneyServices");
                 Utilities.SetStateChanged(attackerPlayer!, "CCSPlayerController", "m_pInGameMoneyServices");
             }
@@ -54,8 +54,8 @@ namespace Supermoce
 
             foreach (var kv in zeroAtFreeze)
             {
-                ulong steamID = kv.Key;
-                var player = Utilities.GetPlayers().FirstOrDefault(p => p?.SteamID == steamID);
+                int slot = kv.Key;
+                var player = Utilities.GetPlayerFromSlot(slot);
                 if(player == null) return;
                 if (Instance?.IsPlayerValid(player) == false) continue;
                 var moneyServices = player.InGameMoneyServices;

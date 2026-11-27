@@ -12,7 +12,7 @@ namespace Supermoce
     public class Illusionist : ISkill, IActiveSkill
     {
         private const Skills skillName = Skills.Illusionist;
-        private static readonly ConcurrentDictionary<ulong, uint> ActiveReplicas = [];
+        private static readonly ConcurrentDictionary<int, uint> ActiveReplicas = [];
         private static readonly ConcurrentDictionary<int, Timer> ActiveTimers = [];
 
         public static void LoadSkill()
@@ -54,7 +54,7 @@ namespace Supermoce
 
             ActiveSkillFramework.OnSkillDisabled(skillName, player);
 
-            if (ActiveReplicas.TryRemove(player.SteamID, out var replicaIndex))
+            if (ActiveReplicas.TryRemove(player.Slot, out var replicaIndex))
             {
                 SkillUtils.SafeKillEntity<CDynamicProp>(replicaIndex);
                 if (ActiveTimers.TryRemove((int)replicaIndex, out var timer))
@@ -67,7 +67,7 @@ namespace Supermoce
             var player = @event.Userid;
             if (player == null) return;
 
-            if (ActiveReplicas.TryRemove(player.SteamID, out var replicaIndex))
+            if (ActiveReplicas.TryRemove(player.Slot, out var replicaIndex))
             {
                 SkillUtils.SafeKillEntity<CDynamicProp>(replicaIndex);
                 if (ActiveTimers.TryRemove((int)replicaIndex, out var timer))
@@ -107,7 +107,7 @@ namespace Supermoce
             if (playerPawn == null || !playerPawn.IsValid) return false;
             if (playerPawn.AbsOrigin == null || playerPawn.AbsRotation == null) return false;
 
-            if (ActiveReplicas.TryRemove(player.SteamID, out var existingReplicaIndex))
+            if (ActiveReplicas.TryRemove(player.Slot, out var existingReplicaIndex))
             {
                 SkillUtils.SafeKillEntity<CDynamicProp>(existingReplicaIndex);
                 if (ActiveTimers.TryRemove((int)existingReplicaIndex, out var oldTimer))
@@ -147,7 +147,7 @@ namespace Supermoce
                     if (replica == null || !replica.IsValid)
                     {
                         if (ActiveTimers.TryRemove(replicaIndex, out var timer)) timer?.Kill();
-                        ActiveReplicas.TryRemove(player.SteamID, out _);
+                        ActiveReplicas.TryRemove(player.Slot, out _);
                         return;
                     }
 
@@ -176,15 +176,15 @@ namespace Supermoce
                 {
                     replica.AcceptInput("Kill");
                     if (ActiveTimers.TryRemove(replicaIndex, out var timer)) timer?.Kill();
-                    ActiveReplicas.TryRemove(player.SteamID, out _);
+                    ActiveReplicas.TryRemove(player.Slot, out _);
                 }
             });
 
-            ActiveReplicas.TryAdd(player.SteamID, (uint)replicaIndex);
+            ActiveReplicas.TryAdd(player.Slot, (uint)replicaIndex);
             return true;
         }
 
-        public static HookResult OnTakeDamage(CEntityInstance entity, CTakeDamageInfo info)
+        public static HookResult OnEntityTakeDamage(CEntityInstance entity, CTakeDamageInfo info)
         {
             if (entity == null || entity.Entity == null || info == null || info.Attacker == null || info.Attacker.Value == null)
                 return HookResult.Continue;
@@ -198,7 +198,7 @@ namespace Supermoce
             if (ActiveTimers.TryRemove((int)replica.Index, out var timer)) timer?.Kill();
             replica.AcceptInput("Kill");
 
-            ulong? staleKey = null;
+            int? staleKey = null;
             foreach (var kvp in ActiveReplicas)
             {
                 if (kvp.Value == replica.Index)

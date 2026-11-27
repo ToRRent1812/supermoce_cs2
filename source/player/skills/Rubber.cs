@@ -38,7 +38,13 @@ namespace Supermoce
 
             var rubberTime = 2f;
             if (attackerInfo?.Skill == skillName)
+            {
+                bool firstPenalty = !playersToSlow.ContainsKey(victimPawn);
                 playersToSlow.AddOrUpdate(victimPawn, Server.TickCount + (64 * rubberTime), (k, v) => Server.TickCount + (64 * rubberTime));
+
+                if (firstPenalty)
+                    ToastService.Show(victim, ToastKind.Slow, "SPOWOLNIENIE!");
+            }
         }
 
         public static void OnTick()

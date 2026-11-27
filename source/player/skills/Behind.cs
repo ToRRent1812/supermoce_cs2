@@ -43,10 +43,8 @@ namespace Supermoce
             var config = SkillUtils.GetPassiveSkillConfig(skillName);
             if (config != null)
             {
-                // Framework generates random value and updates display
                 PassiveSkillFramework.OnSkillEnabled(skillName, player, config);
 
-                // Retrieve the pre-generated random roll from framework
                 int randomRoll = PassiveSkillFramework.GetRandomRoll(skillName, player, config);
                 playerInfo.SkillChance = randomRoll / 100f;
             }
@@ -79,6 +77,7 @@ namespace Supermoce
             );
 
             pawn.Teleport(currentPosition, newAngles, new Vector(0, 0, 0));
+            ToastService.Show(player, ToastKind.Teleport, "OBRÓCENIE");
         }
     }
 }

@@ -10,7 +10,7 @@ namespace Supermoce
     {
         private const Skills skillName = Skills.SlowHost;
         private static bool skillExists = false;
-        private static readonly ConcurrentDictionary<ulong, int> affectedPlayers = [];
+        private static readonly ConcurrentDictionary<int, int> affectedPlayers = [];
 
         public static void LoadSkill()
         {
@@ -61,7 +61,7 @@ namespace Supermoce
             if (playerPawn == null || !playerPawn.IsValid) return;
             if(skillExists)
             {
-                affectedPlayers.TryAdd(player.SteamID, 0);
+                affectedPlayers.TryAdd(player.Slot, 0);
             } 
         }
 
@@ -70,7 +70,7 @@ namespace Supermoce
             if (!skillExists) return;
             foreach (var player in SkillUtils.CachedPlayers)
             {
-                if(!affectedPlayers.ContainsKey(player.SteamID)) continue;
+                if(!affectedPlayers.ContainsKey(player.Slot)) continue;
 
                 var playerPawn = player.PlayerPawn?.Value;
                 if (playerPawn == null || playerPawn.VelocityModifier == 0) continue;

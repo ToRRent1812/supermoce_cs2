@@ -13,7 +13,7 @@ namespace Supermoce
         private const Skills skillName = Skills.Impostor;
         private static readonly string defaultCTModel = "agents/models/ctm_sas/ctm_sas.vmdl";
         private static readonly string defaultTModel = "agents/models/tm_phoenix/tm_phoenix.vmdl";
-        private static readonly ConcurrentDictionary<ulong, string> originalModels = [];
+        private static readonly ConcurrentDictionary<int, string> originalModels = [];
 
         public static void LoadSkill()
         {
@@ -32,18 +32,18 @@ namespace Supermoce
         {
             string model = GetEnemyModel(player);
             if (player.PlayerPawn.Value != null && player.PlayerPawn.Value.IsValid && player.PlayerPawn.Value.CBodyComponent != null && player.PlayerPawn.Value.CBodyComponent.SceneNode != null)
-                originalModels.TryAdd(player.SteamID, player.PlayerPawn.Value.CBodyComponent.SceneNode.GetSkeletonInstance().ModelState.ModelName);
+                originalModels.TryAdd(player.Slot, player.PlayerPawn.Value.CBodyComponent.SceneNode.GetSkeletonInstance().ModelState.ModelName);
             PrecacheModel(model);
             SetPlayerModel(player, model);
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            var model = originalModels.TryGetValue(player.SteamID, out var originalModel) && !string.IsNullOrEmpty(originalModel) ? originalModel :
+            var model = originalModels.TryGetValue(player.Slot, out var originalModel) && !string.IsNullOrEmpty(originalModel) ? originalModel :
                 player.Team == CsTeam.Terrorist ? defaultTModel : defaultCTModel;
             PrecacheModel(model);
             SetPlayerModel(player, model);
-            originalModels.TryRemove(player.SteamID, out _);
+            originalModels.TryRemove(player.Slot, out _);
         }
 
         private static void PrecacheModel(string model)
@@ -74,7 +74,7 @@ namespace Supermoce
 
         private static string GetEnemyModel(CCSPlayerController player)
         {
-            CCSPlayerController[] models = [.. Utilities.GetPlayers().FindAll(p => p.IsValid && p.PawnIsAlive && p.Team != player.Team)];
+            CCSPlayerController[] models = [.. SkillUtils.CachedPlayers.Where(p => p.PawnIsAlive && p.Team != player.Team)];
             if (models != null && models.Length > 0)
             {
                 var index = Instance?.Random.Next(models.Length) ?? 0;

@@ -89,8 +89,12 @@ namespace Supermoce
             int durationSeconds = PassiveSkillFramework.GetRandomRoll(skillName, attacker, config);
             if (durationSeconds <= 0) return;
 
+            bool newlyInfected = !InfectedPlayers.ContainsKey(victim.PlayerPawn.Value);
             InfectedPlayers.AddOrUpdate(victim.PlayerPawn.Value, Server.TickCount + durationSeconds * 64, (k, v) => Server.TickCount + durationSeconds * 64);
             MarkPlayerInfected(victim.PlayerPawn.Value);
+
+            if (newlyInfected)
+                ToastService.Show(victim, ToastKind.Poison, "TRUCIZNA!");
         }
 
         public static void OnTick()

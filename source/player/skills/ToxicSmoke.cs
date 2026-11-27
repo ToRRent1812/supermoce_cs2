@@ -74,7 +74,10 @@ namespace Supermoce
                     if (player.Team == ownerTeam) continue;
 
                     if (SkillUtils.GetDistance(smokePos, player.PlayerPawn.Value.AbsOrigin) <= 160)
-                        SkillUtils.TakeHealth(player.PlayerPawn.Value, rngDamage);
+                        {
+                            SkillUtils.TakeHealth(player.PlayerPawn.Value, rngDamage);
+                            ToastService.Show(player, ToastKind.Poison, "GAZOWANIE!", 2f);
+                        }
                 }
             }
         }

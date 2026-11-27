@@ -1,0 +1,77 @@
+<root>
+	<styles>
+		<include src="s2r://panorama/styles/csgostyles.vcss_c" />
+		<include src="s2r://panorama/styles/custom_game/supermoce/common_v3.vcss_c" />
+		<include src="s2r://panorama/styles/custom_game/supermoce/tones_v3.vcss_c" />
+		<include src="s2r://panorama/styles/custom_game/supermoce/skill_menu_v3.vcss_c" />
+	</styles>
+
+	<!-- Supermoce menu v3: rows 0-7, root id = SmMenuRoot. -->
+	<Panel class="SmScreen" hittest="false">
+		<Panel id="SmMenuRoot" class="SmMenu sm-off" hittest="false">
+			<Panel class="SmMenuContent" hittest="false">
+				<Panel class="SmMenuHeader" hittest="false">
+					<Panel class="SmMenuHeadText" hittest="false">
+						<Label class="SmMenuTitle" text="{s:menu_title}" hittest="false" />
+						<Label class="SmMenuSubtitle" text="{s:menu_subtitle}" hittest="false" />
+					</Panel>
+					<Button id="menu_close" class="SmMenuClose"><Label class="SmMenuCloseX" text="&#215;" hittest="false" /></Button>
+				</Panel>
+				<Panel class="SmMenuDivider" hittest="false" />
+				<Panel id="row0" class="SmMenuRow" hittest="false">
+					<Button id="row0_btn" class="SmMenuRowBtn">
+						<Label class="SmMenuRowTitle" text="{s:row0_title}" hittest="false" />
+						<Label class="SmMenuRowSub" text="{s:row0_sub}" hittest="false" />
+					</Button>
+				</Panel>
+				<Panel id="row1" class="SmMenuRow" hittest="false">
+					<Button id="row1_btn" class="SmMenuRowBtn">
+						<Label class="SmMenuRowTitle" text="{s:row1_title}" hittest="false" />
+						<Label class="SmMenuRowSub" text="{s:row1_sub}" hittest="false" />
+					</Button>
+				</Panel>
+				<Panel id="row2" class="SmMenuRow" hittest="false">
+					<Button id="row2_btn" class="SmMenuRowBtn">
+						<Label class="SmMenuRowTitle" text="{s:row2_title}" hittest="false" />
+						<Label class="SmMenuRowSub" text="{s:row2_sub}" hittest="false" />
+					</Button>
+				</Panel>
+				<Panel id="row3" class="SmMenuRow" hittest="false">
+					<Button id="row3_btn" class="SmMenuRowBtn">
+						<Label class="SmMenuRowTitle" text="{s:row3_title}" hittest="false" />
+						<Label class="SmMenuRowSub" text="{s:row3_sub}" hittest="false" />
+					</Button>
+				</Panel>
+				<Panel id="row4" class="SmMenuRow" hittest="false">
+					<Button id="row4_btn" class="SmMenuRowBtn">
+						<Label class="SmMenuRowTitle" text="{s:row4_title}" hittest="false" />
+						<Label class="SmMenuRowSub" text="{s:row4_sub}" hittest="false" />
+					</Button>
+				</Panel>
+				<Panel id="row5" class="SmMenuRow" hittest="false">
+					<Button id="row5_btn" class="SmMenuRowBtn">
+						<Label class="SmMenuRowTitle" text="{s:row5_title}" hittest="false" />
+						<Label class="SmMenuRowSub" text="{s:row5_sub}" hittest="false" />
+					</Button>
+				</Panel>
+				<Panel id="row6" class="SmMenuRow" hittest="false">
+					<Button id="row6_btn" class="SmMenuRowBtn">
+						<Label class="SmMenuRowTitle" text="{s:row6_title}" hittest="false" />
+						<Label class="SmMenuRowSub" text="{s:row6_sub}" hittest="false" />
+					</Button>
+				</Panel>
+				<Panel id="row7" class="SmMenuRow" hittest="false">
+					<Button id="row7_btn" class="SmMenuRowBtn">
+						<Label class="SmMenuRowTitle" text="{s:row7_title}" hittest="false" />
+						<Label class="SmMenuRowSub" text="{s:row7_sub}" hittest="false" />
+					</Button>
+				</Panel>
+				<Panel class="SmMenuNav" hittest="false">
+					<Button id="nav_prev" class="SmMenuNavButton"><Label text="&#8249;" hittest="false" /></Button>
+					<Label class="SmMenuPage" text="{s:menu_page}" hittest="false" />
+					<Button id="nav_next" class="SmMenuNavButton"><Label text="&#8250;" hittest="false" /></Button>
+				</Panel>
+			</Panel>
+		</Panel>
+	</Panel>
+</root>

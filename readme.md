@@ -1,8 +1,10 @@
-Jest to fork jrandomskills, który jest forkiem drandomskills.
+# Supermoce CS2
 
-Ta wersja jest używana na serwerze Nostalgia i została mocno przebudowana pod moje widzimisię
+Fork jrandomskills (który jest forkiem drandomskills), używany na serwerze Nostalgia.
+Losowe supermoce dla graczy, przebudowane pod aktualne CS2 i CounterStrikeSharp.
 
-Co wyróżnia tą wersję od jrandomskills?
+## Co jest innego?
+
 - Odchudzenie skryptu z niepotrzebnych funkcji
 - Optymalizacja kodu
 - Dodatkowe null checki by zminimalizować ryzyko zawieszenia serwera
@@ -15,11 +17,23 @@ Co wyróżnia tą wersję od jrandomskills?
 - Niektóre supermoce mają zmienioną nazwę lub funkcję
 - Wszystkie supermoce na przycisk mają losowy cooldown
 - Dodałem nowe moce: Komandos, Dopaminka, CS2, Trujące naboje, Ciepłe piwo, Ćpun, Komornik, Rusznikarz, Krwiopijca, Matrix, Chachmęciarz, Bąk morderca, Podejrzane naboje, Zdrajca, Szybka pomoc, Half-Life, Owsiak, Robin Hood, Chemik, Ciężarne hosty, Strzał w kolano, Skarbówka, Inflacja, NanoKevlar, Olbrzym, Zamiana respów, Psychopata, Burza piaskowa, Nalot powietrzny, Konfiskata, Super Smoke, Wąski, Mr. Błysk, Granat sprawiedliwości, Realizm, Medytacja, Telewabik
+- Dodałem własny HUD Panorama przez co plugin nie gryzie się z innymi pluginami
 
 I wiele więcej, ale już zapomniałem, co się zmieniło.
 
+## Instalacja
 
-# Instalacja moda
+Pobierz i zainstaluj na serwerze:
+- [Najnowszy Metamod:Source](https://www.metamodsource.net/downloads.php?branch=dev)
+- [Najnowszy CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp/releases)
+- [Najnowszy MultiAddonManager](https://github.com/Source2ZE/MultiAddonManager) z wymuszeniem pobierania [tego dodatku](https://steamcommunity.com/sharedfiles/filedetails/?id=3846338191)
+
 Pobierz .zip z zakładki [Releases](https://github.com/ToRRent1812/supermoce_cs2/releases)  
 Wypakuj do ```server/game/csgo/addons/counterstrikesharp/```  
-Wymagany na serwerze najnowszy [metamod source](https://www.metamodsource.net/downloads.php?branch=dev) oraz [counterstrikesharp](https://github.com/roflmuffin/CounterStrikeSharp/releases)
+Dopisz wewnątrz
+`game/csgo/cfg/multiaddonmanager/multiaddonmanager.cfg`
+
+```
+mm_extra_addons "3846338191"
+```
+

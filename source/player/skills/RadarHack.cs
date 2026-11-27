@@ -1,5 +1,4 @@
-﻿using CounterStrikeSharp.API;
-using CounterStrikeSharp.API.Core;
+﻿using CounterStrikeSharp.API.Core;
 using Supermoce.src.player;
 
 namespace Supermoce
@@ -35,7 +34,7 @@ namespace Supermoce
             if (player == null || !player.IsValid || player.PlayerPawn?.Value == null) return;
             int playerIndex = (int)player.Index - 1;
 
-            foreach (var enemy in Utilities.GetPlayers().FindAll(p => p.Team != player.Team && p.PawnIsAlive))
+            foreach (var enemy in SkillUtils.CachedPlayers.Where(p => p.Team != player.Team && p.PawnIsAlive))
             {
                 var enemyPawn = enemy.PlayerPawn.Value;
                 if (enemyPawn == null) continue;
@@ -43,13 +42,8 @@ namespace Supermoce
 
             }
 
-            var bombEntities = Utilities.FindAllEntitiesByDesignerName<CC4>("weapon_c4").ToList();
-            if (bombEntities.Any())
-            {
-                var bomb = bombEntities.FirstOrDefault();
-                if (bomb != null)
-                    bomb.EntitySpottedState.SpottedByMask[0] |= 1u << playerIndex % 32;
-            }
+            if (Bomb.Carried is { } bomb && bomb.IsValid)
+                bomb.EntitySpottedState.SpottedByMask[0] |= 1u << playerIndex % 32;
         }
     }
 }

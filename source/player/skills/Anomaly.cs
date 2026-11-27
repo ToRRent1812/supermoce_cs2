@@ -10,7 +10,7 @@ namespace Supermoce
     {
         private const Skills skillName = Skills.Anomaly;
         private static readonly int maxSize = 4;
-        private static readonly ConcurrentDictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
+        private static readonly ConcurrentDictionary<int, PlayerSkillInfo> SkillPlayerInfo = [];
         private static readonly object setLock = new();
 
         public static void LoadSkill()
@@ -40,7 +40,7 @@ namespace Supermoce
                 var playerInfo = SkillUtils.GetPlayerInfo(player);
                 if (playerInfo?.Skill != skillName) continue;
 
-                if (!SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo))
+                if (!SkillPlayerInfo.TryGetValue(player.Slot, out var skillInfo))
                     continue;
 
                 if (Server.TickCount % 64 != 0) continue;
@@ -61,9 +61,9 @@ namespace Supermoce
 
         public static void EnableSkill(CCSPlayerController player)
         {
-            SkillPlayerInfo.TryAdd(player.SteamID, new PlayerSkillInfo
+            SkillPlayerInfo.TryAdd(player.Slot, new PlayerSkillInfo
             {
-                SteamID = player.SteamID,
+                Slot = player.Slot,
                 LastPositions = [],
                 LastRotations = [], 
             });
@@ -74,13 +74,13 @@ namespace Supermoce
                 ActiveSkillFramework.OnSkillEnabled(skillName, player, config);
 
                 if (ActiveSkillFramework.TryGetSkillState(skillName, player, out var state) && state != null)
-                    state.LastUseTime = DateTime.Now - TimeSpan.FromSeconds(state.CooldownSeconds - 10);
+                    state.LastUseTime = Server.CurrentTime - (state.CooldownSeconds - 10);
             }
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            SkillPlayerInfo.TryRemove(player.SteamID, out _);
+            SkillPlayerInfo.TryRemove(player.Slot, out _);
             ActiveSkillFramework.OnSkillDisabled(skillName, player);
         }
 
@@ -92,7 +92,7 @@ namespace Supermoce
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn?.CBodyComponent == null) return;
             if (!player.IsValid || !player.PawnIsAlive) return;
-            if (!SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo)) return;
+            if (!SkillPlayerInfo.TryGetValue(player.Slot, out var skillInfo)) return;
             if (skillInfo.LastRotations == null || skillInfo.LastRotations.Count == 0 || skillInfo.LastPositions == null || skillInfo.LastPositions.Count == 0)
                 return;
 
@@ -106,7 +106,7 @@ namespace Supermoce
 
         public class PlayerSkillInfo
         {
-            public ulong SteamID { get; set; }
+            public int Slot { get; set; }
             public ConcurrentQueue<Vector>? LastPositions { get; set; }
             public ConcurrentQueue<QAngle>? LastRotations { get; set; }
         }

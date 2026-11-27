@@ -29,7 +29,7 @@ namespace Supermoce
             if (enemyPawn != null && enemyPawn.IsValid)
                 SkillUtils.TakeHealth(enemyPawn, enemyPawn.Health / 2);
 
-            SkillUtils.PrintToChat(enemy, $"Wróg usunął Ci połowę zdrowia", true);
+            ToastService.Show(enemy, ToastKind.Damage, "-50% HP!");
             if (playerInfo != null) playerInfo.SkillChance = 1;
         }
 

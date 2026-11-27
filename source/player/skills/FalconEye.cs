@@ -12,7 +12,7 @@ namespace Supermoce
     public class FalconEye : ISkill
     {
         private const Skills skillName = Skills.FalconEye;
-        private static readonly ConcurrentDictionary<ulong, (uint, CDynamicProp)> cameras = [];
+        private static readonly ConcurrentDictionary<int, (uint, CDynamicProp)> cameras = [];
 
         public static void LoadSkill()
         {
@@ -42,7 +42,7 @@ namespace Supermoce
             var pawn = player!.PlayerPawn.Value;
             if (pawn == null || !pawn.IsValid || pawn.CameraServices == null) return;
 
-            if (cameras.TryGetValue(player!.SteamID, out var cameraInfo) && cameraInfo.Item1 == pawn.CameraServices.ViewEntity.Raw)
+            if (cameras.TryGetValue(player!.Slot, out var cameraInfo) && cameraInfo.Item1 == pawn.CameraServices.ViewEntity.Raw)
                 BlockWeapon(player, true);
         }
 
@@ -50,10 +50,7 @@ namespace Supermoce
         {
             if (SkillUtils.IsFreezetime()) return;
             if (!player.IsValid || !player.PawnIsAlive)
-            {
-                SkillUtils.PrintToChat(player, $"Nie możesz użyć tej mocy będąc martwym!", true);
                 return;
-            }
             var playerPawn = player.PlayerPawn.Value;
             if (playerPawn?.CBodyComponent == null) return;
             ChangeCamera(player);
@@ -67,8 +64,8 @@ namespace Supermoce
         public static void OnTick()
         {
             if (SkillUtils.IsFreezetime()) return;
-            foreach (var player in Utilities.GetPlayers())
-                if (cameras.TryGetValue(player.SteamID, out var cameraInfo) && cameraInfo.Item2.IsValid)
+            foreach (var player in SkillUtils.CachedPlayers)
+                if (cameras.TryGetValue(player.Slot, out var cameraInfo) && cameraInfo.Item2.IsValid)
                 {
                     var pawn = player.PlayerPawn.Value;
                     if (pawn == null || !pawn.IsValid || pawn.AbsOrigin ==  null) continue;
@@ -89,7 +86,7 @@ namespace Supermoce
             uint newCameraRaw;
             var pawn = player.PlayerPawn.Value;
             if (pawn == null || !pawn.IsValid || pawn.CameraServices == null) return;
-            if (cameras.TryGetValue(player.SteamID, out var cameraInfo) && cameraInfo.Item2.IsValid)
+            if (cameras.TryGetValue(player.Slot, out var cameraInfo) && cameraInfo.Item2.IsValid)
             {
                 orginalCameraRaw = cameraInfo.Item1;
                 newCameraRaw = cameraInfo.Item2.EntityHandle.Raw;
@@ -128,7 +125,7 @@ namespace Supermoce
                 camera.CBodyComponent.SceneNode.GetSkeletonInstance().Scale = 1;
             Server.NextFrame(() => camera.AcceptInput("SetScale", camera, camera, "1"));
 
-            cameras.AddOrUpdate(player.SteamID, (pawn.CameraServices!.ViewEntity.Raw, camera), (k, v) => (pawn.CameraServices!.ViewEntity.Raw, camera));
+            cameras.AddOrUpdate(player.Slot, (pawn.CameraServices!.ViewEntity.Raw, camera), (k, v) => (pawn.CameraServices!.ViewEntity.Raw, camera));
             return camera.EntityHandle.Raw;
         }
 

@@ -1,0 +1,69 @@
+/* Team powers: MenuManager-style card with an accent rail. */
+
+.SmTeam
+{
+	width: 320px;
+	horizontal-align: right;
+	vertical-align: center;
+	margin-right: 16px;
+	flow-children: right;
+	background-color: #0b0f14d9;
+	border: 1px solid #ffffff14;
+	border-left: 4px solid #FFA9DE;
+	border-radius: 4px;
+	world-blur: gaussian(2.0);
+	box-shadow: #00000066 0px 6px 18px 0px;
+	overflow: noclip;
+}
+
+.SmTeamBody
+{
+	width: fill-parent-flow(1.0);
+	flow-children: down;
+	padding: 10px 14px 12px 14px;
+}
+
+.SmTeamHeader
+{
+	width: 100%;
+	font-family: Stratum2 Bold;
+	font-size: 12px;
+	letter-spacing: 2px;
+	text-transform: uppercase;
+	color: #FFA9DE;
+	margin-bottom: 6px;
+}
+
+.SmTeamRow
+{
+	width: 100%;
+	height: 22px;
+	flow-children: right;
+}
+
+.SmTeamRow.sm-dead
+{
+	opacity: 0.4;
+}
+
+.SmTeamName
+{
+	width: 55%;
+	font-family: Stratum2;
+	font-size: 14px;
+	color: #cdd8e4;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.SmTeamSkill
+{
+	width: 45%;
+	font-family: Stratum2 Bold;
+	font-size: 13px;
+	letter-spacing: 0.5px;
+	text-transform: uppercase;
+	text-align: right;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}

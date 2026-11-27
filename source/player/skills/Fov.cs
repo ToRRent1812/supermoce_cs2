@@ -91,7 +91,7 @@ namespace Supermoce
                         break;
                 }
                 Utilities.SetStateChanged(player, "CBasePlayerController", "m_iDesiredFOV");
-                SkillUtils.PrintToChat(player, $" Przeciwnik Cię upił! Zaraz wytrzeźwiejesz");
+                ToastService.Show(player, ToastKind.Blind, "CIEPŁE PIWO!");
                 Instance?.AddTimer(9.0f, () =>
                 {
                     player.DesiredFOV = 0;

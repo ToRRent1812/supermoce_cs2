@@ -89,7 +89,7 @@ namespace Supermoce
 
         private static bool NearlyEquals(float a, float b, float epsilon = 0.001f) => Math.Abs(a - b) < epsilon;
 
-        public static HookResult OnTakeDamage(CEntityInstance entity, CTakeDamageInfo info)
+        public static HookResult OnEntityTakeDamage(CEntityInstance entity, CTakeDamageInfo info)
         {
             if (lastTick == Server.TickCount) return HookResult.Continue;
 

@@ -28,7 +28,7 @@ namespace Supermoce
                 return;
 
             string enemyId = commands[0];
-            var enemy = Utilities.GetPlayers().FirstOrDefault(p => p.Index.ToString() == enemyId);
+            var enemy = SkillUtils.CachedPlayers.FirstOrDefault(p => p.Index.ToString() == enemyId);
             if (enemy == null)
             {
                 SkillUtils.PrintToChat(player, $"Nie znaleziono gracza o takim ID.", true);
@@ -47,7 +47,7 @@ namespace Supermoce
                 enemy =>
                 {
                     var enemyInfo = SkillUtils.GetPlayerInfo(enemy);
-                    var skillData = enemyInfo == null ? null : SkillData.Skills.FirstOrDefault(s => s.Skill == enemyInfo.Skill);
+                    var skillData = enemyInfo == null ? null : SkillData.Find(enemyInfo.Skill);
                     return skillData != null && skillData.TeamNumber == 0;
                 },
                 null,
@@ -74,6 +74,7 @@ namespace Supermoce
             {
                 playerInfo.Skill = enemySkill;
                 playerInfo.SpecialSkill = skillName;
+                playerInfo.RandomPercentage = "";
                 SkillUtils.CloseMenu(player);
                 Instance?.SkillAction(enemySkill.ToString(), "EnableSkill", [player]);
             });
@@ -84,7 +85,7 @@ namespace Supermoce
                 enemyInfo.SpecialSkill = enemySkill;
                 enemyInfo.Skill = Skills.None;
                 enemyInfo.RandomPercentage = "";
-                SkillUtils.PrintToChat(enemy, $"Wróg ukradł Twoją supermoc", true);
+                ToastService.Show(enemy, ToastKind.Steal, "KRADZIEŻ MOCY!");
             });
         }
     }

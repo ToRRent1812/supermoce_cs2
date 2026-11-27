@@ -1,6 +1,5 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Utils;
 using Supermoce.src.player;
 using static Supermoce.Supermoce;
 
@@ -31,7 +30,7 @@ namespace Supermoce
             int moneyStolen = (enemy!.InGameMoneyServices?.Account ?? 0) / 2;
             AddMoney(enemy, -moneyStolen);
             AddMoney(player, moneyStolen);
-            SkillUtils.PrintToChat(enemy, $" Wróg ukradł Ci połowę kasy {ChatColors.DarkRed}(-{moneyStolen}$)", true);
+            ToastService.Show(enemy, ToastKind.Money, $"-50% $!");
             SkillUtils.PrintToChat(player, $"Ukradłeś {moneyStolen}$.", false);
             if (playerInfo != null) playerInfo.SkillChance = 1;
         }

@@ -43,7 +43,7 @@ namespace Supermoce
                 float range = playerInfo.SkillChance ?? 0;
                 foreach (var target in players)
                 {
-                    if (target.SteamID == player.SteamID) continue;
+                    if (target.Slot == player.Slot) continue;
                     if (target.Team == player.Team) continue;
 
                     var targetPawn = target.PlayerPawn.Value;
@@ -53,6 +53,7 @@ namespace Supermoce
                     {
                         int rngDamage = Instance?.Random.Next(1, 4) ?? 1;
                         SkillUtils.TakeHealth(targetPawn, rngDamage);
+                        ToastService.Show(target, ToastKind.Poison, "SKAŻENIE!", 2f);
                     }
                 }
             }

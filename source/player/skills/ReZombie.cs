@@ -18,7 +18,7 @@ namespace Supermoce
         {
             SkillUtils.RegisterSkill(skillName, 
             "Zombie", 
-            "Po śmierci robisz błysk i odradzasz się jako zombie z nożem i dużą ilością zdrowia", 
+            "Po śmierci robisz błysk i odradzasz się jako zombie z nożem", 
             "#3c922b");
         }
 
@@ -71,7 +71,7 @@ namespace Supermoce
                 SetPlayerColor(pawn, false);
                 player.ExecuteClientCommand("slot3");
                 SkillUtils.AddHealth(pawn, 750, 750);
-                SkillUtils.PrintToChat(player, $"Jesteś zombie! Możesz używać tylko noża");
+                ToastService.Show(player, ToastKind.Info, "Jesteś ZOMBIE! Możesz używać tylko noża.");
                 Vector pos = new(pawn.AbsOrigin?.X ?? 0, pawn.AbsOrigin?.Y ?? 0, pawn.AbsOrigin?.Z ?? 0);
                 SkillUtils.CreateFlashGrenadeProjectile(pos, QAngle.Zero, new Vector(0, 0, 0), player.TeamNum);
             }

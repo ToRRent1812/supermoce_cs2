@@ -1,0 +1,20 @@
+{
+  "SmokeGrenadeProjectile_CreateFunc": {
+    "signatures": {
+      "library": "server",
+      "linux": "55 4C 89 C1 48 89 E5 41 57 41 56"
+    }
+  },
+  "HEGrenadeProjectile_CreateFunc": {
+    "signatures": {
+      "library": "server",
+      "linux": "55 4C 89 C1 48 89 E5 41 57 49 89 FF 41 56 49 89 D6"
+    }
+  },
+  "FlashbangProjectile_CreateFunc": {
+    "signatures": {
+      "library": "server",
+      "linux": "55 4C 89 C1 48 89 E5 41 57 45 89 CF 41 56 49 89 FE 41 55 49 89 D5 48 89 F2 48 89 FE 41 54 48 8D 3D ? ? ? ? 4D 89 C4 53 48 83 EC ? E8 ? ? ? ? 4C 89 EE"
+    }
+  }
+}

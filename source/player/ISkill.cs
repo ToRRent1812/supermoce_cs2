@@ -1,6 +1,5 @@
 ﻿using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes;
-using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.UserMessages;
 
 namespace Supermoce.src.player;
@@ -13,7 +12,8 @@ public interface ISkill
     public static void UseSkill(CCSPlayerController _) { }
     public static void TypeSkill(CCSPlayerController _, string[] __) { }
 
-    public static void OnTakeDamage(DynamicHook _) { }
+    public static HookResult OnPlayerTakeDamage(CCSPlayerPawn _, CTakeDamageInfo _info) => HookResult.Continue;
+    public static HookResult OnEntityTakeDamage(CEntityInstance _, CTakeDamageInfo _info) => HookResult.Continue;
     public static void OnEntitySpawned(CEntityInstance _) { }
     public static void OnTick() { }
     public static void CheckTransmit([CastFrom(typeof(nint))] CCheckTransmitInfoList _) { }
@@ -34,7 +34,20 @@ public interface ISkill
     public static void BombBeginplant(EventBombBeginplant _) { }
     public static void BombPlanted(EventBombPlanted _) { }
     public static void BombBegindefuse(EventBombBegindefuse _) { }
+    public static void BombAbortplant(EventBombAbortplant _) { }
+    public static void BombAbortdefuse(EventBombAbortdefuse _) { }
+    public static void BombDefused(EventBombDefused _) { }
+    public static void BombExploded(EventBombExploded _) { }
+    public static void BombDropped(EventBombDropped _) { }
+    public static void BombPickup(EventBombPickup _) { }
     public static void HostageFollows(EventHostageFollows _) { }
+    public static void HostageRescued(EventHostageRescued _) { }
+    public static void HostageRescuedAll(EventHostageRescuedAll _) { }
+    public static void HostageKilled(EventHostageKilled _) { }
+    public static void HostageHurt(EventHostageHurt _) { }
+    public static void HostageStopsFollowing(EventHostageStopsFollowing _) { }
+    public static void EnterBombzone(EventEnterBombzone _) { }
+    public static void ExitBombzone(EventExitBombzone _) { }
 
     public static void DecoyStarted(EventDecoyStarted _) { }
     public static void DecoyDetonate(EventDecoyDetonate _) { }

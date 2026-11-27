@@ -9,7 +9,7 @@ namespace Supermoce
     public class Giant : ISkill, IMenuSkill
     {
         private const Skills skillName = Skills.Giant;
-        private static readonly ConcurrentDictionary<ulong, int> giants = [];
+        private static readonly ConcurrentDictionary<int, int> giants = [];
 
         public static void LoadSkill()
         {
@@ -35,7 +35,7 @@ namespace Supermoce
         {
             foreach (var player in SkillUtils.CachedPlayers)
             {
-                if (!giants.ContainsKey(player.SteamID)) continue;
+                if (!giants.ContainsKey(player.Slot)) continue;
 
                 var playerPawn = player.PlayerPawn?.Value;
                 if (playerPawn == null || playerPawn.VelocityModifier != 0.7f) continue;
@@ -55,8 +55,8 @@ namespace Supermoce
             var enemyPawn = enemy!.PlayerPawn.Value;
             if (enemyPawn != null && enemyPawn.IsValid)
                 enemyPawn.ActualGravityScale = 0.9f;
-            SkillUtils.PrintToChat(enemy, $" Wróg Cię powiększył", true);
-            giants.TryAdd(enemy.SteamID, 0);
+            ToastService.Show(enemy, ToastKind.Info, "POWIĘKSZENIE!");
+            giants.TryAdd(enemy.Slot, 0);
             if (playerInfo != null) playerInfo.SkillChance = 1;
         }
 
@@ -69,7 +69,7 @@ namespace Supermoce
         public static void DisableSkill(CCSPlayerController player)
         {
             MenuSkillFramework.OnSkillDisabled(player);
-            SkillUtils.DestroyTargetingSkill(player, p => giants.TryRemove(p.SteamID, out _));
+            SkillUtils.DestroyTargetingSkill(player, p => giants.TryRemove(p.Slot, out _));
         }
     }
 }

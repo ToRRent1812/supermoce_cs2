@@ -1,0 +1,53 @@
+<root>
+	<styles>
+		<include src="s2r://panorama/styles/csgostyles.vcss_c" />
+		<include src="s2r://panorama/styles/custom_game/supermoce/common_v3.vcss_c" />
+		<include src="s2r://panorama/styles/custom_game/supermoce/tones_v3.vcss_c" />
+		<include src="s2r://panorama/styles/custom_game/supermoce/team_powers_v3.vcss_c" />
+	</styles>
+
+	<!-- Supermoce team powers v3: 9 rows, root id = SmTeamRoot. -->
+	<Panel class="SmScreen" hittest="false">
+		<Panel id="SmTeamRoot" class="SmTeam sm-off" hittest="false">
+			<Panel class="SmTeamBody" hittest="false">
+				<Label class="SmTeamHeader" text="Supermoce kolegów" hittest="false" />
+				<Panel id="SmTeamRow0" class="SmTeamRow" hittest="false">
+					<Label id="SmTeamName0" class="SmTeamName" text="{s:sm_t0_name}" hittest="false" />
+					<Label id="SmTeamSkill0" class="SmTeamSkill" text="{s:sm_t0_skill}" hittest="false" />
+				</Panel>
+				<Panel id="SmTeamRow1" class="SmTeamRow" hittest="false">
+					<Label id="SmTeamName1" class="SmTeamName" text="{s:sm_t1_name}" hittest="false" />
+					<Label id="SmTeamSkill1" class="SmTeamSkill" text="{s:sm_t1_skill}" hittest="false" />
+				</Panel>
+				<Panel id="SmTeamRow2" class="SmTeamRow" hittest="false">
+					<Label id="SmTeamName2" class="SmTeamName" text="{s:sm_t2_name}" hittest="false" />
+					<Label id="SmTeamSkill2" class="SmTeamSkill" text="{s:sm_t2_skill}" hittest="false" />
+				</Panel>
+				<Panel id="SmTeamRow3" class="SmTeamRow" hittest="false">
+					<Label id="SmTeamName3" class="SmTeamName" text="{s:sm_t3_name}" hittest="false" />
+					<Label id="SmTeamSkill3" class="SmTeamSkill" text="{s:sm_t3_skill}" hittest="false" />
+				</Panel>
+				<Panel id="SmTeamRow4" class="SmTeamRow" hittest="false">
+					<Label id="SmTeamName4" class="SmTeamName" text="{s:sm_t4_name}" hittest="false" />
+					<Label id="SmTeamSkill4" class="SmTeamSkill" text="{s:sm_t4_skill}" hittest="false" />
+				</Panel>
+				<Panel id="SmTeamRow5" class="SmTeamRow" hittest="false">
+					<Label id="SmTeamName5" class="SmTeamName" text="{s:sm_t5_name}" hittest="false" />
+					<Label id="SmTeamSkill5" class="SmTeamSkill" text="{s:sm_t5_skill}" hittest="false" />
+				</Panel>
+				<Panel id="SmTeamRow6" class="SmTeamRow" hittest="false">
+					<Label id="SmTeamName6" class="SmTeamName" text="{s:sm_t6_name}" hittest="false" />
+					<Label id="SmTeamSkill6" class="SmTeamSkill" text="{s:sm_t6_skill}" hittest="false" />
+				</Panel>
+				<Panel id="SmTeamRow7" class="SmTeamRow" hittest="false">
+					<Label id="SmTeamName7" class="SmTeamName" text="{s:sm_t7_name}" hittest="false" />
+					<Label id="SmTeamSkill7" class="SmTeamSkill" text="{s:sm_t7_skill}" hittest="false" />
+				</Panel>
+				<Panel id="SmTeamRow8" class="SmTeamRow" hittest="false">
+					<Label id="SmTeamName8" class="SmTeamName" text="{s:sm_t8_name}" hittest="false" />
+					<Label id="SmTeamSkill8" class="SmTeamSkill" text="{s:sm_t8_skill}" hittest="false" />
+				</Panel>
+			</Panel>
+		</Panel>
+	</Panel>
+</root>

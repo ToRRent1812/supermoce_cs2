@@ -2,15 +2,11 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
-using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
-using CounterStrikeSharp.API.Modules.Menu;
 using CounterStrikeSharp.API.Modules.Utils;
-using MenuManager;
 using Supermoce.src.player;
 using System.Collections.Concurrent;
 using System.Globalization;
-using System.Runtime.InteropServices;
 
 namespace Supermoce
 {
@@ -19,43 +15,61 @@ namespace Supermoce
         private static readonly MemoryFunctionWithReturn<IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, int> HEGrenadeProjectile_CreateFunc = new(GameData.GetSignature("HEGrenadeProjectile_CreateFunc"));
         private static readonly MemoryFunctionWithReturn<IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, int, int, CSmokeGrenadeProjectile> SmokeGrenadeProjectile_CreateFunc = new(GameData.GetSignature("SmokeGrenadeProjectile_CreateFunc"));
         private static readonly MemoryFunctionWithReturn<IntPtr, IntPtr, IntPtr, IntPtr, IntPtr, int, int, CFlashbangProjectile> FlashbangProjectile_CreateFunc = new(GameData.GetSignature("FlashbangProjectile_CreateFunc"));
-        private static readonly MemoryFunctionVoid<nint, float, RoundEndReason, nint, nint> TerminateRoundFunc = new(GameData.GetSignature("CCSGameRules_TerminateRound"));
         public static CCSPlayerController[] CachedPlayers { get; private set; } = [];
+        public static CCSPlayerController[] CachedHumans { get; private set; } = [];
         public static int CurrentTick { get; private set; }
         private static SkillPlayerInfo[] _cachedSkillSnapshot = [];
-        private static readonly ConcurrentDictionary<ulong, SkillPlayerInfo> _playerInfoCache = [];
+        private static readonly ConcurrentDictionary<int, SkillPlayerInfo> _playerInfoCache = [];
+        public static CCSPlayerController[] AllPlayers()
+        {
+            var list = new List<CCSPlayerController>(Server.MaxPlayers);
+            for (int slot = 0; slot < Server.MaxPlayers; slot++)
+            {
+                var player = Utilities.GetPlayerFromSlot(slot);
+                if (player == null || !player.IsValid || player.IsHLTV) continue;
+                list.Add(player);
+            }
+            return list.ToArray();
+        }
+
         public static void RefreshTickState()
         {
             CurrentTick = Server.TickCount;
-            CachedPlayers = Utilities.GetPlayers().Where(p => p.IsValid && !p.IsBot && !p.IsHLTV).ToArray();
+            var players = AllPlayers();
+            if (players.Length == CachedPlayers.Length)
+            {
+                bool same = true;
+                for (int i = 0; i < players.Length; i++)
+                {
+                    if (players[i].Slot != CachedPlayers[i].Slot || players[i].IsBot != CachedPlayers[i].IsBot) { same = false; break; }
+                }
+                if (same) return;
+            }
+            CachedPlayers = players;
+            CachedHumans = players.Where(p => !p.IsBot).ToArray();
             _cachedSkillSnapshot = Supermoce.Instance?.SkillPlayer?.Values.ToArray() ?? [];
             _playerInfoCache.Clear();
             foreach (var sp in _cachedSkillSnapshot)
-                _playerInfoCache.TryAdd(sp.SteamID, sp);
+                _playerInfoCache.TryAdd(sp.Slot, sp);
+        }
+
+        public static void ForceRefresh()
+        {
+            CachedPlayers = [];
+            CachedHumans = [];
         }
         public static SkillPlayerInfo? GetPlayerInfo(CCSPlayerController? player)
         {
             if (player == null || !player.IsValid) return null;
-            _playerInfoCache.TryGetValue(player.SteamID, out var info);
+            _playerInfoCache.TryGetValue(player.Slot, out var info);
             return info;
         }
         public static SkillPlayerInfo[] GetSkillSnapshot() => _cachedSkillSnapshot;
-        private static SkillInfo[] _cachedSkillsArray = [];
-        private static int _cachedSkillsHash;
-        public static SkillInfo[] GetCachedSkillsArray()
-        {
-            int currentCount = SkillData.Skills.Count;
-            if (_cachedSkillsHash != currentCount)
-            {
-                _cachedSkillsArray = [.. SkillData.Skills];
-                _cachedSkillsHash = currentCount;
-            }
-            return _cachedSkillsArray;
-        }
         private static string ChatIcon(bool isError) => isError ? $"{ChatColors.DarkRed}✖{ChatColors.LightRed}" : $"{ChatColors.Green}►{ChatColors.Lime}";
 
         public static void PrintToChat(CCSPlayerController player, string msg, bool isError = false)
         {
+            if (player == null || !player.IsValid || player.IsBot) return;
             player.PrintToChat($"{ChatIcon(isError)} {msg}");
         }
         public static void PrintToChatAll(string msg, bool isError = false)
@@ -66,8 +80,9 @@ namespace Supermoce
         {
             if (!SkillData.Skills.Any(s => s.Skill == skill))
             {
-                SkillData.Skills.Add(new SkillInfo(skill, name, desc, color, teamnum, objective));
-                _cachedSkillsHash = 0;
+                var info = new SkillInfo(skill, name, desc, color, teamnum, objective);
+                SkillData.Skills.Add(info);
+                SkillData.BySkill[skill] = info;
             }
         }
         public static void RegisterPassiveSkill(
@@ -102,8 +117,7 @@ namespace Supermoce
             byte objective = 0,
             int minCooldown = 15,
             int maxCooldown = 50,
-            int cooldownStep = 5,
-            bool useCustomHud = false)
+            int cooldownStep = 5)
         {
             RegisterSkill(skill, name, description, color, teamnum, objective);
             var config = new ActiveSkillConfig
@@ -111,7 +125,6 @@ namespace Supermoce
                 MinCooldown = minCooldown,
                 MaxCooldown = maxCooldown,
                 CooldownStep = cooldownStep,
-                UseCustomHud = useCustomHud,
             };
             SkillData.ActiveSkillConfigs[skill] = config;
         }
@@ -242,89 +255,14 @@ namespace Supermoce
                 ("weapon_m4a1", 60) => "weapon_m4a1_silencer",
                 ("weapon_hkp2000", 61) => "weapon_usp_silencer",
                 ("weapon_deagle", 64) => "weapon_revolver",
-                // Only a subset of skin-swapped variants are remapped; other variants use the base designer name.
                 _ => designerName
             };
 
             return designerName;
         }
-        private static IMenuApi? GetMenuApi()
-        {
-            return Supermoce.Instance?.MenuApi;
-        }
+        public static void CloseMenu(CCSPlayerController? player) => SkillMenuPanel.Close(player);
 
-        private static readonly ConcurrentDictionary<ulong, IMenu> _activeMenus = [];
-        private static readonly ConcurrentDictionary<ulong, string> _menuSignatures = [];
-
-        public static void CloseMenu(CCSPlayerController? player)
-        {
-            if (player == null) return;
-            _activeMenus.TryRemove(player.SteamID, out _);
-            _menuSignatures.TryRemove(player.SteamID, out _);
-            GetMenuApi()?.CloseMenu(player);
-        }
-        public static bool HasMenu(CCSPlayerController? player)
-        {
-            if (player == null) return false;
-            return GetMenuApi()?.HasOpenedMenu(player) ?? false;
-        }
-
-        private static IMenu CreateMenuFor(CCSPlayerController player, SkillPlayerInfo playerInfo, string title, IEnumerable<(string, string)> items)
-        {
-            IMenu menu = GetMenuApi()!.GetMenu(title);
-            foreach (var item in items)
-                menu.AddMenuOption(item.Item1, (p, option) =>
-                {
-                    Supermoce.Instance?.SkillAction(playerInfo.Skill.ToString(), "TypeSkill", [p, new[] { item.Item2 }]);
-                    CloseMenu(p);
-                });
-            return menu;
-        }
-
-        private static string BuildSignature(IEnumerable<(string, string)> items)
-        {
-            return string.Join('\u0001', items.Select(i => $"{i.Item1}|{i.Item2}"));
-        }
-
-        public static void UpdateMenu(CCSPlayerController? player, ConcurrentBag<(string, string)> items)
-        {
-            if (player == null) return;
-
-            var playerInfo = GetPlayerInfo(player);
-            if (playerInfo == null) return;
-
-            if (!_activeMenus.TryGetValue(player.SteamID, out var menu) || menu == null)
-                return;
-
-            string signature = BuildSignature(items);
-            if (_menuSignatures.TryGetValue(player.SteamID, out var last) && last == signature)
-                return;
-
-            menu.MenuOptions.Clear();
-            foreach (var item in items)
-                menu.AddMenuOption(item.Item1, (p, option) =>
-                {
-                    Supermoce.Instance?.SkillAction(playerInfo.Skill.ToString(), "TypeSkill", [p, new[] { item.Item2 }]);
-                    CloseMenu(p);
-                });
-
-            _menuSignatures[player.SteamID] = signature;
-            menu.Open(player);
-        }
-
-        private static (CCSPlayerController player, SkillPlayerInfo playerInfo, SkillInfo skillData, IMenuApi api, string skillTitle)? BuildMenuContext(CCSPlayerController? player, Skills? overrideSkill = null)
-        {
-            if (player?.IsValid != true) return null;
-            var playerInfo = GetPlayerInfo(player);
-            if (playerInfo == null) return null;
-            var skill = overrideSkill ?? playerInfo.Skill;
-            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == skill);
-            if (skillData == null) return null;
-            var api = GetMenuApi();
-            if (api == null) return null;
-            string skillTitle = $"{skillData.Description}";
-            return (player, playerInfo, skillData, api, skillTitle);
-        }
+        public static bool HasMenu(CCSPlayerController? player) => SkillMenuPanel.HasOpen(player);
 
         public static void CreateTargetingMenu(
             CCSPlayerController? player,
@@ -332,10 +270,12 @@ namespace Supermoce
             string? noEnemiesMsg = null,
             Action? onEmpty = null)
         {
-            var ctx = BuildMenuContext(player);
-            if (ctx == null) return;
+            if (player?.IsValid != true) return;
+            var playerInfo = GetPlayerInfo(player);
+            var skillData = playerInfo == null ? null : SkillData.Find(playerInfo.Skill);
+            if (playerInfo == null || skillData == null) return;
 
-            var enemies = GetAliveEnemies(ctx.Value.player)
+            var enemies = GetAliveEnemies(player)
                 .Where(e => enemyFilter == null || enemyFilter(e))
                 .ToArray();
 
@@ -346,69 +286,90 @@ namespace Supermoce
                     onEmpty();
                     return;
                 }
-                PrintToChat(ctx.Value.player, noEnemiesMsg ?? "Nie znaleziono gracza o takim ID.", true);
+                PrintToChat(player, noEnemiesMsg ?? "Nie znaleziono gracza o takim ID.", true);
                 return;
             }
 
-            IMenu menu = CreateMenuFor(ctx.Value.player, ctx.Value.playerInfo, ctx.Value.skillTitle, enemies.Select(e => (e.PlayerName, e.Index.ToString())));
-            _activeMenus[ctx.Value.player.SteamID] = menu;
-            _menuSignatures[ctx.Value.player.SteamID] = BuildSignature(enemies.Select(e => (e.PlayerName, e.Index.ToString())));
-            menu.Open(ctx.Value.player);
+            if (player.IsBot)
+            {
+                var enemy = enemies[Supermoce.Instance?.Random.Next(enemies.Length) ?? 0];
+                Supermoce.Instance?.SkillAction(skillData.Skill.ToString(), "TypeSkill", [player, new[] { enemy.Index.ToString() }]);
+                return;
+            }
+
+            OpenMenu(player, playerInfo, skillData, enemies.Select(e => (e.PlayerName, e.Index.ToString())));
         }
 
         public static void CreateMenu(CCSPlayerController? player, ConcurrentBag<(string, string)> items)
         {
-            var ctx = BuildMenuContext(player);
-            if (ctx == null) return;
+            if (player?.IsValid != true) return;
+            var playerInfo = GetPlayerInfo(player);
+            var skillData = playerInfo == null ? null : SkillData.Find(playerInfo.Skill);
+            if (playerInfo == null || skillData == null) return;
 
-            IMenu menu = CreateMenuFor(ctx.Value.player, ctx.Value.playerInfo, ctx.Value.skillTitle, items);
-            _activeMenus[ctx.Value.player.SteamID] = menu;
-            _menuSignatures[ctx.Value.player.SteamID] = BuildSignature(items);
-            menu.Open(ctx.Value.player);
+            if (player.IsBot)
+            {
+                var options = items.ToArray();
+                if (options.Length > 0)
+                {
+                    var pick = options[Supermoce.Instance?.Random.Next(options.Length) ?? 0];
+                    Supermoce.Instance?.SkillAction(skillData.Skill.ToString(), "TypeSkill", [player, new[] { pick.Item2 }]);
+                }
+                return;
+            }
+
+            OpenMenu(player, playerInfo, skillData, items);
         }
 
         public static void CreateMenu(CCSPlayerController? player, Skills skill)
         {
-            var ctx = BuildMenuContext(player, skill);
-            if (ctx == null) return;
+            if (player?.IsValid != true) return;
+            var playerInfo = GetPlayerInfo(player);
+            var skillData = SkillData.Find(skill);
+            if (playerInfo == null || skillData == null) return;
 
-            IMenu menu = CreateMenuFor(ctx.Value.player, ctx.Value.playerInfo, ctx.Value.skillTitle, []);
-            _activeMenus[ctx.Value.player.SteamID] = menu;
-            _menuSignatures[ctx.Value.player.SteamID] = "";
-            menu.Open(ctx.Value.player);
+            if (player.IsBot) return;
+
+            OpenMenu(player, playerInfo, skillData, []);
+        }
+
+        public static void UpdateMenu(CCSPlayerController? player, ConcurrentBag<(string, string)> items)
+        {
+            if (player == null) return;
+            SkillMenuPanel.Update(player, items.Select(i => new MenuEntry(i.Item1, i.Item2)));
+        }
+
+        private static void OpenMenu(
+            CCSPlayerController player,
+            SkillPlayerInfo playerInfo,
+            SkillInfo skillData,
+            IEnumerable<(string Label, string Payload)> items)
+        {
+            var skill = playerInfo.Skill;
+            SkillMenuPanel.Show(
+                player,
+                skillData.Name,
+                skillData.Description,
+                items.Select(i => new MenuEntry(i.Label, i.Payload)),
+                (p, payload) =>
+                {
+                    Supermoce.Instance?.SkillAction(skill.ToString(), "TypeSkill", [p, new[] { payload }]);
+                    CloseMenu(p);
+                });
         }
 
         public static bool IsWarmup()
         {
-            return Supermoce.Instance?.GameRules?.WarmupPeriod == true;
+            return GameState.Warmup;
         }
 
          public static bool IsFreezetime()
         {
-            return Supermoce.Instance?.GameRules?.FreezePeriod == true;
+            return GameState.FreezePeriod;
         }
 
-        public static void SetTeamScores(short ctScore, short tScore, RoundEndReason roundEndReason)
-        {
-            if (Supermoce.Instance == null || Supermoce.Instance.GameRules == null) return;
-            UpdateServerTeamScores(ctScore, tScore);
-            TerminateRoundFunc.Invoke(Supermoce.Instance.GameRules.Handle, 5f, roundEndReason, 0, 0);
-        }
-
-        public static void TerminateRound(CsTeam winnerTeam)
-        {
-            if (Supermoce.Instance == null || Supermoce.Instance.GameRules == null) return;
-            var teams = Utilities.FindAllEntitiesByDesignerName<CCSTeam>("cs_team_manager");
-            var ctTeam = teams.First(t => t.IsValid && (CsTeam)t.TeamNum == CsTeam.CounterTerrorist);
-            var tTeams = teams.First(t => t.IsValid && (CsTeam)t.TeamNum == CsTeam.Terrorist);
-            if (ctTeam == null || tTeams == null) return;
-
-            short ctScore = (short)(winnerTeam == CsTeam.CounterTerrorist ? ctTeam.Score + 1 : ctTeam.Score);
-            short tScore = (short)(winnerTeam == CsTeam.Terrorist ? tTeams.Score + 1 : tTeams.Score);
-
-            UpdateServerTeamScores(ctScore, tScore);
-            TerminateRoundFunc.Invoke(Supermoce.Instance.GameRules.Handle, 5f, winnerTeam == CsTeam.CounterTerrorist ? RoundEndReason.BombDefused : RoundEndReason.TargetBombed, 0, 0);
-        }
+        public static void TerminateRound(CsTeam winnerTeam) =>
+            MatchScoreService.TerminateRound(winnerTeam);
 
         public static void AwardRoundEndMoney(CsTeam winnerTeam, CCSPlayerController? mvpPlayer = null, RoundEndReason reason = RoundEndReason.BombDefused)
         {
@@ -434,9 +395,9 @@ namespace Supermoce
 
             CsTeam loserTeam = winnerTeam == CsTeam.CounterTerrorist ? CsTeam.Terrorist : CsTeam.CounterTerrorist;
 
-            foreach (var player in Utilities.GetPlayers())
+            foreach (var player in CachedPlayers)
             {
-                if (!player.IsValid || player.IsBot || player.IsHLTV || player.Team == CsTeam.Spectator || player.Team == CsTeam.None)
+                if (player.Team == CsTeam.Spectator || player.Team == CsTeam.None)
                     continue;
 
                 var moneyServices = player.InGameMoneyServices;
@@ -447,7 +408,7 @@ namespace Supermoce
                 if (player.Team == winnerTeam)
                 {
                     currentMoney += teamReward;
-                    if (mvpPlayer != null && player.SteamID == mvpPlayer.SteamID)
+                    if (mvpPlayer != null && player.Slot == mvpPlayer.Slot)
                         currentMoney += individualBonus;
                 }
                 else if (player.Team == loserTeam)
@@ -455,118 +416,6 @@ namespace Supermoce
 
                 moneyServices.Account = Math.Min(currentMoney, maxMoney);
                 Utilities.SetStateChanged(player, "CCSPlayerController", "m_pInGameMoneyServices");
-            }
-        }
-
-        private static void UpdateServerTeamScores(short ctScore, short tScore)
-        {
-            if (Supermoce.Instance == null || Supermoce.Instance.GameRules == null) return;
-            int totalRoundsPlayed = ctScore + tScore;
-            int maxRounds = ConVar<int>.Find("mp_maxrounds")?.Value ?? 24;
-            int halfRounds = maxRounds / 2;
-            int overtimeMaxRounds = ConVar<int>.Find("mp_overtime_maxrounds")?.Value ?? 6;
-            int overtimeLimit = ConVar<int>.Find("mp_overtime_limit")?.Value ?? 1;
-
-            var gameRulesProxy = Supermoce.Instance.GameRules;
-            gameRulesProxy.TotalRoundsPlayed = totalRoundsPlayed;
-            gameRulesProxy.ITotalRoundsPlayed = totalRoundsPlayed;
-            gameRulesProxy.RoundsPlayedThisPhase = totalRoundsPlayed;
-
-            gameRulesProxy.TeamIntroPeriod = false;
-            if (gameRulesProxy.GamePhase == 1 && totalRoundsPlayed < halfRounds)
-            {
-                gameRulesProxy.GamePhase = 0;
-                gameRulesProxy.SwapTeamsOnRestart = true;
-                gameRulesProxy.SwitchingTeamsAtRoundReset = true;
-                gameRulesProxy.RoundsPlayedThisPhase = 0;
-                gameRulesProxy.TeamIntroPeriod = true;
-            }
-
-            if (totalRoundsPlayed < halfRounds)
-                gameRulesProxy.GamePhase = 0;
-            else if (gameRulesProxy.GamePhase == 0)
-            {
-                gameRulesProxy.GamePhase = 1;
-                gameRulesProxy.SwapTeamsOnRestart = true;
-                gameRulesProxy.SwitchingTeamsAtRoundReset = true;
-                gameRulesProxy.RoundsPlayedThisPhase = 0;
-                gameRulesProxy.TeamIntroPeriod = true;
-            }
-
-            var structOffset = Supermoce.Instance.GameRules.Handle + Schema.GetSchemaOffset("CCSGameRules", "m_bMapHasBombZone") + 0x02; // HACK: MCCSMatch lives at m_bMapHasBombZone+0x02 in memory — may break on game update
-            var matchStruct = Marshal.PtrToStructure<MCCSMatch>(structOffset);
-
-            matchStruct.m_totalScore = (short)totalRoundsPlayed;
-            matchStruct.m_actualRoundsPlayed = (short)totalRoundsPlayed;
-            gameRulesProxy.MatchInfoDecidedTime = Server.CurrentTime;
-
-            matchStruct.m_ctScoreTotal = ctScore;
-            gameRulesProxy.AccountCT = ctScore;
-            matchStruct.m_terroristScoreTotal = tScore;
-            gameRulesProxy.AccountTerrorist = tScore;
-
-            if (gameRulesProxy.GamePhase == 0)
-            {
-                matchStruct.m_ctScoreFirstHalf = ctScore;
-                matchStruct.m_terroristScoreFirstHalf = tScore;
-            }
-            else
-            {
-                matchStruct.m_ctScoreSecondHalf = ctScore;
-                matchStruct.m_terroristScoreSecondHalf = tScore;
-            }
-
-            if (totalRoundsPlayed >= maxRounds)
-            {
-                if (gameRulesProxy.OvertimePlaying == 0)
-                {
-                    gameRulesProxy.OvertimePlaying = 1;
-                    gameRulesProxy.SwapTeamsOnRestart = true;
-                    gameRulesProxy.SwitchingTeamsAtRoundReset = true;
-                }
-                else
-                {
-                    int roundsInOvertime = totalRoundsPlayed - maxRounds;
-                    if (roundsInOvertime % overtimeMaxRounds == 0)
-                    {
-                        int currentOvertime = roundsInOvertime / overtimeMaxRounds;
-                        if ( currentOvertime < overtimeLimit)
-                        {
-                            gameRulesProxy.SwapTeamsOnRestart = true;
-                            gameRulesProxy.SwitchingTeamsAtRoundReset = true;
-                        }
-                    }
-                }
-            }
-            Marshal.StructureToPtr(matchStruct, structOffset, true);
-            UpdateClientTeamScores(matchStruct);
-        }
-
-        private static void UpdateClientTeamScores(MCCSMatch match)
-        {
-            var teams = Utilities.FindAllEntitiesByDesignerName<CCSTeam>("cs_team_manager");
-            var ctTeam = teams.First(t => t.IsValid && (CsTeam)t.TeamNum == CsTeam.CounterTerrorist);
-            var tTeams = teams.First(t => t.IsValid && (CsTeam)t.TeamNum == CsTeam.Terrorist);
-
-            if (ctTeam != null && tTeams != null)
-            {
-                ctTeam.Score = match.m_ctScoreTotal;
-                ctTeam.ScoreFirstHalf = match.m_ctScoreFirstHalf;
-                ctTeam.ScoreSecondHalf = match.m_ctScoreSecondHalf;
-                ctTeam.ScoreOvertime = match.m_ctScoreOvertime;
-                Utilities.SetStateChanged(ctTeam, "CTeam", "m_iScore");
-                Utilities.SetStateChanged(ctTeam, "CCSTeam", "m_scoreFirstHalf");
-                Utilities.SetStateChanged(ctTeam, "CCSTeam", "m_scoreSecondHalf");
-                Utilities.SetStateChanged(ctTeam, "CCSTeam", "m_scoreOvertime");
-
-                tTeams.Score = match.m_terroristScoreTotal;
-                tTeams.ScoreFirstHalf = match.m_terroristScoreFirstHalf;
-                tTeams.ScoreSecondHalf = match.m_terroristScoreSecondHalf;
-                tTeams.ScoreOvertime = match.m_terroristScoreOvertime;
-                Utilities.SetStateChanged(tTeams, "CTeam", "m_iScore");
-                Utilities.SetStateChanged(tTeams, "CCSTeam", "m_scoreFirstHalf");
-                Utilities.SetStateChanged(tTeams, "CCSTeam", "m_scoreSecondHalf");
-                Utilities.SetStateChanged(tTeams, "CCSTeam", "m_scoreOvertime");
             }
         }
 
@@ -581,7 +430,7 @@ namespace Supermoce
         public static CCSPlayerController? GetEnemyFromCommand(CCSPlayerController player, string[] commands)
         {
             if (commands.Length == 0) return null;
-            return Utilities.GetPlayers()
+            return CachedPlayers
                 .FirstOrDefault(p => p.Team != player.Team && p.Index.ToString() == commands[0]);
         }
 
@@ -664,21 +513,4 @@ namespace Supermoce
         }
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    public struct MCCSMatch
-    {
-        public short m_totalScore;
-        public short m_actualRoundsPlayed;
-        public short m_nOvertimePlaying;
-        public short m_ctScoreFirstHalf;
-        public short m_ctScoreSecondHalf;
-        public short m_ctScoreOvertime;
-        public short m_ctScoreTotal;
-        public short m_terroristScoreFirstHalf;
-        public short m_terroristScoreSecondHalf;
-        public short m_terroristScoreOvertime;
-        public short m_terroristScoreTotal;
-        public short unknown;
-        public int m_phase;
-    }
 }

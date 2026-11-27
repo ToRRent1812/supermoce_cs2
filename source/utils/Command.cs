@@ -1,6 +1,8 @@
+using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
+using PanoramaManager;
 using Supermoce.src.player;
 using static Supermoce.Supermoce;
 
@@ -10,11 +12,23 @@ namespace Supermoce
     {
         public static void Load()
         {
-            Instance?.AddCommand($"css_useskill", "Użyj mocy na dowolnym klawiszu", Command_UseTypeSkill);
-            Instance?.AddCommand($"css_giveskill", "Admin: Nadaj sobie wybraną supermoc (css_giveskill supermoc)", Command_GiveSkill);
+            Instance?.AddPluginCommand($"css_useskill", "Użyj mocy na dowolnym klawiszu", Command_UseTypeSkill);
+            Instance?.AddPluginCommand($"css_giveskill", "Admin: Nadaj sobie wybraną supermoc (css_giveskill supermoc)", Command_GiveSkill);
         }
 
-        [CommandHelper(minArgs: 0, whoCanExecute: CommandUsage.CLIENT_ONLY)]
+        private static void Command_HudDiag(CCSPlayerController? player, CommandInfo _)
+        {
+            if (player == null || !player.IsValid) return;
+
+            var hud = PanoramaBootstrap.SkillHud;
+            string message = $"HUD {HudContract.Version}: init={PanoramaBootstrap.Ready}, handle={(hud != null)}, " +
+                             $"open={hud?.IsOpenFor(player) ?? false}, clicks={Panorama.CanReceiveClicks}, " +
+                             $"path={hud?.LayoutPath ?? "-"}";
+
+            SkillUtils.PrintToChat(player, message, !PanoramaBootstrap.Ready || hud == null);
+            Server.PrintToConsole("[Supermoce] " + message);
+        }
+
         private static void Command_UseTypeSkill(CCSPlayerController? player, CommandInfo _)
         {
             if (player == null || Instance?.GameRules?.FreezePeriod == true) return;
@@ -32,8 +46,6 @@ namespace Supermoce
                 Instance?.SkillAction(playerInfo.Skill.ToString(), "TypeSkill", [player, commands]);
         }
 
-        [CommandHelper(minArgs: 1, usage: "<NazwaSuperMocy>", whoCanExecute: CommandUsage.CLIENT_ONLY)]
-        [RequiresPermissions("@css/cheats")]
         private static void Command_GiveSkill(CCSPlayerController? player, CommandInfo command)
         {
             if (player == null || Instance?.GameRules == null) return;
@@ -61,7 +73,7 @@ namespace Supermoce
                 return;
             }
 
-            var skillData = SkillData.Skills.FirstOrDefault(s => s.Skill == targetSkill);
+            var skillData = SkillData.Find(targetSkill);
             if (skillData == null)
             {
                 SkillUtils.PrintToChat(player, $"Supermoc '{targetSkill}' nie jest zarejestrowana!", true);
@@ -76,6 +88,7 @@ namespace Supermoce
 
             playerInfo.Skill = targetSkill;
             playerInfo.SkillChance = 0;
+            playerInfo.RandomPercentage = "";
             playerInfo.SpecialSkill = Skills.None;
             playerInfo.IsDrawing = false;
             Instance?.SkillAction(targetSkill.ToString(), "EnableSkill", [player]);

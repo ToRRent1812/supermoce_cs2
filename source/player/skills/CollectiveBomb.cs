@@ -9,7 +9,7 @@ namespace Supermoce
     public class CollectiveBomb : ISkill
     {
         private const Skills skillName = Skills.CollectiveBomb;
-        private static readonly ConcurrentDictionary<ulong, byte> bombCarriers = [];
+        private static readonly ConcurrentDictionary<int, byte> bombCarriers = [];
         private static int activeSkillCount = 0;
 
         public static void LoadSkill()
@@ -32,8 +32,8 @@ namespace Supermoce
         {
             Server.NextFrame(() =>
             {
-                foreach (var player in Utilities.GetPlayers()
-                    .Where(p => p.IsValid && !p.IsBot && p.Team == CsTeam.Terrorist))
+                foreach (var player in SkillUtils.CachedPlayers
+                    .Where(p => p.Team == CsTeam.Terrorist))
                 {
                     player.RemoveItemByDesignerName("weapon_c4");
                 }
@@ -46,7 +46,7 @@ namespace Supermoce
             var victim = @event.Userid;
             if (victim == null || !victim.IsValid) return;
             victim.RemoveItemByDesignerName("weapon_c4");
-            bombCarriers.TryRemove(victim.SteamID, out _);
+            bombCarriers.TryRemove(victim.Slot, out _);
         }
 
         public static void EnableSkill(CCSPlayerController _)
@@ -54,19 +54,18 @@ namespace Supermoce
             activeSkillCount += 1;
             Server.NextFrame(() =>
             {
-                foreach (var player in Utilities.GetPlayers()
-                    .Where(p => p.IsValid && !p.IsBot && p.Team == CsTeam.Terrorist && p.PawnIsAlive))
+                foreach (var player in SkillUtils.CachedPlayers
+                    .Where(p => p.Team == CsTeam.Terrorist && p.PawnIsAlive))
                 {
                     var pawn = player.PlayerPawn?.Value;
                     if (pawn?.WeaponServices == null) continue;
 
-                    bool hasC4 = pawn.WeaponServices.MyWeapons
-                        .Any(w => w?.Value?.DesignerName == "weapon_c4");
+                    bool hasC4 = Bomb.IsCarryingBomb(player);
 
                     if (!hasC4)
                     {
                         player.GiveNamedItem("weapon_c4");
-                        bombCarriers.TryAdd(player.SteamID, 0);
+                        bombCarriers.TryAdd(player.Slot, 0);
                     }
                 }
             });
@@ -77,10 +76,9 @@ namespace Supermoce
             activeSkillCount -= 1;
             if (activeSkillCount <= 0)
             {
-                foreach (var steamId in bombCarriers.Keys)
+                foreach (var slot in bombCarriers.Keys)
                 {
-                    var carrier = Utilities.GetPlayers()
-                        .FirstOrDefault(p => p.IsValid && p.SteamID == steamId);
+                    var carrier = Utilities.GetPlayerFromSlot(slot);
                     if (carrier != null)
                         carrier.RemoveItemByDesignerName("weapon_c4");
                 }

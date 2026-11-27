@@ -1,0 +1,15 @@
+<root>
+	<styles>
+		<include src="s2r://panorama/styles/csgostyles.vcss_c" />
+		<include src="s2r://panorama/styles/custom_game/supermoce/common_v3.vcss_c" />
+		<include src="s2r://panorama/styles/custom_game/supermoce/tones_v3.vcss_c" />
+		<include src="s2r://panorama/styles/custom_game/supermoce/spectator_skill_v3.vcss_c" />
+	</styles>
+
+	<!-- Spectator skill v3: one row above the in-game spectator panel. Root id = SmSpecRoot. -->
+	<Panel class="SmScreen" hittest="false">
+		<Panel id="SmSpecRoot" class="SmSpec sm-off" hittest="false">
+			<Label id="SmSpecText" class="SmSpecText" text="{s:sm_spec}" hittest="false" />
+		</Panel>
+	</Panel>
+</root>

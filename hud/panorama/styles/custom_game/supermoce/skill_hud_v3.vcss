@@ -1,0 +1,88 @@
+/* Centre skill HUD: compact MenuManager-style card, no progress bar. */
+
+.SmHud
+{
+	width: 380px;
+	height: fit-children;
+	horizontal-align: center;
+	vertical-align: bottom;
+	/* Sits above the bottom player HUD (health/armour/ammo), like PrintToCenterHtml. */
+	margin-bottom: 72px;
+	flow-children: right;
+	background-color: #0b0f14d9;
+	border: 1px solid #ffffff14;
+	border-left: 4px solid #FFA9DE;
+	border-radius: 4px;
+	world-blur: gaussian(2.0);
+	box-shadow: #00000066 0px 6px 18px 0px;
+	overflow: noclip;
+}
+
+.SmHudBody
+{
+	width: fill-parent-flow(1.0);
+	flow-children: down;
+	padding: 10px 16px 12px 14px;
+}
+
+.SmHudHeader
+{
+	width: 100%;
+	flow-children: right;
+}
+
+.SmHudName
+{
+	width: fit-children;
+	text-align: left;
+	font-family: Stratum2 Bold;
+	font-size: 20px;
+	letter-spacing: 1.5px;
+	text-transform: uppercase;
+}
+
+.SmHudRoll
+{
+	font-family: Stratum2 Mono;
+	font-size: 14px;
+	color: #8b8f94;
+	vertical-align: center;
+	margin-left: 8px;
+}
+
+.SmHudDesc
+{
+	width: 100%;
+	text-align: left;
+	font-family: Stratum2;
+	font-size: 14px;
+	color: #ffffff;
+	margin-top: 4px;
+}
+
+.SmHudStatus
+{
+	width: 100%;
+	text-align: left;
+	font-family: Stratum2;
+	font-size: 13px;
+	color: #cdd8e4;
+	margin-top: 3px;
+}
+
+.SmHud.sm-ready .SmHudStatus
+{
+	color: #DEFF24;
+}
+
+.SmHud.sm-cooling .SmHudStatus
+{
+	color: #FFA600;
+}
+
+.SmHud.sm-nostatus .SmHudStatus
+{
+	visibility: collapse;
+}
+
+/* The roll flash is server-driven: the name text changes five times a second. */

@@ -15,7 +15,7 @@ namespace Supermoce
             SkillUtils.RegisterSkill(
                 skillName,
                 "Super Smoke",
-                "Twoje granaty dymne mają znacznie większą objętość",
+                "Twoje granaty dymne mają większą objętość",
                 "#ff6600");
         }
 

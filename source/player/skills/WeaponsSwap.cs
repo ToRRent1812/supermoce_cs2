@@ -9,7 +9,7 @@ namespace Supermoce
     public class WeaponsSwap : ISkill, IActiveSkill
     {
         private const Skills skillName = Skills.WeaponsSwap;
-        private static readonly ConcurrentDictionary<ulong, PlayerSkillInfo> SkillPlayerInfo = [];
+        private static readonly ConcurrentDictionary<int, PlayerSkillInfo> SkillPlayerInfo = [];
         private static readonly object setLock = new();
 
         private static readonly string[] primaryWeapons = [ "weapon_mp9", "weapon_mac10", "weapon_bizon", "weapon_mp7",
@@ -46,10 +46,10 @@ namespace Supermoce
             if (config != null)
                 ActiveSkillFramework.OnSkillEnabled(skillName, player, config);
 
-            SkillPlayerInfo.TryAdd(player.SteamID, new PlayerSkillInfo
+            SkillPlayerInfo.TryAdd(player.Slot, new PlayerSkillInfo
             {
-                SteamID = player.SteamID,
-                LastClick = DateTime.MinValue,
+                Slot = player.Slot,
+                LastClick = -1000000f,
                 FindedEnemy = true,
                 HaveWeapon = true,
             });
@@ -59,7 +59,7 @@ namespace Supermoce
         {
             if (Instance?.IsPlayerValid(player) == false) return;
             ActiveSkillFramework.OnSkillDisabled(skillName, player);
-            SkillPlayerInfo.TryRemove(player.SteamID, out _);
+            SkillPlayerInfo.TryRemove(player.Slot, out _);
         }
 
         public static void UseSkill(CCSPlayerController player)
@@ -70,11 +70,11 @@ namespace Supermoce
             var playerPawn = player.PlayerPawn?.Value;
             if (playerPawn?.CBodyComponent == null) return;
 
-            if (!SkillPlayerInfo.TryGetValue(player.SteamID, out var skillInfo)) return;
+            if (!SkillPlayerInfo.TryGetValue(player.Slot, out var skillInfo)) return;
 
             if (!ActiveSkillFramework.CanUseSkill(skillName, player))
             {
-                skillInfo.LastClick = DateTime.Now;
+                skillInfo.LastClick = Server.CurrentTime;
                 return;
             }
 
@@ -83,7 +83,7 @@ namespace Supermoce
             {
                 SkillUtils.PrintToChat(player, $"Nie znaleziono odpowiedniego wroga", true);
                 skillInfo.FindedEnemy = false;
-                skillInfo.LastClick = DateTime.Now;
+                skillInfo.LastClick = Server.CurrentTime;
                 return;
             }
 
@@ -93,7 +93,7 @@ namespace Supermoce
                 SkillUtils.PrintToChat(player, $"Wylosowany wróg nie ma odpowiedniej broni", true);
                 skillInfo.FindedEnemy = true;
                 skillInfo.HaveWeapon = false;
-                skillInfo.LastClick = DateTime.Now;
+                skillInfo.LastClick = Server.CurrentTime;
                 return;
             }
 
@@ -103,13 +103,13 @@ namespace Supermoce
                 SkillUtils.PrintToChat(player, $"Wylosowany wróg nie ma odpowiedniej broni", true);
                 skillInfo.FindedEnemy = true;
                 skillInfo.HaveWeapon = false;
-                skillInfo.LastClick = DateTime.Now;
+                skillInfo.LastClick = Server.CurrentTime;
                 return;
             }
 
             skillInfo.HaveWeapon = true;
             skillInfo.FindedEnemy = true;
-            skillInfo.LastClick = DateTime.Now;
+            skillInfo.LastClick = Server.CurrentTime;
 
             ActiveSkillFramework.MarkSkillUsed(skillName, player);
             RemoveStolenWeapons(enemy, stolenWeapons);
@@ -119,7 +119,7 @@ namespace Supermoce
                 Instance?.AddTimer(0.3f, () => enemy.ExecuteClientCommand("slot2"));
             });
 
-            SkillUtils.PrintToChat(enemy, $"Wróg ukradł Ci sprzęt.", true);
+            ToastService.Show(enemy, ToastKind.Steal, "KRADZIEŻ SPRZĘTU!");
             
         }
 
@@ -167,8 +167,8 @@ namespace Supermoce
 
         public class PlayerSkillInfo
         {
-            public ulong SteamID { get; set; }
-            public DateTime LastClick { get; set; }
+            public int Slot { get; set; }
+            public float LastClick { get; set; }
             public bool FindedEnemy { get; set; }
             public bool HaveWeapon { get; set; }
         }

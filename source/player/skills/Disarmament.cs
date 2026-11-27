@@ -71,7 +71,10 @@ namespace Supermoce
 
                     var weaponName = weaponServices?.ActiveWeapon?.Value?.DesignerName;
                     if (weaponName != null && !weaponName.Contains("weapon_knife") && !weaponName.Contains("weapon_c4"))
+                    {
                         victim.DropActiveWeapon();
+                        ToastService.Show(victim, ToastKind.Disarm, "WYRZUCENIE!");
+                    }
                 }
             }
         }

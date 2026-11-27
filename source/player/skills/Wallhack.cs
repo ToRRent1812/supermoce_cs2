@@ -11,7 +11,7 @@ namespace Supermoce
     public class Wallhack : ISkill
     {
         private const Skills skillName = Skills.Wallhack;
-        private static readonly ConcurrentDictionary<ulong, byte> playersInAction = [];
+        private static readonly ConcurrentDictionary<int, byte> playersInAction = [];
         private static readonly ConcurrentBag<(CDynamicProp, CDynamicProp, CsTeam)> glows = [];
 
         public static void LoadSkill()
@@ -59,14 +59,14 @@ namespace Supermoce
         public static void EnableSkill(CCSPlayerController player)
         {
             Event.EnableTransmit();
-            playersInAction.TryAdd(player.SteamID, 0);
+            playersInAction.TryAdd(player.Slot, 0);
             if (glows.IsEmpty)
                 SetGlowEffectForAll();
         }
 
         public static void DisableSkill(CCSPlayerController player)
         {
-            playersInAction.TryRemove(player.SteamID, out _);
+            playersInAction.TryRemove(player.Slot, out _);
             if (playersInAction.IsEmpty)
                 NewRound();
         }
